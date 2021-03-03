@@ -1,0 +1,19 @@
+{
+	"name": "mob-attack-tool",
+	"title": "Mob Attack Tool",
+	"description": "A module for dnd5e that adds support for Mob Attacks.",
+	"author": "Stendarpaval (Lupusmalus)",
+	"version": "1.0.0",
+	"minimumCoreVersion": "0.7.6",
+	"compatibleCoreVersion": "0.7.9",
+	"system": "dnd5e",
+	"dependencies": [
+		{
+			"name": "betterrolls5e",
+			"manifest": "https://raw.githubusercontent.com/RedReign/FoundryVTT-BetterRolls5e/master/betterrolls5e/module.json"
+		}
+	],
+	"esmodules": [
+			"scripts/mobAttack.js"
+		]
+}
