@@ -3,6 +3,7 @@
 	"title": "Mob Attack Tool",
 	"description": "A module for dnd5e that adds support for Mob Attacks.",
 	"author": "Stendarpaval (Lupusmalus)",
+	"url": "https://github.com/Stendarpaval/mob-attack-tool",
 	"version": "1.0.0",
 	"minimumCoreVersion": "0.7.6",
 	"compatibleCoreVersion": "0.7.9",
