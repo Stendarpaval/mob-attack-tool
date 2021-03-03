@@ -1,6 +1,9 @@
 # Mob Attack Tool
 A module for Foundry VTT that offers a tool for handling mob attacks in the dnd5e system.
 
+## How to install
+You can install this module by pasting this url in the corresponding text field of Foundry's package installer: `https://raw.githubusercontent.com/Stendarpaval/mob-attack-tool/main/module.json`
+
 ## How to use
 After activating this module, a new button appears in the token controls bar. This button is only visible to users with the GM role. To use the Mob Attack tool, make sure you have at least one token selected and exactly one token targeted. 
 
