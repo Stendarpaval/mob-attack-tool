@@ -15,6 +15,7 @@
 		}
 	],
 	"esmodules": [
-			"scripts/mobAttack.js"
-		]
+		"scripts/mobAttack.js"
+	],
+	"download": "https://github.com/Stendarpaval/mob-attack-tool/archive/v0.0.1.zip"
 }
