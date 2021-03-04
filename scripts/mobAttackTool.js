@@ -103,18 +103,16 @@ const d = new Dialog({
 							 "<br><hr><strong>Conclusion:</strong> ", numHitAttacks, pluralOrNot
 						].join(``));
 						
-						if (betterrollsActive) {
-							(async () => {
-								for (let i = 0; i < numHitAttacks; i++) {
+						(async () => {
+							for (let i = 0; i < numHitAttacks; i++) {
+								if (betterrollsActive) {
+									await weapons[key].rollDamage();
+								} else {
 									await BetterRolls.quickRollByName(actorName,key);
-									await new Promise(resolve => setTimeout(resolve, 500));
 								}
-							})();
-						} else {
-							for (let i = 0; 1 < numHitAttacks; i++) {
-								weapons[key].rollDamage();
+								await new Promise(resolve => setTimeout(resolve, 500));
 							}
-						}
+						})();
 					} else {
 						ui.notifications.warn("Attack bonus too low or not enough mob attackers to hit the target!");
 					}
