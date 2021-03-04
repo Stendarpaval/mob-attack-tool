@@ -80,6 +80,11 @@ const d = new Dialog({
 					}
 				}
 				
+				let betterrollsActive = false;
+				if (game.modules.get("betterrolls5e")?.active) {
+					betterrollsActive = true;
+				}
+				
 				for ( let [key, value] of Object.entries(attacks) ) { 
 					const actorName = weapons[key].actor.name;
 					const finalAttackBonus = getAttackBonus(weapons[key]);
@@ -97,13 +102,19 @@ const d = new Dialog({
 							 "<br>Number of Attackers: ", numSelected,
 							 "<br><hr><strong>Conclusion:</strong> ", numHitAttacks, pluralOrNot
 						].join(``));
-
-						(async () => {
-							for (let i = 0; i < numHitAttacks; i++) {
-								await BetterRolls.quickRollByName(actorName,key);
-								await new Promise(resolve => setTimeout(resolve, 500));
+						
+						if (betterrollsActive) {
+							(async () => {
+								for (let i = 0; i < numHitAttacks; i++) {
+									await BetterRolls.quickRollByName(actorName,key);
+									await new Promise(resolve => setTimeout(resolve, 500));
+								}
+							})();
+						} else {
+							for (let i = 0; 1 < numHitAttacks; i++) {
+								weapons[key].rollDamage();
 							}
-						})();
+						}
 					} else {
 						ui.notifications.warn("Attack bonus too low or not enough mob attackers to hit the target!");
 					}
