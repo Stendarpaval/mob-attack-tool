@@ -34,19 +34,18 @@ if (targetToken) {
 
 let numSelected = canvas.tokens.controlled.length;
 const dialogContentStart = `<form id="multiattack-lm" class="dialog-content" onsubmit="event.preventDefault()";>`;
-const dialogContentLabel = `<p>Choose weapon option:</p><p class="hint">You have selected ` + numSelected  + ` tokens. Your target has an AC of ` + targetAC + `.</p>`;
+const dialogContentLabel = [
+	`<p>Choose weapon option:</p><p class="hint">You have selected `, numSelected, 
+	` tokens. Your target has an AC of `, targetAC, `.</p>`
+].join(``);
 const dialogContentEnd = `</form>`;
-let content = dialogContentStart + dialogContentLabel;
+let content = dialogContentStart + dialogContentLabel + `<div class="flexcol">`;
 
 
 let weapons = {};
-let weaponLabels = [];
-
 for (let token of canvas.tokens.controlled) {
 
 	let items = token.actor.items.entries;
-
-	content += `<div class="flexcol">`;
 	items.forEach((item) => {
 		if (item.data.type == "weapon") {
 			if (weapons[item.data.name]) {
@@ -55,7 +54,6 @@ for (let token of canvas.tokens.controlled) {
 				}
 			} else {
 				weapons[item.data.name] = item;
-				// weaponLabels.push(formatWeaponLabel(item.data));
 				content += formatWeaponLabel(weapons,item.data);	
 			}
 			
@@ -81,7 +79,6 @@ const d = new Dialog({
 						attacks[weapon] = numSelected;
 					}
 				}
-				const successfulMobAttack = false;
 				
 				for ( let [key, value] of Object.entries(attacks) ) { 
 					const actorName = weapons[key].actor.name;
@@ -92,7 +89,14 @@ const d = new Dialog({
 					if (numSelected / attackersNeeded >= 1) {
 						const numHitAttacks = Math.floor(numSelected/attackersNeeded);
 						const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
-						sendChatMessage("<strong>Mob Attack Results</strong><br>Target: " + targetToken.name + "<br>Attack Bonus: " + finalAttackBonus + "<br>d20 Needed: " + d20Needed + "<br>Attackers Needed: " + attackersNeeded + "<br>Number of Attackers: " + numSelected + "<br><hr><strong>Conclusion:</strong> " + numHitAttacks + pluralOrNot);
+						sendChatMessage([
+							"<strong>Mob Attack Results</strong><br>Target: ", targetToken.name,
+							 "<br>Attack Bonus: ", finalAttackBonus,
+							 "<br>d20 Needed: ", d20Needed,
+							 "<br>Attackers Needed: ", attackersNeeded,
+							 "<br>Number of Attackers: ", numSelected,
+							 "<br><hr><strong>Conclusion:</strong> ", numHitAttacks, pluralOrNot
+						].join(``));
 
 						(async () => {
 							for (let i = 0; i < numHitAttacks; i++) {
@@ -187,9 +191,7 @@ function sendChatMessage(text) {
 
 function getAttackBonus(weaponData) {
 	const actorName = weaponData.actor.name;
-	console.log("actorName:",actorName);
 	let weaponAbility = weaponData._data.data.ability;
-	console.log("weaponAbility:",weaponAbility);
 	if (weaponAbility == "" || weaponAbility == "undefined" || weaponAbility == null) {
 		weaponAbility = "str";
 	}
