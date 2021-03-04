@@ -105,7 +105,7 @@ const d = new Dialog({
 						
 						(async () => {
 							for (let i = 0; i < numHitAttacks; i++) {
-								if (betterrollsActive) {
+								if (!betterrollsActive) {
 									await weapons[key].rollDamage();
 								} else {
 									await BetterRolls.quickRollByName(actorName,key);
