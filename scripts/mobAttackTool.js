@@ -1,4 +1,7 @@
-export function  initMobAttackTool() {
+import { CustomItemRoll } from "../../betterrolls5e/scripts/custom-roll.js";
+
+
+export function initMobAttackTool() {
 	Hooks.on("getSceneControlButtons", (controls) => {
 		const bar = controls.find(c => c.name === "token");
 		bar.tools.push({
@@ -79,6 +82,15 @@ const d = new Dialog({
 						attacks[weapon] = numSelected;
 					}
 				}
+
+				let betterrollsActive = false;
+				if (game.modules.get("betterrolls5e")?.active) {
+					betterrollsActive = true;
+				}
+				let midi_QOL_Active = false;
+				if (game.modules.get("midi-qol")?.active) {
+					midi_QOL_Active = true;
+				}		
 				
 				for ( let [key, value] of Object.entries(attacks) ) { 
 					const actorName = weapons[key].actor.name;
@@ -97,12 +109,46 @@ const d = new Dialog({
 							 "<br>Number of Attackers: ", numSelected,
 							 "<br><hr><strong>Conclusion:</strong> ", numHitAttacks, pluralOrNot
 						].join(``));
-
+						
 						(async () => {
-							for (let i = 0; i < numHitAttacks; i++) {
-								await BetterRolls.quickRollByName(actorName,key);
-								await new Promise(resolve => setTimeout(resolve, 500));
+							if (betterrollsActive) {
+								let mobAttackRoll = await new CustomItemRoll(weapons[key], {
+										adv: 0,
+										consume: true,
+										disadv: 0,
+										forceCrit: false,
+										preset: 0,
+										prompt: {},
+										properties: true,
+										slotLevel: null,
+										rollState: null,
+										useCharge: {use: true, resource: true, charge: false},
+										useTemplate: true,
+										context: "",
+										quickRoll: true,
+									},
+									[
+										["header"],
+										["desc"],
+										["attack", {triggersCrit: false, formula: ("0d0 + " + targetAC)}],
+									]
+								);
+								for (let i = 0; i < numHitAttacks; i++) {
+									await mobAttackRoll.addField(["damage",{index: "all"}]);
+								}
+								await mobAttackRoll.addField(["ammo"]);
+								await mobAttackRoll.toMessage();
+							} else if (!midi_QOL_Active) { // neither midi-qol or betterrolls5e active
+								for (let i = 0; i < numHitAttacks; i++) {
+									await weapons[key].rollDamage({"critical": false, "event": {"shiftKey": true}});							
+								}
+							} else { // midi-qol is active,  betterrolls5e is not active
+								for (let i = 0; i < numHitAttacks; i++) {
+									// TODO: make it roll either only damage or have the attack roll match targetAC
+									await weapons[key].rollDamage({"critical": false, "event": {"shiftKey": true}});
+								}
 							}
+							await new Promise(resolve => setTimeout(resolve, 500));
 						})();
 					} else {
 						ui.notifications.warn("Attack bonus too low or not enough mob attackers to hit the target!");
