@@ -102,10 +102,14 @@ const d = new Dialog({
 						const numHitAttacks = Math.floor(numSelected/attackersNeeded);
 						const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
 						sendChatMessage([
-							"<strong>Mob Attack Results</strong><br>Target: ", targetToken.name, " (AC ", targetAC, ")",
-							 "<br>d20 Needed: ", d20Needed, " (+", finalAttackBonus, " to hit)",
-							 "<br>", numSelected, " Attackers vs ", attackersNeeded," Needed",
-							 "<br><hr><strong>Conclusion:</strong><br>", numHitAttacks, pluralOrNot
+							"<strong>Mob Attack Results</strong>",
+							'<table style="width:100%">',
+							'<tr><td>Target: </td><td>', targetToken.name, " (AC ", targetAC, ")</td></tr>",
+							"<tr><td>d20 Needed: </td><td>", d20Needed, " (+", finalAttackBonus, " to hit)</td></tr>",
+							"</table>",
+							numSelected, " Attackers vs ", attackersNeeded," Needed",
+							"<br><hr>",
+							"<strong>Conclusion:</strong> ", numHitAttacks, pluralOrNot
 						].join(``));
 						
 						(async () => {
