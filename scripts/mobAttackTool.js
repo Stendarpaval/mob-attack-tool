@@ -136,18 +136,19 @@ const d = new Dialog({
 
 							} else { // midi-qol is active,  betterrolls5e is not active
 								let diceFormulaParts = weapons[key].data.data.damage.parts[0];
-								let diceFormula = diceFormulaParts[0];
-								for (let i = 0; i < numHitAttacks-1; i++) {
-									diceFormula += " + " + diceFormulaParts[0];
-								}
 								let damageType = diceFormulaParts[1];
-								let damageRoll = "";
-								damageRoll = new Roll(diceFormula,{mod: weapons[key].actor.data.data.abilities[weapons[key].abilityMod].mod}).roll();
+
+								let diceFormula = diceFormulaParts[0];
+								let damageRoll = new Roll(diceFormula,{mod: weapons[key].actor.data.data.abilities[weapons[key].abilityMod].mod});
+								damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
+								
+								console.log("Mob Attack Tool | multiplied damage roll: ",damageRoll.formula);
+								
 								if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
 								let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(weapons[key].actor, targetToken, damageRoll.total, damageType, [targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType.capitalize()})`,"itemCardId": weapons[key].itemCardId});
 								// console.log(dmgWorkflow);
 							}
-							await new Promise(resolve => setTimeout(resolve, 500));	
+							await new Promise(resolve => setTimeout(resolve, 750));	
 						})();
 					} else {
 						ui.notifications.warn("Attack bonus too low or not enough mob attackers to hit the target!");
@@ -285,10 +286,6 @@ function getWeaponDamage(weaponData) {
 		damageType.push(diceFormulaParts[1]);
 	}
 	return [diceFormula, damageType];
-	// const diceFormulaParts = weaponData.data.data.damage.parts[0];
-	// const diceFormula = diceFormulaParts[0].replace("@mod",weaponData.actor.data.data.abilities[weaponData.abilityMod].mod);
-	// const damageType = diceFormulaParts[1];
-	// return [diceFormula, damageType];
 }
 
 }
