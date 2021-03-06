@@ -152,7 +152,7 @@ const d = new Dialog({
 								// console.log("mod:",weapons[key].actor._data.data.abilities[weapons[key].abilityMod].mod);
 								// console.log("diceFormula:",diceFormula);
 								// console.log("damageType:", damageType);
-								damageRoll = new Roll(diceFormula,{mod: weapons[key].actor._data.data.abilities[weapons[key].abilityMod].mod}).roll();
+								damageRoll = new Roll(diceFormula,{mod: weapons[key].actor.data.data.abilities[weapons[key].abilityMod].mod}).roll();
 								// console.log("damageRoll:",damageRoll);
 								if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
 								let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(weapons[key].actor, targetToken, damageRoll.total, damageType, [targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType.capitalize()})`,"itemCardId": weapons[key].itemCardId});
@@ -263,13 +263,13 @@ function sendChatMessage(text) {
 
 function getAttackBonus(weaponData) {
 	const actorName = weaponData.actor.name;
-	let weaponAbility = weaponData._data.data.ability;
-	if (weaponAbility == "" || weaponAbility == "undefined" || weaponAbility == null) {
+	let weaponAbility = weaponData.abilityMod;
+	if (weaponAbility === "" || typeof weaponAbility === "undefined" || weaponAbility == null) {
 		weaponAbility = "str";
 	}
-	const actorAbilityMod = parseInt(weaponData.actor._data.data.abilities[weaponAbility].mod);
-	const attackBonus = parseInt(weaponData._data.data.attackBonus);
-	const profBonus = parseInt(((weaponData._data.data.proficient) ? weaponData.actor._data.data.attributes.prof : 0));
+	const actorAbilityMod = parseInt(weaponData.actor.data.data.abilities[weaponAbility].mod);
+	const attackBonus = parseInt(weaponData.data.data.attackBonus);
+	const profBonus = parseInt(((weaponData.data.data.proficient) ? weaponData.actor.data.data.attributes.prof : 0));
 	let finalAttackBonus = actorAbilityMod + attackBonus + profBonus;
 	if (isNaN(finalAttackBonus)) {
 		ui.notifications.warn("Warning: attack bonus is NaN! Replacing with +5 in the interrim.");
