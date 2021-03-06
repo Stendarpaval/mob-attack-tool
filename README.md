@@ -11,13 +11,25 @@ A dialog window will appear, populated with the weapon options of the selected t
 
 Clicking on the Mob Attack button in the dialog window will then whisper a message to the GM with the mob attack results. Furthermore, the weapon item is rolled the number of times that an attack would hit.
 
-## Dependencies
-* [Better Rolls for 5e](https://github.com/RedReign/FoundryVTT-BetterRolls5e)
+## Examples
+
+![MAT-video-v0 0 3](https://user-images.githubusercontent.com/17188192/110196581-c81b2f00-7e45-11eb-908a-f0fd73567e10.gif)
+
+### Example Mob Attack Tool + Better Rolls for 5e
+
+![MAT-video-betterrolls-v0 0 3](https://user-images.githubusercontent.com/17188192/110196617-f567dd00-7e45-11eb-8353-2ca75682268d.gif)
+
+### Example Mob Attack Tool + Better Rolls for 5e + Midi-QOL
+
+![MAT-video-midi-qol-v0 0 3](https://user-images.githubusercontent.com/17188192/110196624-0fa1bb00-7e46-11eb-9ec1-ade1ef8dff96.gif)
 
 ## Planned improvements
-* Improved automatic rolling of damage.
-* No dependency on Better Rolls for 5e (though still supporting it).
-* Improved support for [midi-qol](https://gitlab.com/tposney/midi-qol).
+* Improved automatic rolling of damage. -> In Progreess
+* ~~No dependency on Better Rolls for 5e~~ (though still supporting it). -> Complete
+* Improved support for [midi-qol](https://gitlab.com/tposney/midi-qol). -> In Progress
+* Further (optional) automation of the initial selection of tokens
+* Some documentation and better structuring of the repo
 
 ## Inspirations
 This module was inspired by [Multiattack 5e](https://github.com/jessev14/Multiattack-5e).
+The map shown in the examples was made by ~~Printable RPG~~ Spellarena. You can check out more of their beautiful maps on the [Spellarena Patreon](https://www.patreon.com/m/spellarena). 
