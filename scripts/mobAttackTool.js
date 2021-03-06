@@ -270,7 +270,7 @@ function getAttackBonus(weaponData) {
 	const actorAbilityMod = parseInt(weaponData.actor._data.data.abilities[weaponAbility].mod);
 	const attackBonus = parseInt(weaponData._data.data.attackBonus);
 	const profBonus = parseInt(((weaponData._data.data.proficient) ? weaponData.actor._data.data.attributes.prof : 0));
-	const finalAttackBonus = actorAbilityMod + attackBonus + profBonus;
+	let finalAttackBonus = actorAbilityMod + attackBonus + profBonus;
 	if (isNaN(finalAttackBonus)) {
 		ui.notifications.warn("Warning: attack bonus is NaN! Replacing with +5 in the interrim.");
 		finalAttackBonus = 5;
