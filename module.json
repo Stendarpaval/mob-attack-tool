@@ -8,12 +8,6 @@
 	"minimumCoreVersion": "0.7.6",
 	"compatibleCoreVersion": "0.7.9",
 	"system": "dnd5e",
-	"dependencies": [
-		{
-			"name": "betterrolls5e",
-			"manifest": "https://raw.githubusercontent.com/RedReign/FoundryVTT-BetterRolls5e/master/betterrolls5e/module.json"
-		}
-	],
 	"esmodules": [
 		"scripts/mobAttack.js"
 	],

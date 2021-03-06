@@ -1,6 +1,3 @@
-import { CustomItemRoll } from "../../betterrolls5e/scripts/custom-roll.js";
-
-
 export function initMobAttackTool() {
 	Hooks.on("getSceneControlButtons", (controls) => {
 		const bar = controls.find(c => c.name === "token");
@@ -36,7 +33,7 @@ if (targetToken) {
 }
 
 let numSelected = canvas.tokens.controlled.length;
-const dialogContentStart = `<form id="multiattack-lm" class="dialog-content" onsubmit="event.preventDefault()";>`;
+const dialogContentStart = `<form id="multiattack-lm" class="dialog-content";>`;
 const dialogContentLabel = [
 	`<p>Choose weapon option:</p><p class="hint">You have selected `, numSelected, 
 	` tokens. Your target has an AC of `, targetAC, `.</p>`
@@ -44,10 +41,17 @@ const dialogContentLabel = [
 const dialogContentEnd = `</form>`;
 let content = dialogContentStart + dialogContentLabel + `<div class="flexcol">`;
 
-
+let monsters = {};
 let weapons = {};
 for (let token of canvas.tokens.controlled) {
-
+	if (monsters[token.actor.name]) {
+		if (monsters[token.actor.name]._id == token.actor._id) {
+			console.log("Mob Attack Tool | Actor already known.");
+		}
+	} else {
+		monsters[token.actor.name] = token.actor;
+		content += `<hr/>` + formatMonsterLabel(token.actor);
+	}
 	let items = token.actor.items.entries;
 	items.forEach((item) => {
 		if (item.data.type == "weapon") {
@@ -75,13 +79,6 @@ const d = new Dialog({
 			label: "Mob Attack",
 			icon: `<i class="fas fa-fist-raised"></i>`,
 			callback: (html) => {
-				let attacks = {};
-
-				for (let [weapon, weaponData] of Object.entries(weapons)) {
-					if (html.find(`input[name="use` + weapon.replace(" ","-") + `"]`)[0].checked) {
-						attacks[weapon] = numSelected;
-					}
-				}
 
 				let betterrollsActive = false;
 				if (game.modules.get("betterrolls5e")?.active) {
@@ -91,6 +88,14 @@ const d = new Dialog({
 				if (game.modules.get("midi-qol")?.active) {
 					midi_QOL_Active = true;
 				}		
+
+				let attacks = {};
+
+				for (let [weapon, weaponData] of Object.entries(weapons)) {
+					if (html.find(`input[name="use` + weapon.replace(" ","-") + `"]`)[0].checked) {
+						attacks[weapon] = numSelected;
+					}
+				}
 				
 				for ( let [key, value] of Object.entries(attacks) ) { 
 					const actorName = weapons[key].actor.name;
@@ -101,6 +106,8 @@ const d = new Dialog({
 					if (numSelected / attackersNeeded >= 1) {
 						const numHitAttacks = Math.floor(numSelected/attackersNeeded);
 						const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
+
+						// Mob attack results message
 						sendChatMessage([
 							"<strong>Mob Attack Results</strong>",
 							'<table style="width:100%">',
@@ -114,43 +121,44 @@ const d = new Dialog({
 						
 						(async () => {
 							if (betterrollsActive) {
-								let mobAttackRoll = await new CustomItemRoll(weapons[key], {
-										adv: 0,
-										consume: true,
-										disadv: 0,
-										forceCrit: false,
-										preset: 0,
-										prompt: {},
-										properties: true,
-										slotLevel: null,
-										rollState: null,
-										useCharge: {use: true, resource: true, charge: false},
-										useTemplate: true,
-										context: "",
-										quickRoll: true,
-									},
+								let mobAttackRoll = BetterRolls.rollItem(weapons[key], {},
 									[
 										["header"],
 										["desc"],
-										["attack", {triggersCrit: false, formula: ("0d0 + " + targetAC)}],
+										["attack", {triggersCrit: false, formula: ("0d0 + " + targetAC)}]
 									]
 								);
+								// Add damage fields from each successful hit to the same card
 								for (let i = 0; i < numHitAttacks; i++) {
 									await mobAttackRoll.addField(["damage",{index: "all"}]);
 								}
 								await mobAttackRoll.addField(["ammo"]);
 								await mobAttackRoll.toMessage();
+
 							} else if (!midi_QOL_Active) { // neither midi-qol or betterrolls5e active
 								for (let i = 0; i < numHitAttacks; i++) {
-									await weapons[key].rollDamage({"critical": false, "event": {"shiftKey": true}});							
+									await weapons[key].rollDamage({"critical": false, "event": {"shiftKey": true}});	
+									await new Promise(resolve => setTimeout(resolve, 300));						
 								}
+
 							} else { // midi-qol is active,  betterrolls5e is not active
-								for (let i = 0; i < numHitAttacks; i++) {
-									// TODO: make it roll either only damage or have the attack roll match targetAC
-									await weapons[key].rollDamage({"critical": false, "event": {"shiftKey": true}});
+								let diceFormulaParts = weapons[key].data.data.damage.parts[0];
+								let diceFormula = diceFormulaParts[0];
+								for (let i = 0; i < numHitAttacks-1; i++) {
+									diceFormula += " + " + diceFormulaParts[0];
 								}
+								let damageType = diceFormulaParts[1];
+								let damageRoll = "";
+								// console.log("mod:",weapons[key].actor._data.data.abilities[weapons[key].abilityMod].mod);
+								// console.log("diceFormula:",diceFormula);
+								// console.log("damageType:", damageType);
+								damageRoll = new Roll(diceFormula,{mod: weapons[key].actor._data.data.abilities[weapons[key].abilityMod].mod}).roll();
+								// console.log("damageRoll:",damageRoll);
+								if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
+								let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(weapons[key].actor, targetToken, damageRoll.total, damageType, [targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType.capitalize()})`,"itemCardId": weapons[key].itemCardId});
+								// console.log(dmgWorkflow);
 							}
-							await new Promise(resolve => setTimeout(resolve, 500));
+							await new Promise(resolve => setTimeout(resolve, 500));	
 						})();
 					} else {
 						ui.notifications.warn("Attack bonus too low or not enough mob attackers to hit the target!");
@@ -162,7 +170,9 @@ const d = new Dialog({
 			label: "Cancel",
 			icon: `<i class="fas fa-times"></i>`
 		}
-	}
+
+	},
+	default: "one"
 });
 
 d.render(true);
@@ -170,14 +180,28 @@ d.render(true);
 } // end of actor selection check
 
 
-function formatWeaponLabel(weapons,itemData) {
-	let image = `<label><img src="` + itemData.img + `" title="` + itemData.name.replace(" ","-") + `" width="30" height="30" style="border:none; margin:0px 5px 0px 0px; grid-column-start:1 grid-column-end:2; align-self:center;"></label>`;
-	let weaponAttackBonus = `<label class="hint" style="grid-column-start:3; grid-column-end:4; align-self:center;">+` + getAttackBonus(weapons[itemData.name]) + ` to hit</label>`;
-	let weaponName = `<label style="grid-column-start:2; grid-column-end:3; align-self:center; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">` + itemData.name + `</label>`;
-	let useButton = `<input type="checkbox" name="use` + itemData.name.replace(" ","-") + `" style="grid-column-start:4; grid-column-end:5; align-self: center;"/>`;
+String.prototype.capitalize = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+}
 
-	let label =  `<div style="display:grid; grid-template-columns:30px 260px 50px 20px; column-gap:5px;">` + image + weaponName + weaponAttackBonus + useButton + `</div>`;
-	return label;
+
+function formatMonsterLabel(actorData) {
+	let image = `<label><img src="${actorData.img}" title="${actorData.name.replace(" ","-")}" width="36" height="36" style="border:none; margin:0px 5px 0px 0px; grid-column-start:1 grid-column-end:2; align-self:center;"></label>`;
+	let monsterName = `<label style="grid-column-start:2; grid-column-end:3; align-self:center; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${actorData.name}</label>`;
+	let monsterLabel = `<div style="display:grid; grid-template-columns:30px 240px 50px; column-gap:5px;">${image}${monsterName}</div>`;
+	return monsterLabel;
+}
+
+
+function formatWeaponLabel(weapons,itemData) {
+	let image = `<label><img src="${itemData.img}" title="${itemData.name.replace(" ","-")}" width="30" height="30" style="border:none; margin:0px 5px 0px 0px; grid-column-start:1; grid-column-end:2; align-self:center;"></label>`;
+	let weaponAttackBonus = `<label class="hint" style="grid-column-start:4; grid-column-end:5; align-self:center;">+${getAttackBonus(weapons[itemData.name])} to hit</label>`;
+	let weaponDamage = `<label class="hint" style="grid-column-start:5; grid-column-end:6; align-self:center;">${getWeaponDamage(weapons[itemData.name])[0]} ${getWeaponDamage(weapons[itemData.name])[1]}</label>`;
+	let weaponName = `<label style="grid-column-start:3; grid-column-end:4; align-self:center; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${itemData.name}</label>`;
+	let useButton = `<input type="checkbox" name="use${itemData.name.replace(" ","-")}" style="grid-column-start:6; grid-column-end:7; align-self: center;"/>`;
+
+	let weaponLabel =  `<div style="display:grid; grid-template-columns:10px 30px 130px 50px 110px 30px; column-gap:5px;"><label style="grid-column-start:1; grid-column-end:2; align-self:center;"></label>${image}${weaponName}${weaponAttackBonus}${weaponDamage}${useButton}</div>`;
+	return weaponLabel;
 }
 
 
@@ -253,4 +277,13 @@ function getAttackBonus(weaponData) {
 	}
 	return finalAttackBonus;
 }
+
+
+function getWeaponDamage(weaponData) {
+	const diceFormulaParts = weaponData.data.data.damage.parts[0];
+	const diceFormula = diceFormulaParts[0].replace("@mod",weaponData.actor._data.data.abilities[weaponData.abilityMod].mod);
+	const damageType = diceFormulaParts[1];
+	return [diceFormula, damageType];
+}
+
 }
