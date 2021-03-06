@@ -34,10 +34,7 @@ if (targetToken) {
 
 let numSelected = canvas.tokens.controlled.length;
 const dialogContentStart = `<form id="multiattack-lm" class="dialog-content";>`;
-const dialogContentLabel = [
-	`<p>Choose weapon option:</p><p class="hint">You have selected `, numSelected, 
-	` tokens. Your target has an AC of `, targetAC, `.</p>`
-].join(``);
+const dialogContentLabel = `<p>Choose weapon option:</p><p class="hint">You have selected ${numSelected} tokens. Your target has an AC of ${targetAC}.</p>`;
 const dialogContentEnd = `</form>`;
 let content = dialogContentStart + dialogContentLabel + `<div class="flexcol">`;
 
@@ -81,13 +78,9 @@ const d = new Dialog({
 			callback: (html) => {
 
 				let betterrollsActive = false;
-				if (game.modules.get("betterrolls5e")?.active) {
-					betterrollsActive = true;
-				}
+				if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
 				let midi_QOL_Active = false;
-				if (game.modules.get("midi-qol")?.active) {
-					midi_QOL_Active = true;
-				}		
+				if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
 
 				let attacks = {};
 
@@ -109,14 +102,14 @@ const d = new Dialog({
 
 						// Mob attack results message
 						sendChatMessage([
-							"<strong>Mob Attack Results</strong>",
-							'<table style="width:100%">',
-							'<tr><td>Target: </td><td>', targetToken.name, " (AC ", targetAC, ")</td></tr>",
-							"<tr><td>d20 Needed: </td><td>", d20Needed, " (+", finalAttackBonus, " to hit)</td></tr>",
-							"</table>",
-							numSelected, " Attackers vs ", attackersNeeded," Needed",
-							"<br><hr>",
-							"<strong>Conclusion:</strong> ", numHitAttacks, pluralOrNot
+							`<strong>Mob Attack Results</strong>`,
+							`<table style="width:100%">`,
+							`<tr><td>Target: </td><td>${targetToken.name} (AC ${targetAC})</td></tr>`,
+							`<tr><td>d20 Needed: </td><td>${d20Needed} (+${finalAttackBonus} to hit)</td></tr>`,
+							`</table>`,
+							`${numSelected} Attackers vs ${attackersNeeded} Needed`,
+							`<br><hr>`,
+							`<strong>Conclusion:</strong> ${numHitAttacks}${pluralOrNot}`
 						].join(``));
 						
 						(async () => {
@@ -149,11 +142,7 @@ const d = new Dialog({
 								}
 								let damageType = diceFormulaParts[1];
 								let damageRoll = "";
-								// console.log("mod:",weapons[key].actor._data.data.abilities[weapons[key].abilityMod].mod);
-								// console.log("diceFormula:",diceFormula);
-								// console.log("damageType:", damageType);
 								damageRoll = new Roll(diceFormula,{mod: weapons[key].actor.data.data.abilities[weapons[key].abilityMod].mod}).roll();
-								// console.log("damageRoll:",damageRoll);
 								if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
 								let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(weapons[key].actor, targetToken, damageRoll.total, damageType, [targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType.capitalize()})`,"itemCardId": weapons[key].itemCardId});
 								// console.log(dmgWorkflow);
@@ -173,7 +162,7 @@ const d = new Dialog({
 
 	},
 	default: "one"
-});
+},{width: 430});
 
 d.render(true);
 
@@ -188,19 +177,25 @@ String.prototype.capitalize = function() {
 function formatMonsterLabel(actorData) {
 	let image = `<label><img src="${actorData.img}" title="${actorData.name.replace(" ","-")}" width="36" height="36" style="border:none; margin:0px 5px 0px 0px; grid-column-start:1 grid-column-end:2; align-self:center;"></label>`;
 	let monsterName = `<label style="grid-column-start:2; grid-column-end:3; align-self:center; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${actorData.name}</label>`;
-	let monsterLabel = `<div style="display:grid; grid-template-columns:30px 240px 50px; column-gap:5px;">${image}${monsterName}</div>`;
+	let monsterLabel = `<div style="display:grid; grid-template-columns:36px 240px 50px; column-gap:5px;">${image}${monsterName}</div>`;
 	return monsterLabel;
 }
 
 
 function formatWeaponLabel(weapons,itemData) {
-	let image = `<label><img src="${itemData.img}" title="${itemData.name.replace(" ","-")}" width="30" height="30" style="border:none; margin:0px 5px 0px 0px; grid-column-start:1; grid-column-end:2; align-self:center;"></label>`;
+	let image = `<label style="grid-column-start:2; grid-column-end:3; align-self:center;"><img src="${itemData.img}" title="${itemData.name.replace(" ","-")}" width="30" height="30" style="margin:0px 5px 0px 0px; border:none;"></label>`;
 	let weaponAttackBonus = `<label class="hint" style="grid-column-start:4; grid-column-end:5; align-self:center;">+${getAttackBonus(weapons[itemData.name])} to hit</label>`;
-	let weaponDamage = `<label class="hint" style="grid-column-start:5; grid-column-end:6; align-self:center;">${getWeaponDamage(weapons[itemData.name])[0]} ${getWeaponDamage(weapons[itemData.name])[1]}</label>`;
+	let damageData = getWeaponDamage(weapons[itemData.name]);
+	let weaponDamageText = ``;
+	for (let i = 0; i < damageData[0].length; i++) {
+		((i > 0) ? weaponDamageText += `<br>${damageData[0][i]} ${damageData[1][i].capitalize()}` : weaponDamageText += `${damageData[0][i]} ${damageData[1][i].capitalize()}`);
+	}
+	// let weaponDamage = `<label class="hint" style="grid-column-start:5; grid-column-end:6; align-self:center;">${getWeaponDamage(weapons[itemData.name])[0]} ${getWeaponDamage(weapons[itemData.name])[1]}</label>`;
+	let weaponDamage = `<label class="hint" style="white-space: pre-wrap; grid-column-start:5; grid-column-end:6; align-self:center; text-align:center;">${weaponDamageText}</label>`;
 	let weaponName = `<label style="grid-column-start:3; grid-column-end:4; align-self:center; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${itemData.name}</label>`;
 	let useButton = `<input type="checkbox" name="use${itemData.name.replace(" ","-")}" style="grid-column-start:6; grid-column-end:7; align-self: center;"/>`;
 
-	let weaponLabel =  `<div style="display:grid; grid-template-columns:10px 30px 130px 50px 110px 30px; column-gap:5px;"><label style="grid-column-start:1; grid-column-end:2; align-self:center;"></label>${image}${weaponName}${weaponAttackBonus}${weaponDamage}${useButton}</div>`;
+	let weaponLabel =  `<div style="display:grid; grid-template-columns:10px 30px 130px 60px 130px 30px; column-gap:5px;"><label style="grid-column-start:1; grid-column-end:2; align-self:center;"></label>${image}${weaponName}${weaponAttackBonus}${weaponDamage}${useButton}</div>`;
 	return weaponLabel;
 }
 
@@ -263,7 +258,7 @@ function sendChatMessage(text) {
 
 function getAttackBonus(weaponData) {
 	const actorName = weaponData.actor.name;
-	let weaponAbility = weaponData.data.data.ability;
+	let weaponAbility = weaponData.abilityMod;
 	if (weaponAbility === "" || typeof weaponAbility === "undefined" || weaponAbility == null) {
 		weaponAbility = "str";
 	}
@@ -271,6 +266,8 @@ function getAttackBonus(weaponData) {
 	const attackBonus = parseInt(weaponData.data.data.attackBonus);
 	const profBonus = parseInt(((weaponData.data.data.proficient) ? weaponData.actor.data.data.attributes.prof : 0));
 	let finalAttackBonus = actorAbilityMod + attackBonus + profBonus;
+
+	// TODO: This NaN catcher is probably not necessary anymore, to be removed
 	if (isNaN(finalAttackBonus)) {
 		ui.notifications.warn("Warning: attack bonus is NaN! Replacing with +5 in the interrim.");
 		finalAttackBonus = 5;
@@ -280,10 +277,18 @@ function getAttackBonus(weaponData) {
 
 
 function getWeaponDamage(weaponData) {
-	const diceFormulaParts = weaponData.data.data.damage.parts[0];
-	const diceFormula = diceFormulaParts[0].replace("@mod",weaponData.actor._data.data.abilities[weaponData.abilityMod].mod);
-	const damageType = diceFormulaParts[1];
+	let diceFormula = [];
+	let damageType = [];
+	for (let i = 0; i < weaponData.data.data.damage.parts.length; i++) {
+		let diceFormulaParts = weaponData.data.data.damage.parts[i];
+		diceFormula.push(diceFormulaParts[0].replace("@mod",weaponData.actor.data.data.abilities[weaponData.abilityMod].mod));
+		damageType.push(diceFormulaParts[1]);
+	}
 	return [diceFormula, damageType];
+	// const diceFormulaParts = weaponData.data.data.damage.parts[0];
+	// const diceFormula = diceFormulaParts[0].replace("@mod",weaponData.actor.data.data.abilities[weaponData.abilityMod].mod);
+	// const damageType = diceFormulaParts[1];
+	// return [diceFormula, damageType];
 }
 
 }
