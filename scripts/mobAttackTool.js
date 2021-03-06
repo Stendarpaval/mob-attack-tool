@@ -263,7 +263,7 @@ function sendChatMessage(text) {
 
 function getAttackBonus(weaponData) {
 	const actorName = weaponData.actor.name;
-	let weaponAbility = weaponData.abilityMod;
+	let weaponAbility = weaponData.data.data.ability;
 	if (weaponAbility === "" || typeof weaponAbility === "undefined" || weaponAbility == null) {
 		weaponAbility = "str";
 	}
