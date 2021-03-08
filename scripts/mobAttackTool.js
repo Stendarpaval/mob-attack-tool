@@ -14,6 +14,8 @@ export function initMobAttackTool() {
 
 function mobAttackTool() {
 
+const MODULE = "mob-attack-tool";
+
 if (canvas.tokens.controlled.length == 0) {
 	ui.notifications.warn('You need to select a token!');
 } else {
@@ -65,7 +67,16 @@ for (let token of canvas.tokens.controlled) {
 	});	
 }
 
-content += `</div>` + dialogContentEnd + `<br>`;
+let selectRollTypeText = [
+	`<hr>`,
+	`<div><label>Select roll type: </label>`,
+	`<select id="rollType" name="rollType">`,
+	`<option value="advantage">Advantage</option><option value="normal" selected>Normal</option><option value="disadvantage">Disadvantage</option>`,
+	`</select></div>`
+].join(``);
+
+
+content += `</div>` + ((game.settings.get(MODULE,"askRollType")) ? selectRollTypeText : ``) + dialogContentEnd + `<br>`;
 
 
 const d = new Dialog({
@@ -89,30 +100,44 @@ const d = new Dialog({
 						attacks[weapon] = numSelected;
 					}
 				}
-				
-				for ( let [key, value] of Object.entries(attacks) ) { 
-					const actorName = weapons[key].actor.name;
-					const finalAttackBonus = getAttackBonus(weapons[key]);
-					const d20Needed = calcD20Needed(finalAttackBonus, targetAC);
-					const attackersNeeded = calcAttackersNeeded(d20Needed);
 
-					if (numSelected / attackersNeeded >= 1) {
-						const numHitAttacks = Math.floor(numSelected/attackersNeeded);
-						const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
+				let rollTypeValue = 0;
+				let rollTypeMessage = ``;
+				if (game.settings.get(MODULE,"askRollType")) {
+					let rtValue = Math.floor(game.settings.get(MODULE,"rollTypeValue"));
+					if (html.find("[name=rollType]")[0].value === "advantage") {
+						rollTypeValue = rtValue;
+						console.log("rollTypeValue:",rollTypeValue);
+						rollTypeMessage = ` + ${rtValue} [adv]`; 
+					} else if (html.find("[name=rollType]")[0].value === "disadvantage") {
+						rollTypeValue = -1 * rtValue;
+						rollTypeMessage = ` - ${rtValue} [disadv]`;
+						console.log("rollTypeValue:",rollTypeValue);
+					}
+				}
+				(async () => {
+					for ( let [key, value] of Object.entries(attacks) ) { 
+						const actorName = weapons[key].actor.name;
+						const finalAttackBonus = getAttackBonus(weapons[key]);
+						const d20Needed = calcD20Needed(finalAttackBonus, targetAC, rollTypeValue);
+						const attackersNeeded = calcAttackersNeeded(d20Needed);
 
-						// Mob attack results message
-						sendChatMessage([
-							`<strong>Mob Attack Results</strong>`,
-							`<table style="width:100%">`,
-							`<tr><td>Target: </td><td>${targetToken.name} (AC ${targetAC})</td></tr>`,
-							`<tr><td>d20 Needed: </td><td>${d20Needed} (+${finalAttackBonus} to hit)</td></tr>`,
-							`</table>`,
-							`${numSelected} Attackers vs ${attackersNeeded} Needed`,
-							`<br><hr>`,
-							`<strong>Conclusion:</strong> ${numHitAttacks}${pluralOrNot}`
-						].join(``));
-						
-						(async () => {
+						if (numSelected / attackersNeeded >= 1) {
+							const numHitAttacks = Math.floor(numSelected/attackersNeeded);
+							const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
+
+							// Mob attack results message
+							sendChatMessage([
+								`<strong>Mob Attack Results</strong>`,
+								`<table style="width:100%">`,
+								`<tr><td>Target: </td><td>${targetToken.name} (AC ${targetAC})</td></tr>`,
+								`<tr><td>d20 Needed: </td><td>${d20Needed} (+${finalAttackBonus} to hit${rollTypeMessage})</td></tr>`,
+								`</table>`,
+								`${numSelected} Attackers vs ${attackersNeeded} Needed`,
+								`<br><hr>`,
+								`<strong>Conclusion:</strong> ${numHitAttacks}${pluralOrNot}`
+							].join(``));
+							
 							if (betterrollsActive) {
 								let mobAttackRoll = BetterRolls.rollItem(weapons[key], {},
 									[
@@ -135,25 +160,27 @@ const d = new Dialog({
 								}
 
 							} else { // midi-qol is active,  betterrolls5e is not active
-								let diceFormulaParts = weapons[key].data.data.damage.parts[0];
-								let damageType = diceFormulaParts[1];
-
-								let diceFormula = diceFormulaParts[0];
+								let diceFormulas = [];
+								let damageTypes = [];
+								for (let diceFormulaParts of weapons[key].data.data.damage.parts) {
+									damageTypes.push(diceFormulaParts[1].capitalize());
+									diceFormulas.push(diceFormulaParts[0]);
+								}
+								let damageType = damageTypes.join(", ");
+								let diceFormula = diceFormulas.join(" + ");
 								let damageRoll = new Roll(diceFormula,{mod: weapons[key].actor.data.data.abilities[weapons[key].abilityMod].mod});
 								damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
 								
-								console.log("Mob Attack Tool | multiplied damage roll: ",damageRoll.formula);
-								
 								if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
-								let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(weapons[key].actor, targetToken, damageRoll.total, damageType, [targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType.capitalize()})`,"itemCardId": weapons[key].itemCardId});
+								let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(weapons[key].actor, targetToken, damageRoll.total, damageTypes[0], [targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType})`});
 								// console.log(dmgWorkflow);
 							}
 							await new Promise(resolve => setTimeout(resolve, 750));	
-						})();
-					} else {
-						ui.notifications.warn("Attack bonus too low or not enough mob attackers to hit the target!");
+						} else {
+							ui.notifications.warn("Attack bonus too low or not enough mob attackers to hit the target!");
+						}
 					}
-				}
+				})();
 			}
 		},
 		two: {
@@ -201,8 +228,8 @@ function formatWeaponLabel(weapons,itemData) {
 }
 
 
-function calcD20Needed(attackBonus, targetAC) {
-	let d20Needed = targetAC - attackBonus;
+function calcD20Needed(attackBonus, targetAC, rollTypeValue) {
+	let d20Needed = targetAC - (attackBonus + rollTypeValue);
 	if (d20Needed < 1) {
 		return 1;
 	} else if (d20Needed > 20) {
@@ -269,10 +296,10 @@ function getAttackBonus(weaponData) {
 	let finalAttackBonus = actorAbilityMod + attackBonus + profBonus;
 
 	// TODO: This NaN catcher is probably not necessary anymore, to be removed
-	if (isNaN(finalAttackBonus)) {
-		ui.notifications.warn("Warning: attack bonus is NaN! Replacing with +5 in the interrim.");
-		finalAttackBonus = 5;
-	}
+	// if (isNaN(finalAttackBonus)) {
+	// 	ui.notifications.warn("Warning: attack bonus is NaN! Replacing with +5 in the interrim.");
+	// 	finalAttackBonus = 5;
+	// }
 	return finalAttackBonus;
 }
 
