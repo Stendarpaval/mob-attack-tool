@@ -33,3 +33,6 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 ## Inspirations
 This module was inspired by [Multiattack 5e](https://github.com/jessev14/Multiattack-5e).
 The map shown in the examples was made by ~~Printable RPG~~ Spellarena. You can check out more of their beautiful maps on the [Spellarena Patreon](https://www.patreon.com/m/spellarena). 
+
+## Contributors
+Juanfrank has kindly given feedback and helped me out with condensing damage formulas.
