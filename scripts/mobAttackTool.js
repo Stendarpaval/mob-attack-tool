@@ -143,7 +143,7 @@ const d = new Dialog({
 									[
 										["header"],
 										["desc"],
-										["attack", {triggersCrit: false, formula: ("0d0 + " + targetAC)}]
+										["attack", {triggersCrit: false, isCrit: false, formula: ("1d20 + " + targetAC)}]
 									]
 								);
 								// Add damage fields from each successful hit to the same card
