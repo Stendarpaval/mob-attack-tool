@@ -143,7 +143,7 @@ const d = new Dialog({
 									[
 										["header"],
 										["desc"],
-										["attack", {triggersCrit: false, isCrit: false, formula: ("1d20 + " + targetAC)}]
+										["attack", {triggersCrit: false, isCrit: false, formula: "0d0 + " + (targetAC).toString()}]
 									]
 								);
 								// Add damage fields from each successful hit to the same card
@@ -162,7 +162,9 @@ const d = new Dialog({
 							} else { // midi-qol is active,  betterrolls5e is not active
 								let diceFormulas = [];
 								let damageTypes = [];
+								let damageTypeLabels = []
 								for (let diceFormulaParts of weapons[key].data.data.damage.parts) {
+									damageTypeLabels.push(diceFormulaParts[1]);
 									damageTypes.push(diceFormulaParts[1].capitalize());
 									diceFormulas.push(diceFormulaParts[0]);
 								}
@@ -172,7 +174,7 @@ const d = new Dialog({
 								damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
 								
 								if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
-								let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(weapons[key].actor, targetToken, damageRoll.total, damageTypes[0], [targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType})`});
+								let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(weapons[key].actor, targetToken, damageRoll.total, damageTypes[0], [targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType})`, itemCardId: weapons[key].itemCardId});
 								// console.log(dmgWorkflow);
 							}
 							await new Promise(resolve => setTimeout(resolve, 750));	
