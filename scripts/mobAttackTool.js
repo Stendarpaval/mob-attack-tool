@@ -16,15 +16,19 @@ function mobAttackTool() {
 
 const MODULE = "mob-attack-tool";
 
+let mobAttackData = {};
+
 if (canvas.tokens.controlled.length == 0) {
 	ui.notifications.warn('You need to select a token!');
-} else {
+	return;
+}
 
 
 if (canvas.tokens.objects.children.filter(isTargeted).length > 1) {
 	ui.notifications.warn("Make sure only a single token is targeted!");
 	return;
 }
+
 let targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
 let targetAC = 10;
 if (targetToken) {
@@ -34,7 +38,13 @@ if (targetToken) {
 	return;
 }
 
+mobAttackData["targetToken"] = targetToken;
+mobAttackData["targetAC"] = targetAC;
+
+
 let numSelected = canvas.tokens.controlled.length;
+mobAttackData["numSelected"] = canvas.tokens.controlled.length;
+
 const dialogContentStart = `<form id="multiattack-lm" class="dialog-content";>`;
 const dialogContentLabel = `<p>Choose weapon option:</p><p class="hint">You have selected ${numSelected} tokens. Your target has an AC of ${targetAC}.</p>`;
 const dialogContentEnd = `</form>`;
@@ -67,16 +77,29 @@ for (let token of canvas.tokens.controlled) {
 	});	
 }
 
+mobAttackData["weapons"] = weapons;
+
 let selectRollTypeText = [
 	`<hr>`,
 	`<div><label>Select roll type: </label>`,
 	`<select id="rollType" name="rollType">`,
-	`<option value="advantage">Advantage</option><option value="normal" selected>Normal</option><option value="disadvantage">Disadvantage</option>`,
+		`<option value="advantage">Advantage</option>`,
+		`<option value="normal" selected>Normal</option>`,
+		`<option value="disadvantage">Disadvantage</option>`,
 	`</select></div>`
 ].join(``);
 
+let exportToMacroText = [
+	`<hr>`,
+	`<div style="display:grid; grid-template-columns:100px 30px; column-gap:5px;">`,
+	`<label style="grid-column-start:1; grid-column-end:1; align-self:center;">Export to macro: </label>`,
+	`<input style="grid-column-start:2; grid-column-end:2; align-self:center;" type="checkbox" name="exportMobAttack" value="false"/>`,
+	`</div>`
+].join(``);
 
-content += `</div>` + ((game.settings.get(MODULE,"askRollType")) ? selectRollTypeText : ``) + dialogContentEnd + `<br>`;
+
+content += `</div>` + ((game.settings.get(MODULE,"askRollType")) ? selectRollTypeText : ``);
+content += exportToMacroText + dialogContentEnd + `<br>`;
 
 
 const d = new Dialog({
@@ -88,18 +111,17 @@ const d = new Dialog({
 			icon: `<i class="fas fa-fist-raised"></i>`,
 			callback: (html) => {
 
-				let betterrollsActive = false;
-				if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
-				let midi_QOL_Active = false;
-				if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
-
 				let attacks = {};
+				let weaponLocators = [];
 
 				for (let [weapon, weaponData] of Object.entries(weapons)) {
 					if (html.find(`input[name="use` + weapon.replace(" ","-") + `"]`)[0].checked) {
 						attacks[weapon] = numSelected;
+						weaponLocators.push({"actorID": weaponData.actor._id, "weaponName": weaponData.name});
 					}
 				}
+
+				mobAttackData["attacks"] = attacks;
 
 				let rollTypeValue = 0;
 				let rollTypeMessage = ``;
@@ -107,82 +129,29 @@ const d = new Dialog({
 					let rtValue = Math.floor(game.settings.get(MODULE,"rollTypeValue"));
 					if (html.find("[name=rollType]")[0].value === "advantage") {
 						rollTypeValue = rtValue;
-						console.log("rollTypeValue:",rollTypeValue);
 						rollTypeMessage = ` + ${rtValue} [adv]`; 
 					} else if (html.find("[name=rollType]")[0].value === "disadvantage") {
 						rollTypeValue = -1 * rtValue;
 						rollTypeMessage = ` - ${rtValue} [disadv]`;
-						console.log("rollTypeValue:",rollTypeValue);
 					}
 				}
-				(async () => {
-					for ( let [key, value] of Object.entries(attacks) ) { 
-						const actorName = weapons[key].actor.name;
-						const finalAttackBonus = getAttackBonus(weapons[key]);
-						const d20Needed = calcD20Needed(finalAttackBonus, targetAC, rollTypeValue);
-						const attackersNeeded = calcAttackersNeeded(d20Needed);
 
-						if (numSelected / attackersNeeded >= 1) {
-							const numHitAttacks = Math.floor(numSelected/attackersNeeded);
-							const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
+				mobAttackData["rollTypeValue"] = rollTypeValue;
+				mobAttackData["rollTypeMessage"] = rollTypeMessage;
 
-							// Mob attack results message
-							sendChatMessage([
-								`<strong>Mob Attack Results</strong>`,
-								`<table style="width:100%">`,
-								`<tr><td>Target: </td><td>${targetToken.name} (AC ${targetAC})</td></tr>`,
-								`<tr><td>d20 Needed: </td><td>${d20Needed} (+${finalAttackBonus} to hit${rollTypeMessage})</td></tr>`,
-								`</table>`,
-								`${numSelected} Attackers vs ${attackersNeeded} Needed`,
-								`<br><hr>`,
-								`<strong>Conclusion:</strong> ${numHitAttacks}${pluralOrNot}`
-							].join(``));
-							
-							if (betterrollsActive) {
-								let mobAttackRoll = BetterRolls.rollItem(weapons[key], {},
-									[
-										["header"],
-										["desc"],
-										["attack", {triggersCrit: false, isCrit: false, formula: "0d0 + " + (targetAC).toString()}]
-									]
-								);
-								// Add damage fields from each successful hit to the same card
-								for (let i = 0; i < numHitAttacks; i++) {
-									await mobAttackRoll.addField(["damage",{index: "all"}]);
-								}
-								await mobAttackRoll.addField(["ammo"]);
-								await mobAttackRoll.toMessage();
+				if (html.find(`input[name="exportMobAttack"]`)[0].checked) {
+					let macroName = `${weapons[Object.keys(attacks)[0]].name} Mob Attack of ${canvas.tokens.controlled.length} ${canvas.tokens.controlled[0].name}(s)`;
+					
+					Macro.create({
+						type: "script", 
+						name: macroName,
+						command: `MobAttacks.quickRoll({numSelected: ${numSelected}, weaponLocators: ${JSON.stringify(weaponLocators)}, attacks: ${JSON.stringify(attacks)}, rollTypeValue: ${rollTypeValue}, rollTypeMessage: "${rollTypeMessage}"})`,
+						img: weapons[Object.keys(attacks)[0]].img,
+					});
+				ui.notifications.info(`Macro ${macroName} was saved to the macro directory`);
+				}
 
-							} else if (!midi_QOL_Active) { // neither midi-qol or betterrolls5e active
-								for (let i = 0; i < numHitAttacks; i++) {
-									await weapons[key].rollDamage({"critical": false, "event": {"shiftKey": true}});	
-									await new Promise(resolve => setTimeout(resolve, 300));						
-								}
-
-							} else { // midi-qol is active,  betterrolls5e is not active
-								let diceFormulas = [];
-								let damageTypes = [];
-								let damageTypeLabels = []
-								for (let diceFormulaParts of weapons[key].data.data.damage.parts) {
-									damageTypeLabels.push(diceFormulaParts[1]);
-									damageTypes.push(diceFormulaParts[1].capitalize());
-									diceFormulas.push(diceFormulaParts[0]);
-								}
-								let damageType = damageTypes.join(", ");
-								let diceFormula = diceFormulas.join(" + ");
-								let damageRoll = new Roll(diceFormula,{mod: weapons[key].actor.data.data.abilities[weapons[key].abilityMod].mod});
-								damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
-								
-								if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
-								let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(weapons[key].actor, targetToken, damageRoll.total, damageTypes[0], [targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType})`, itemCardId: weapons[key].itemCardId});
-								// console.log(dmgWorkflow);
-							}
-							await new Promise(resolve => setTimeout(resolve, 750));	
-						} else {
-							ui.notifications.warn("Attack bonus too low or not enough mob attackers to hit the target!");
-						}
-					}
-				})();
+				rollMobAttack(mobAttackData);
 			}
 		},
 		two: {
@@ -195,12 +164,123 @@ const d = new Dialog({
 },{width: 430});
 
 d.render(true);
-
-} // end of actor selection check
+}
 
 
 String.prototype.capitalize = function() {
     return this.charAt(0).toUpperCase() + this.slice(1);
+}
+
+export function MobAttacks() {
+	function quickRoll(data) {
+		if (canvas.tokens.objects.children.filter(isTargeted).length > 1) {
+			ui.notifications.warn("Make sure only a single token is targeted!");
+			return;
+		}
+
+		let targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
+		let targetAC = 10;
+		if (targetToken) {
+			targetAC = targetToken.actor.data.data.attributes.ac.value;
+		} else {
+			ui.notifications.warn("Select a target with a valid AC value!");
+			return;
+		}
+
+		data["targetToken"] = targetToken;
+		data["targetAC"] = targetAC;
+
+		let weapons = {};
+		let attacker, weapon;
+		data.weaponLocators.forEach(locator => {
+			attacker = game.actors.get(locator["actorID"]);
+			weapon = attacker.items.getName(locator["weaponName"])
+			weapons[weapon.name] = weapon;
+		})
+		data["weapons"] = weapons;
+
+		(async () => {
+			return rollMobAttack(data);
+		})();
+	}
+	return {
+		quickRoll:quickRoll
+	};
+}
+
+
+async function rollMobAttack(data) {
+
+	let betterrollsActive = false;
+	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
+	let midi_QOL_Active = false;
+	if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
+
+	for ( let [key, value] of Object.entries(data.attacks) ) { 
+		const actorName = data.weapons[key].actor.name;
+		const finalAttackBonus = getAttackBonus(data.weapons[key]);
+		const d20Needed = calcD20Needed(finalAttackBonus, data.targetAC, data.rollTypeValue);
+		const attackersNeeded = calcAttackersNeeded(d20Needed);
+
+		if (data.numSelected / attackersNeeded >= 1) {
+			const numHitAttacks = Math.floor(data.numSelected/attackersNeeded);
+			const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
+
+			// Mob attack results message
+			sendChatMessage([
+				`<strong>Mob Attack Results</strong>`,
+				`<table style="width:100%">`,
+				`<tr><td>Target: </td><td>${data.targetToken.name} (AC ${data.targetAC})</td></tr>`,
+				`<tr><td>d20 Needed: </td><td>${d20Needed} (+${finalAttackBonus} to hit${data.rollTypeMessage})</td></tr>`,
+				`</table>`,
+				`${data.numSelected} Attackers vs ${attackersNeeded} Needed`,
+				`<br><hr>`,
+				`<strong>Conclusion:</strong> ${numHitAttacks}${pluralOrNot}`
+			].join(``));
+			
+			if (betterrollsActive) {
+				let mobAttackRoll = BetterRolls.rollItem(data.weapons[key], {},
+					[
+						["header"],
+						["desc"],
+						["attack", {triggersCrit: false, isCrit: false, formula: "0d0 + " + (data.targetAC).toString()}]
+					]
+				);
+				// Add damage fields from each successful hit to the same card
+				for (let i = 0; i < numHitAttacks; i++) {
+					await mobAttackRoll.addField(["damage",{index: "all"}]);
+				}
+				await mobAttackRoll.addField(["ammo"]);
+				await mobAttackRoll.toMessage();
+
+			} else if (!midi_QOL_Active) { // neither midi-qol or betterrolls5e active
+				for (let i = 0; i < numHitAttacks; i++) {
+					await data.weapons[key].rollDamage({"critical": false, "event": {"shiftKey": true}});	
+					await new Promise(resolve => setTimeout(resolve, 300));						
+				}
+
+			} else { // midi-qol is active,  betterrolls5e is not active
+				let diceFormulas = [];
+				let damageTypes = [];
+				let damageTypeLabels = []
+				for (let diceFormulaParts of data.weapons[key].data.data.damage.parts) {
+					damageTypeLabels.push(diceFormulaParts[1]);
+					damageTypes.push(diceFormulaParts[1].capitalize());
+					diceFormulas.push(diceFormulaParts[0]);
+				}
+				let damageType = damageTypes.join(", ");
+				let diceFormula = diceFormulas.join(" + ");
+				let damageRoll = new Roll(diceFormula,{mod: data.weapons[key].actor.data.data.abilities[weapons[key].abilityMod].mod});
+				damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
+				
+				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
+				let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(data.weapons[key].actor, data.targetToken, damageRoll.total, damageTypes[0], [data.targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType})`, itemCardId: data.weapons[key].itemCardId});
+			}
+			await new Promise(resolve => setTimeout(resolve, 750));	
+		} else {
+			ui.notifications.warn("Attack bonus too low or not enough mob attackers to hit the target!");
+		}
+	}
 }
 
 
@@ -315,6 +395,4 @@ function getWeaponDamage(weaponData) {
 		damageType.push(diceFormulaParts[1]);
 	}
 	return [diceFormula, damageType];
-}
-
 }

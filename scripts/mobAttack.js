@@ -1,4 +1,5 @@
 import { initMobAttackTool } from "./mobAttackTool.js";
+import { MobAttacks } from "./mobAttackTool.js";
 
 Hooks.once("init", () => {
 	console.log("Mob Attack Tool | Adding Mob Attack Tool.");
@@ -23,4 +24,8 @@ Hooks.once("init", () => {
 	});
 
 	initMobAttackTool();
+})
+
+Hooks.on("ready", async () => {
+	window.MobAttacks = MobAttacks();
 })
