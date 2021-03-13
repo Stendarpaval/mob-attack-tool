@@ -24,10 +24,10 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 ![MAT-video-midi-qol-v0 0 3](https://user-images.githubusercontent.com/17188192/110196624-0fa1bb00-7e46-11eb-9ec1-ade1ef8dff96.gif)
 
 ## Planned improvements
-* Improved automatic rolling of damage. -> _In Progress_
+* ~~Improved automatic rolling of damage.~~ -> __Complete__
 * ~~No dependency on Better Rolls for 5e~~ (though still supporting it). -> __Complete__
 * Improved support for [midi-qol](https://gitlab.com/tposney/midi-qol). -> _In Progress_
-* Further (optional) automation of the initial selection of tokens
+* Further (optional) automation of the initial selection of tokens -> _In Progress_
 * Some documentation and better structuring of the repo
 
 ## Inspirations
