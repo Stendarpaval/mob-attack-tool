@@ -260,21 +260,43 @@ async function rollMobAttack(data) {
 
 			// midi-qol is active,  betterrolls5e is not active
 			} else {
+				await new Promise(resolve => setTimeout(resolve, 300));
+				let cantripScalingFactor = 1;
+				if (data.weapons[key].type == "spell") {
+					let casterLevel = data.weapons[key].actor.data.data.details.level || data.weapons[key].actor.data.data.details.spellLevel;
+					if (5 <= casterLevel && casterLevel <= 10) {
+						cantripScalingFactor = 2;
+					} else if (11 <= casterLevel && casterLevel <= 16) {
+						cantripScalingFactor = 3;
+					} else if (17 <= casterLevel) {
+						cantripScalingFactor = 4;
+					}
+				}
 				let diceFormulas = [];
 				let damageTypes = [];
 				let damageTypeLabels = []
 				for (let diceFormulaParts of data.weapons[key].data.data.damage.parts) {
 					damageTypeLabels.push(diceFormulaParts[1]);
 					damageTypes.push(diceFormulaParts[1].capitalize());
-					diceFormulas.push(diceFormulaParts[0]);
+					if (data.weapons[key].type == "spell") {
+						if (data.weapons[key].data.data.scaling.mode == "cantrip") {
+							let rollFormula = new Roll(diceFormulaParts[0],{mod: data.weapons[key].actor.data.data.abilities[data.weapons[key].abilityMod].mod});
+							rollFormula.alter(0,cantripScalingFactor,{multiplyNumeric: false})
+							diceFormulas.push(rollFormula.formula);
+						} else {
+							diceFormulas.push(diceFormulaParts[0]);
+						}
+					} else {
+						diceFormulas.push(diceFormulaParts[0]);
+					}
 				}
 				let damageType = damageTypes.join(", ");
 				let diceFormula = diceFormulas.join(" + ");
-				let damageRoll = new Roll(diceFormula,{mod: data.weapons[key].actor.data.data.abilities[weapons[key].abilityMod].mod});
-				damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
-				
+				let damageRoll = new Roll(diceFormula,{mod: data.weapons[key].actor.data.data.abilities[data.weapons[key].abilityMod].mod});
+				await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
+
 				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
-				let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(data.weapons[key].actor, data.targetToken, damageRoll.total, damageTypes[0], [data.targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType})`, itemCardId: data.weapons[key].itemCardId});
+				let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(data.weapons[key].actor, data.targetToken, damageRoll.total, damageTypeLabels[0], [data.targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType})`, itemCardId: data.weapons[key].itemCardId});
 			}
 			await new Promise(resolve => setTimeout(resolve, 750));	
 		} else {
