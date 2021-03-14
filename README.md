@@ -1,3 +1,4 @@
+![Foundry Core Compatible Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fraw.githubusercontent.com%2FStendarpaval%2Fmob-attack-tool%2Fmaster%2Fsrc%2Fmodule.json&label=Foundry%20Version&query=$.compatibleCoreVersion&colorB=orange)
 # Mob Attack Tool
 A module for Foundry VTT that offers a tool for handling mob attacks in the dnd5e system.
 
