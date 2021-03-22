@@ -37,6 +37,7 @@ function mobAttackTool() {
 	// Show weapon options per selected token type
 	let monsters = {};
 	let weapons = {};
+	let availableAttacks = {};
 	for (let token of canvas.tokens.controlled) {
 		if (monsters[token.actor.name]) {
 			if (monsters[token.actor.name]._id == token.actor._id) {
@@ -51,19 +52,23 @@ function mobAttackTool() {
 			if (item.data.type == "weapon") {
 				if (weapons[item.data.name]) {
 					if (weapons[item.data.name]._id == item._id) {
-						console.log("Mob Attack Tool | Weapon already known.");
+						availableAttacks[item.data.name] += 1;
+						// console.log("Mob Attack Tool | Weapon already known.");
 					}
 				} else {
 					weapons[item.data.name] = item;
+					availableAttacks[item.data.name] = 1;
 					content += formatWeaponLabel(weapons,item.data);	
 				}
 			} else if (item.data.type == "spell" && item.data.data.level == 0 && item.data.data.damage.parts.length > 0 && item.data.data.save.ability === "") {
 				if (weapons[item.data.name]) {
 					if (weapons[item.data.name]._id == item._id) {
-						console.log("Mob Attack Tool | Cantrip already known.");
+						availableAttacks[item.data.name] += 1;
+						// console.log("Mob Attack Tool | Cantrip already known.");
 					}
 				} else {
 					weapons[item.data.name] = item;
+					availableAttacks[item.data.name] = 1;
 					content += formatWeaponLabel(weapons,item.data);
 				}
 			}
@@ -100,10 +105,9 @@ function mobAttackTool() {
 
 					let attacks = {};
 					let weaponLocators = [];
-
 					for (let [weapon, weaponData] of Object.entries(weapons)) {
 						if (html.find(`input[name="use` + weapon.replace(" ","-") + `"]`)[0].checked) {
-							attacks[weapon] = numSelected;
+							attacks[weapon] = availableAttacks[weapon];
 							weaponLocators.push({"actorID": weaponData.actor._id, "weaponName": weaponData.name});
 						}
 					}
@@ -121,6 +125,7 @@ function mobAttackTool() {
 						}
 					}
 
+					// Create macro
 					if (html.find(`input[name="exportMobAttack"]`)[0].checked) {
 						let macroName = `${weapons[Object.keys(attacks)[0]].name} Mob Attack of ${canvas.tokens.controlled.length} ${canvas.tokens.controlled[0].name}(s)`;
 						
@@ -133,6 +138,7 @@ function mobAttackTool() {
 					ui.notifications.info(`Macro ${macroName} was saved to the macro directory`);
 					}
 
+					// Bundle data together
 					let mobAttackData = {
 						"targetToken": targetToken,
 						"targetAC": targetAC,
@@ -143,7 +149,12 @@ function mobAttackTool() {
 						"rollTypeMessage": rollTypeMessage
 					};
 
-					rollMobAttack(mobAttackData);
+					if (game.settings.get(MODULE,"mobRules") === 0) {
+						rollMobAttack(mobAttackData);
+					} else {
+						rollMobAttackIndividually(mobAttackData);
+					}
+					
 				}
 			},
 			two: {
@@ -162,10 +173,12 @@ String.prototype.capitalize = function() {
 }
 
 
+
 export function MobAttacks() {
 	function quickRoll(data) {
 		if (!checkTarget()) return; 
 		
+		// Collect necessary data for mob attack
 		let targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
 		let targetAC = targetToken.actor.data.data.attributes.ac.value;
 		data["targetToken"] = targetToken;
@@ -181,7 +194,11 @@ export function MobAttacks() {
 		data["weapons"] = weapons;
 
 		(async () => {
-			return rollMobAttack(data);
+			if (game.settings.get("mob-attack-tool","mobRules") === 0) {
+				return rollMobAttack(data);
+			} else {
+				return rollMobAttackIndividually(data);
+			}
 		})();
 	}
 	return {
@@ -205,6 +222,103 @@ function checkTarget() {
 }
 
 
+async function rollMobAttackIndividually(data) {
+
+	// Check for betterrolls5e and midi-qol
+	let betterrollsActive = false;
+	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
+	let midi_QOL_Active = false;
+	if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
+
+	// Cycle through selected weapons
+	for ( let [key, value] of Object.entries(data.attacks) ) {
+		const actorName = data.weapons[key].actor.name;
+		const finalAttackBonus = getAttackBonus(data.weapons[key]);
+
+		let attackFormula = `1d20 + ${finalAttackBonus}`;
+		let numHitAttacks = 0;
+		if (data.rollTypeValue !== 0) {
+			attackFormula += ` + ${data.rollTypeValue}`;
+		}
+
+		// Check how many attackers have this weapon
+		let availableAttacks = data.numSelected;
+		if (!game.settings.get("mob-attack-tool","shareWeapons")) {
+			availableAttacks = value;
+		}
+
+		// Evaluate how many individually rolled attacks hit
+		let attackRoll, attackRollEvaluated, successfulAttackRolls = [];
+		for (let i = 0; i < availableAttacks; i++) {	
+			attackRoll = new Roll(attackFormula);
+			attackRollEvaluated = attackRoll.evaluate();
+			if (attackRollEvaluated.total >= data.targetAC) {
+				numHitAttacks += 1;
+				successfulAttackRolls.push(attackRollEvaluated.total);
+			}
+		}
+		
+		const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
+		
+		sendChatMessage(
+			`<strong>Mob Attack Results</strong>
+			<table style="width:100%">
+			<tr><td>Target: </td><td>${data.targetToken.name} (AC ${data.targetAC})</td></tr>
+			<tr><td>Attack bonus: </td><td>+${finalAttackBonus} to hit${data.rollTypeMessage}</td></tr>
+			<tr><td>Weapon Used:</td><td>${key} (${availableAttacks} of ${data.numSelected})</td></tr>
+			</table>
+			${availableAttacks} attackers use ${key} attacks
+			<br><hr>
+			<strong>Conclusion:</strong> ${numHitAttacks}${pluralOrNot}`
+		);
+
+		if (numHitAttacks != 0) {
+			// Better Rolls 5e active
+			if (betterrollsActive) {
+				let mobAttackRoll = BetterRolls.rollItem(data.weapons[key], {},
+					[
+						["header"],
+						["desc"]
+					]
+				);
+				if (game.settings.get("mob-attack-tool", "showIndividualAttackRolls")) {
+					for (let i = 0; i < numHitAttacks; i++) {
+						await mobAttackRoll.addField(["attack", {formula: "0d0 + " + (successfulAttackRolls[i]).toString()}])
+						await mobAttackRoll.addField(["damage",{index: "all"}]);
+					}
+				} else {
+					await mobAttackRoll.addField(["attack", {formula: "0d0 + " + (data.targetAC).toString()}])
+					for (let i = 0; i < numHitAttacks; i++) {
+						await mobAttackRoll.addField(["damage",{index: "all"}]);
+					}
+				}
+				await mobAttackRoll.addField(["ammo"]);
+				await mobAttackRoll.toMessage();
+				
+			// Midi-QOL active, Better Rolls inactive
+			} else if (midi_QOL_Active) {
+				await new Promise(resolve => setTimeout(resolve, 300));
+
+				let [diceFormula, damageType, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key]);
+
+				let damageRoll = new Roll(diceFormula,{mod: data.weapons[key].actor.data.data.abilities[data.weapons[key].abilityMod].mod});
+				await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
+				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
+				let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(data.weapons[key].actor, data.targetToken, damageRoll.total, damageTypeLabels[0], [data.targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType})`, itemCardId: data.weapons[key].itemCardId});
+			
+			// Neither Better Rolls nor Midi-QOL active
+			} else {
+				for (let i = 0; i < numHitAttacks; i++) {
+					await data.weapons[key].rollDamage({"critical": false, "event": {"shiftKey": true}});	
+					await new Promise(resolve => setTimeout(resolve, 300));						
+				}
+			}
+		}
+	await new Promise(resolve => setTimeout(resolve, 750));	
+	}
+}
+
+
 async function rollMobAttack(data) {
 
 	// Check for betterrolls5e and midi-qol
@@ -213,14 +327,22 @@ async function rollMobAttack(data) {
 	let midi_QOL_Active = false;
 	if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
 
+	// Cycle through selected weapons
 	for ( let [key, value] of Object.entries(data.attacks) ) { 
 		const actorName = data.weapons[key].actor.name;
 		const finalAttackBonus = getAttackBonus(data.weapons[key]);
 		const d20Needed = calcD20Needed(finalAttackBonus, data.targetAC, data.rollTypeValue);
 		const attackersNeeded = calcAttackersNeeded(d20Needed);
 
-		if (data.numSelected / attackersNeeded >= 1) {
-			const numHitAttacks = Math.floor(data.numSelected/attackersNeeded);
+		// Check whether how many attackers can use this weapon
+		let availableAttacks = data.numSelected;
+		if (!game.settings.get("mob-attack-tool","shareWeapons")) {
+			availableAttacks = value;
+		}
+		
+		// Process hit attacks
+		if (availableAttacks / attackersNeeded >= 1) {
+			const numHitAttacks = Math.floor(availableAttacks/attackersNeeded);
 			const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
 
 			// Mob attack results message
@@ -229,8 +351,9 @@ async function rollMobAttack(data) {
 				<table style="width:100%">
 				<tr><td>Target: </td><td>${data.targetToken.name} (AC ${data.targetAC})</td></tr>
 				<tr><td>d20 Needed: </td><td>${d20Needed} (+${finalAttackBonus} to hit${data.rollTypeMessage})</td></tr>
+				<tr><td>Weapon Used:</td><td>${key} (${availableAttacks} of ${data.numSelected})</td></tr>
 				</table>
-				${data.numSelected} Attackers vs ${attackersNeeded} Needed
+				${availableAttacks} Attacks vs ${attackersNeeded} Needed
 				<br><hr>
 				<strong>Conclusion:</strong> ${numHitAttacks}${pluralOrNot}`
 			);
@@ -261,37 +384,8 @@ async function rollMobAttack(data) {
 			// midi-qol is active,  betterrolls5e is not active
 			} else {
 				await new Promise(resolve => setTimeout(resolve, 300));
-				let cantripScalingFactor = 1;
-				if (data.weapons[key].type == "spell") {
-					let casterLevel = data.weapons[key].actor.data.data.details.level || data.weapons[key].actor.data.data.details.spellLevel;
-					if (5 <= casterLevel && casterLevel <= 10) {
-						cantripScalingFactor = 2;
-					} else if (11 <= casterLevel && casterLevel <= 16) {
-						cantripScalingFactor = 3;
-					} else if (17 <= casterLevel) {
-						cantripScalingFactor = 4;
-					}
-				}
-				let diceFormulas = [];
-				let damageTypes = [];
-				let damageTypeLabels = []
-				for (let diceFormulaParts of data.weapons[key].data.data.damage.parts) {
-					damageTypeLabels.push(diceFormulaParts[1]);
-					damageTypes.push(diceFormulaParts[1].capitalize());
-					if (data.weapons[key].type == "spell") {
-						if (data.weapons[key].data.data.scaling.mode == "cantrip") {
-							let rollFormula = new Roll(diceFormulaParts[0],{mod: data.weapons[key].actor.data.data.abilities[data.weapons[key].abilityMod].mod});
-							rollFormula.alter(0,cantripScalingFactor,{multiplyNumeric: false})
-							diceFormulas.push(rollFormula.formula);
-						} else {
-							diceFormulas.push(diceFormulaParts[0]);
-						}
-					} else {
-						diceFormulas.push(diceFormulaParts[0]);
-					}
-				}
-				let damageType = damageTypes.join(", ");
-				let diceFormula = diceFormulas.join(" + ");
+
+				let [diceFormula, damageType, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key]);
 				let damageRoll = new Roll(diceFormula,{mod: data.weapons[key].actor.data.data.abilities[data.weapons[key].abilityMod].mod});
 				await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
 
@@ -411,7 +505,7 @@ function getAttackBonus(weaponData) {
 }
 
 
-function getWeaponDamage(weaponData) {
+function getScalingFactor(weaponData) {
 	let cantripScalingFactor = 1;
 	if (weaponData.type == "spell") {
 		let casterLevel = weaponData.actor.data.data.details.level || weaponData.actor.data.data.details.spellLevel;
@@ -423,6 +517,38 @@ function getWeaponDamage(weaponData) {
 			cantripScalingFactor = 4;
 		}
 	}
+	return cantripScalingFactor;
+}
+
+
+function getDamageFormulaAndType(weaponData) {
+	let cantripScalingFactor = getScalingFactor(weaponData);
+	let diceFormulas = [];
+	let damageTypes = [];
+	let damageTypeLabels = []
+	for (let diceFormulaParts of weaponData.data.data.damage.parts) {
+		damageTypeLabels.push(diceFormulaParts[1]);
+		damageTypes.push(diceFormulaParts[1].capitalize());
+		if (weaponData.type == "spell") {
+			if (weaponData.data.data.scaling.mode == "cantrip") {
+				let rollFormula = new Roll(diceFormulaParts[0],{mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+				rollFormula.alter(0,cantripScalingFactor,{multiplyNumeric: false})
+				diceFormulas.push(rollFormula.formula);
+			} else {
+				diceFormulas.push(diceFormulaParts[0]);
+			}
+		} else {
+			diceFormulas.push(diceFormulaParts[0]);
+		}
+	}
+	let damageType = damageTypes.join(", ");
+	let diceFormula = diceFormulas.join(" + ");
+	return [diceFormula, damageType, damageTypeLabels];
+}
+
+
+function getWeaponDamage(weaponData) {
+	let cantripScalingFactor = getScalingFactor(weaponData);
 	let diceFormula = [];
 	let damageType = [];
 	for (let i = 0; i < weaponData.data.data.damage.parts.length; i++) {
