@@ -38,3 +38,4 @@ The map shown in the examples was made by ~~Printable RPG~~ Spellarena. You can 
 
 ## Contributors
 Juanfrank has kindly given feedback and helped me out with condensing damage formulas.
+mike-marshall0164 has fixed various aspects of the individually rolled attacks. 
