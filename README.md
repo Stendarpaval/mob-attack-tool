@@ -1,4 +1,4 @@
-![Foundry Core Compatible Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fraw.githubusercontent.com%2FStendarpaval%2Fmob-attack-tool%2Fmaster%2Fmodule.json&label=Foundry%20Version&query=$.compatibleCoreVersion&colorB=orange) [![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fmob-attack-tool&colorB=4aa94a)](https://forge-vtt.com/bazaar#package=mob-attack-tool)
+![Foundry Core Compatible Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fraw.githubusercontent.com%2FStendarpaval%2Fmob-attack-tool%2Fmaster%2Fmodule.json&label=Foundry%20Version&query=$.compatibleCoreVersion&colorB=orange) [![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fmob-attack-tool&colorB=4aa94a)](https://forge-vtt.com/bazaar#package=mob-attack-tool) ![Latest Release Download Count](https://img.shields.io/github/downloads/Stendarpaval/mob-attack-tool/latest/module.zip)
 
 # Mob Attack Tool
 A module for Foundry VTT that offers a tool for handling mob attacks in the dnd5e system.
@@ -17,20 +17,15 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 
 ![MAT-video-v0 0 3](https://user-images.githubusercontent.com/17188192/110196581-c81b2f00-7e45-11eb-908a-f0fd73567e10.gif)
 
-### Example Mob Attack Tool + Better Rolls for 5e
-
-![MAT-video-betterrolls-v0 0 3](https://user-images.githubusercontent.com/17188192/110196617-f567dd00-7e45-11eb-8353-2ca75682268d.gif)
-
 ### Example Mob Attack Tool + Better Rolls for 5e + Midi-QOL
 
 ![MAT-video-midi-qol-v0 0 3](https://user-images.githubusercontent.com/17188192/110196624-0fa1bb00-7e46-11eb-9ec1-ade1ef8dff96.gif)
 
 ## Planned improvements
-* ~~Improved automatic rolling of damage.~~ -> __Complete__
-* ~~No dependency on Better Rolls for 5e~~ (though still supporting it). -> __Complete__
 * Improved support for [midi-qol](https://gitlab.com/tposney/midi-qol). -> _In Progress_
 * Further (optional) automation of the initial selection of tokens -> _In Progress_
 * Some documentation and better structuring of the repo
+* Custom Mob Attack tables
 
 ## Inspirations
 This module was inspired by [Multiattack 5e](https://github.com/jessev14/Multiattack-5e).
