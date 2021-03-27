@@ -329,7 +329,7 @@ async function rollMobAttackIndividually(data) {
 					await mobAttackRoll.addField(["damage", damageFieldOptions]);
 				}
 				if (data.weapons[key].data.data.consume.type === "ammo") {
-					await mobAttackRoll.addField(["ammo"]);	
+					await mobAttackRoll.addField(["ammo", {name: data.weapons[key].actor.items.get(data.weapons[key].data.data.consume.target).name}]);	
 				}
 				await mobAttackRoll.toMessage();
 				
@@ -450,7 +450,7 @@ async function rollMobAttack(data) {
 					await mobAttackRoll.addField(["damage",{index: "all"}]);
 				}
 				if (data.weapons[key].data.data.consume.type === "ammo") {
-					await mobAttackRoll.addField(["ammo"]);
+					await mobAttackRoll.addField(["ammo",{name: data.weapons[key].actor.items.get(data.weapons[key].data.data.consume.target).name}]);
 				}
 				await mobAttackRoll.toMessage();
 
