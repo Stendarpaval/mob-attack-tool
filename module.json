@@ -5,7 +5,7 @@
 	"author": "Stendarpaval (Lupusmalus)",
 	"url": "https://github.com/Stendarpaval/mob-attack-tool",
 	"version": "0.1.11",
-	"minimumCoreVersion": "0.7.6",
+	"minimumCoreVersion": "0.7.7",
 	"compatibleCoreVersion": "0.7.9",
 	"system": "dnd5e",
 	"esmodules": [

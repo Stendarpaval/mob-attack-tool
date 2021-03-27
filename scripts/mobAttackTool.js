@@ -111,16 +111,19 @@ function mobAttackTool() {
 							weaponLocators.push({"actorID": weaponData.actor._id, "weaponName": weaponData.name});
 						}
 					}
-
+					let withAdvantage = false;
+					let withDisadvantage = false;
 					let rollTypeValue = 0;
 					let rollTypeMessage = ``;
 					if (game.settings.get(MODULE,"askRollType")) {
 						let rtValue = Math.floor(game.settings.get(MODULE,"rollTypeValue"));
 						if (html.find("[name=rollType]")[0].value === "advantage") {
 							rollTypeValue = rtValue;
+							withAdvantage = true;
 							rollTypeMessage = ` + ${rtValue} [adv]`; 
 						} else if (html.find("[name=rollType]")[0].value === "disadvantage") {
 							rollTypeValue = -1 * rtValue;
+							withDisadvantage = true;
 							rollTypeMessage = ` - ${rtValue} [disadv]`;
 						}
 					}
@@ -146,6 +149,8 @@ function mobAttackTool() {
 						"weapons": weapons,
 						"attacks": attacks,
 						"rollTypeValue": rollTypeValue,
+						"withAdvantage": withAdvantage,
+						"withDisadvantage": withDisadvantage,
 						"rollTypeMessage": rollTypeMessage
 					};
 
@@ -235,11 +240,19 @@ async function rollMobAttackIndividually(data) {
 		const actorName = data.weapons[key].actor.name;
 		const finalAttackBonus = getAttackBonus(data.weapons[key]);
 
-		let attackFormula = `1d20 + ${finalAttackBonus}`;
-		let numHitAttacks = 0;
-		if (data.rollTypeValue !== 0) {
-			attackFormula += ` + ${data.rollTypeValue}`;
+		let attackFormula = '';
+		
+		if(data.withAdvantage === true) {
+			attackFormula = `2d20kh + ${finalAttackBonus}`;
+		} else if(data.withDisadvantage === true) {
+			attackFormula = `2d20kl + ${finalAttackBonus}`;
+		} else {
+			attackFormula = `1d20 + ${finalAttackBonus}`
 		}
+
+		//TODO: check for crits and crit fails. Add separate props.
+		let numHitAttacks = 0;
+		let numCrits = 0;
 
 		// Check how many attackers have this weapon
 		let availableAttacks = data.numSelected;
@@ -252,7 +265,15 @@ async function rollMobAttackIndividually(data) {
 		for (let i = 0; i < availableAttacks; i++) {	
 			attackRoll = new Roll(attackFormula);
 			attackRollEvaluated = attackRoll.evaluate();
-			if (attackRollEvaluated.total >= data.targetAC) {
+
+			if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(attackRoll);
+
+			// Always count 20's as hits and 1's as misses. Maybe add option flag?
+			if(attackRollEvaluated.total - finalAttackBonus == 20) {
+				numCrits++;
+				numHitAttacks += 1;
+				successfulAttackRolls.push(attackRollEvaluated.total);
+			} else if (attackRollEvaluated.total >= data.targetAC && attackRollEvaluated.total - finalAttackBonus > 1) {
 				numHitAttacks += 1;
 				successfulAttackRolls.push(attackRollEvaluated.total);
 			}
@@ -300,11 +321,14 @@ async function rollMobAttackIndividually(data) {
 				await new Promise(resolve => setTimeout(resolve, 300));
 
 				let [diceFormula, damageType, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key]);
-
 				let damageRoll = new Roll(diceFormula,{mod: data.weapons[key].actor.data.data.abilities[data.weapons[key].abilityMod].mod});
-				await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
+				
+				//TODO: use better crit formula
+				await damageRoll.alter((numHitAttacks + numCrits),0,{multiplyNumeric: true}).roll();
+				
 				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
-				let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(data.weapons[key].actor, data.targetToken, damageRoll.total, damageTypeLabels[0], [data.targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType})`, itemCardId: data.weapons[key].itemCardId});
+				
+				new MidiQOL.DamageOnlyWorkflow(data.weapons[key].options.actor, data.targetToken, damageRoll.total, damageTypeLabels[0], [data.targetToken], damageRoll, {"flavor": `${key} - Damage Roll (${damageType})`, itemData: data.weapons[key], itemCardId:  "new" });
 			
 			// Neither Better Rolls nor Midi-QOL active
 			} else {
