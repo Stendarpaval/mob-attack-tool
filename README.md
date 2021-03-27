@@ -15,7 +15,8 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 
 ## New
 
-You can choose to either use the official Mob Rules, or you can let each creature in the mob attack individually. Go to Mob Attack Tool's settings to set your preference.
+* You can choose to either use the official Mob Rules, or you can let each creature in the mob attack individually. Go to Mob Attack Tool's settings to set your preference.
+* Also, you can now allow players to use Mob Attack Tool. Perfect for necromancers or druids!
 
 ## Examples
 
