@@ -329,7 +329,11 @@ async function rollMobAttackIndividually(data) {
 					await mobAttackRoll.addField(["damage", damageFieldOptions]);
 				}
 				if (data.weapons[key].data.data.consume.type === "ammo") {
-					await mobAttackRoll.addField(["ammo", {name: data.weapons[key].actor.items.get(data.weapons[key].data.data.consume.target).name}]);	
+					try {
+						await mobAttackRoll.addField(["ammo", {name: data.weapons[key].actor.items.get(data.weapons[key].data.data.consume.target).name}]);	
+					} catch (error) {
+						console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
+					}
 				}
 				await mobAttackRoll.toMessage();
 				
@@ -450,7 +454,11 @@ async function rollMobAttack(data) {
 					await mobAttackRoll.addField(["damage",{index: "all"}]);
 				}
 				if (data.weapons[key].data.data.consume.type === "ammo") {
-					await mobAttackRoll.addField(["ammo",{name: data.weapons[key].actor.items.get(data.weapons[key].data.data.consume.target).name}]);
+					try {
+						await mobAttackRoll.addField(["ammo",{name: data.weapons[key].actor.items.get(data.weapons[key].data.data.consume.target).name}]);
+					} catch (error) {
+						console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
+					}
 				}
 				await mobAttackRoll.toMessage();
 
