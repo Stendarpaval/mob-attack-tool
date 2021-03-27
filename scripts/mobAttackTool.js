@@ -328,7 +328,9 @@ async function rollMobAttackIndividually(data) {
 					if (i === 0 || showAttackRolls) await mobAttackRoll.addField(["attack", attackFieldOptions]);
 					await mobAttackRoll.addField(["damage", damageFieldOptions]);
 				}
-				await mobAttackRoll.addField(["ammo"]);
+				if (data.weapons[key].data.data.consume.type === "ammo") {
+					await mobAttackRoll.addField(["ammo"]);	
+				}
 				await mobAttackRoll.toMessage();
 				
 			// Midi-QOL active, Better Rolls inactive
@@ -447,7 +449,9 @@ async function rollMobAttack(data) {
 				for (let i = 0; i < numHitAttacks; i++) {
 					await mobAttackRoll.addField(["damage",{index: "all"}]);
 				}
-				await mobAttackRoll.addField(["ammo"]);
+				if (data.weapons[key].data.data.consume.type === "ammo") {
+					await mobAttackRoll.addField(["ammo"]);
+				}
 				await mobAttackRoll.toMessage();
 
 			// neither midi-qol or betterrolls5e active
