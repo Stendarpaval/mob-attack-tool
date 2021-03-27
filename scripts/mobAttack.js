@@ -6,11 +6,20 @@ Hooks.once("init", () => {
 
 	const MODULE = "mob-attack-tool";
 
-	game.settings.register(MODULE, "mobRules", {
-		name: "Use mob rules or roll individually",
-		hint: `Choose whether to use the "Handling Mobs" rules (DMG, p. 250) or to roll attack rolls individually for each creature of the mob.`,
+	game.settings.register(MODULE, "playerAccess", {
+		name: "Allow players to use Mob Attack Tool",
+		hint: "If enabled, players will be able to see and use the Mob Attack Tool button. However, they will not see target AC. If disabled, only the GM will be able to use Mob Attack Tool.",
 		config: true,
 		scope: "world",
+		default: false,
+		type: Boolean
+	});
+
+	game.settings.register(MODULE, "mobRules", {
+		name: "Use mob rules or roll individually",
+		hint: `Choose whether to use the "Handling Mobs" rules (DMG, p. 250) or to roll attack rolls individually for each creature of the mob. (Client specific setting)`,
+		config: true,
+		scope: "client",
 		type: Number,
 		default: 0,
 		choices: {
@@ -21,9 +30,9 @@ Hooks.once("init", () => {
 
 	game.settings.register(MODULE, "showIndividualAttackRolls", {
 		name: "Show individual attack rolls",
-		hint: "Choose whether or not to show the successful individual attack rolls. (Only relevant if rolling attacks individually instead of using mob rules, and if Better Rolls for 5e is installed)",
+		hint: "Choose whether or not to show the successful individual attack rolls. (Only relevant if rolling attacks individually instead of using mob rules, and if Better Rolls for 5e is installed) (Client specific setting)",
 		config: true,
-		scope: "world",
+		scope: "client",
 		default: false,
 		type: Boolean
 	})
@@ -39,9 +48,9 @@ Hooks.once("init", () => {
 
 	game.settings.register(MODULE, "askRollType", {
 		name: "Include Advantage / Disadvantage selection",
-		hint: "If enabled, then a drop-down list is added to the Mob Attack dialog where you can select to roll with advantage / disadvantage.",
+		hint: "If enabled, then a drop-down list is added to the Mob Attack dialog where you can select to roll with advantage / disadvantage. (Client specific setting)",
 		config: true,
-		scope: "world",
+		scope: "client",
 		type: Boolean
 	});
 

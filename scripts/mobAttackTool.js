@@ -1,11 +1,13 @@
 export function initMobAttackTool() {
 	Hooks.on("getSceneControlButtons", (controls) => {
+		const playerAccess = game.settings.get("mob-attack-tool","playerAccess");
+		console.log("Mob Attack Tool | Player Access:", playerAccess);
 		const bar = controls.find(c => c.name === "token");
 		bar.tools.push({
 			name: "Mob Attack Tool",
 			title: "Mob Attack",
 			icon: "fas fa-dice",
-			visible: game.user.isGM,
+			visible: (playerAccess ? true : game.user.isGM),
 			onClick: () => mobAttackTool(),
 			button: true
 		});
@@ -27,10 +29,12 @@ function mobAttackTool() {
 	let targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
 	let targetAC = targetToken.actor.data.data.attributes.ac.value;
 	let numSelected = canvas.tokens.controlled.length;
+	let pluralTokensOrNot = ((numSelected == 1) ? `` : `s`);
 
 	// Format tool dialog content
 	const dialogContentStart = `<form id="multiattack-lm" class="dialog-content";>`;
-	const dialogContentLabel = `<p>Choose weapon option:</p><p class="hint">You have selected ${numSelected} tokens. Your target has an AC of ${targetAC}.</p>`;
+	const targetACtext = game.user.isGM ? ` Your target has an AC of ${targetAC}.` : ``;
+	const dialogContentLabel = `<p>Choose weapon option:</p><p class="hint">You have selected ${numSelected} token${pluralTokensOrNot}.${targetACtext}</p>`;
 	const dialogContentEnd = `</form>`;
 	let content = dialogContentStart + dialogContentLabel + `<div class="flexcol">`;
 
@@ -283,11 +287,12 @@ async function rollMobAttackIndividually(data) {
 		
 		const critMsg = (numCrits > 0) ? `, ${numCrits} of them critically` : ``;
 		const pluralOrNot = ((numHitAttacks == 1) ? ` attack hits${(numCrits > 0) ? ` critically` : ``}!` : ` attacks hit${critMsg}!`);
-		
+		const targetACtext = game.user.isGM ? ` (AC ${data.targetAC})` : ``;
+
 		sendChatMessage(
 			`<strong>Mob Attack Results</strong>
 			<table style="width:100%">
-			<tr><td>Target: </td><td>${data.targetToken.name} (AC ${data.targetAC})</td></tr>
+			<tr><td>Target: </td><td>${data.targetToken.name}${targetACtext}</td></tr>
 			<tr><td>Attack bonus: </td><td>+${finalAttackBonus} to hit</td></tr>
 			<tr><td>Weapon Used:</td><td>${key} (${availableAttacks} of ${data.numSelected})</td></tr>
 			</table>
@@ -306,21 +311,23 @@ async function rollMobAttackIndividually(data) {
 					]
 				);
 				let attackFieldOptions = {};
-				let damageFieldOptions = {index: "all"};
+				let damageFieldOptions = {};
 				let showAttackRolls = game.settings.get("mob-attack-tool", "showIndividualAttackRolls");
 				for (let i = 0; i < numHitAttacks; i++) {
 					if (successfulAttackRolls[i].total - finalAttackBonus == 20 && numCrits > 0) {
 						let attackFormula = showAttackRolls ? "0d0 + " + (successfulAttackRolls[i].total).toString() : "0d0 + " + (data.targetAC).toString();
 					 	attackFieldOptions =  {formula: attackFormula, forceCrit: true};
 						damageFieldOptions = {index: "all", isCrit: true};
-						numCrits--;
+						numCrits = numCrits - 1;
+						console.log("attack data:",successfulAttackRolls[i].total, "num crits remaining:",numCrits);
 					} else {
 						let attackFormula = showAttackRolls ? "0d0 + " + (successfulAttackRolls[i].total).toString() : "0d0 + " + (data.targetAC).toString();
 					 	attackFieldOptions = {formula: attackFormula};
-					}	
+					 	damageFieldOptions = {index: "all", isCrit: false};
+					}
+					if (i === 0 || showAttackRolls) await mobAttackRoll.addField(["attack", attackFieldOptions]);
+					await mobAttackRoll.addField(["damage", damageFieldOptions]);
 				}
-				await mobAttackRoll.addField(["attack", attackFieldOptions])
-				await mobAttackRoll.addField(["damage", damageFieldOptions]);
 				await mobAttackRoll.addField(["ammo"]);
 				await mobAttackRoll.toMessage();
 				
@@ -412,12 +419,13 @@ async function rollMobAttack(data) {
 		if (availableAttacks / attackersNeeded >= 1) {
 			const numHitAttacks = Math.floor(availableAttacks/attackersNeeded);
 			const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
+			const targetACtext = game.user.isGM ? ` (AC ${data.targetAC})` : ``;
 
 			// Mob attack results message
 			sendChatMessage(
 				`<strong>Mob Attack Results</strong>
 				<table style="width:100%">
-				<tr><td>Target: </td><td>${data.targetToken.name} (AC ${data.targetAC})</td></tr>
+				<tr><td>Target: </td><td>${data.targetToken.name}${targetACtext}</td></tr>
 				<tr><td>d20 Needed: </td><td>${d20Needed} (+${finalAttackBonus}${data.rollTypeMessage} to hit)</td></tr>
 				<tr><td>Weapon Used:</td><td>${key} (${availableAttacks} of ${data.numSelected})</td></tr>
 				</table>
