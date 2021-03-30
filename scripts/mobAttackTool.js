@@ -44,31 +44,38 @@ function mobAttackTool() {
 	let availableAttacks = {};
 	for (let token of canvas.tokens.controlled) {
 		if (monsters[token.actor.name]) {
-			if (monsters[token.actor.name]._id == token.actor._id) {
+			if (monsters[token.actor.name].id == token.actor.id) {
 				console.log("Mob Attack Tool | Actor already known.");
 			}
 		} else {
 			monsters[token.actor.name] = token.actor;
 			content += `<hr/>` + formatMonsterLabel(token.actor);
 		}
-		let items = token.actor.items.entries;
+
+		// Check if Core is 0.8.x or even newer
+		let items;
+		if (parseInt(game.data.version.slice(0)) === 0 && parseInt(game.data.version.slice(2)) > 7) {
+			items = token.actor.items.contents;
+		} else {
+			items = token.actor.items.entries;
+		}
 		items.forEach((item) => {
+			// Weapons
 			if (item.data.type == "weapon") {
 				if (weapons[item.data.name]) {
-					if (weapons[item.data.name]._id == item._id) {
+					if (weapons[item.data.name].id == item.id) {
 						availableAttacks[item.data.name] += 1;
-						// console.log("Mob Attack Tool | Weapon already known.");
 					}
 				} else {
 					weapons[item.data.name] = item;
 					availableAttacks[item.data.name] = 1;
 					content += formatWeaponLabel(weapons,item.data);	
 				}
+			// Cantrips
 			} else if (item.data.type == "spell" && item.data.data.level == 0 && item.data.data.damage.parts.length > 0 && item.data.data.save.ability === "") {
 				if (weapons[item.data.name]) {
-					if (weapons[item.data.name]._id == item._id) {
+					if (weapons[item.data.name].id == item.id) {
 						availableAttacks[item.data.name] += 1;
-						// console.log("Mob Attack Tool | Cantrip already known.");
 					}
 				} else {
 					weapons[item.data.name] = item;
@@ -112,7 +119,7 @@ function mobAttackTool() {
 					for (let [weapon, weaponData] of Object.entries(weapons)) {
 						if (html.find(`input[name="use` + weapon.replace(" ","-") + `"]`)[0].checked) {
 							attacks[weapon] = availableAttacks[weapon];
-							weaponLocators.push({"actorID": weaponData.actor._id, "weaponName": weaponData.name});
+							weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name});
 						}
 					}
 					let withAdvantage = false;
@@ -268,7 +275,12 @@ async function rollMobAttackIndividually(data) {
 		let attackRoll, attackRollEvaluated = [], successfulAttackRolls = [];
 		for (let i = 0; i < availableAttacks; i++) {	
 			attackRoll = new Roll(attackFormula);
-			attackRollEvaluated[i] = attackRoll.evaluate();
+			// check if Core version 0.8 or newer: 
+			if (parseInt(game.data.version.slice(0)) === 0 && parseInt(game.data.version.slice(2)) > 7) {
+				attackRollEvaluated[i] = await attackRoll.evaluate({async: true});
+			} else {
+				attackRollEvaluated[i] = attackRoll.evaluate();
+			}
 
 			if (game.settings.get("mob-attack-tool", "showIndividualAttackRolls")) {
 				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(attackRoll);
@@ -380,7 +392,7 @@ async function rollMobAttackIndividually(data) {
 							{
 								flavor: `${data.weapons[key].name} - Attack Roll`,
 								speaker: {
-									actor: data.weapons[key].actor._id,
+									actor: data.weapons[key].actor.id,
 									alias: data.weapons[key].actor.name
 								}
 							}
@@ -571,7 +583,7 @@ function isTargeted(token) {
 	if (token.isTargeted) {
 		let targetUsers = token.targeted.entries().next().value;
 		for (let i = 0; i < targetUsers.length; i++) {
-			if (targetUsers[i]._id === game.user.id) {
+			if (targetUsers[i].id === game.user.id) {
 				return true;
 			}
 		}
@@ -580,12 +592,21 @@ function isTargeted(token) {
 
 
 function sendChatMessage(text) {
+	let whisperIDs;
+	// Check if Core version is 0.8 or newer:
+	if (parseInt(game.data.version.slice(0)) === 0 && parseInt(game.data.version.slice(2)) > 7) {
+		whisperIDs = game.users.contents.filter(u => u.isGM).map(u => u.id);
+	} else {
+		whisperIDs = game.users.entities.filter(u => u.isGM).map(u => u.id);
+	}
+
 	let chatData = {
 		user: game.user.id,
 		speaker: game.user,
 		content: text,
-		whisper: game.users.entities.filter(u => u.isGM).map(u => u._id),
+		whisper: whisperIDs
 	};
+	
 	ChatMessage.create(chatData,{});
 }
 
