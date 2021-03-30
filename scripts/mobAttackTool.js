@@ -331,11 +331,15 @@ async function rollMobAttackIndividually(data) {
 				if (data.weapons[key].data.data.consume.type === "ammo") {
 					try {
 						await mobAttackRoll.addField(["ammo", {name: data.weapons[key].actor.items.get(data.weapons[key].data.data.consume.target).name}]);	
+						await mobAttackRoll.toMessage();
 					} catch (error) {
 						console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
+						ui.notifications.error(`There was an error while trying to add an ammo field to this ${key} attack.`);
 					}
+				} else {
+					await mobAttackRoll.toMessage();
 				}
-				await mobAttackRoll.toMessage();
+				
 				
 			// Midi-QOL active, Better Rolls inactive
 			} else if (midi_QOL_Active) {
@@ -456,11 +460,15 @@ async function rollMobAttack(data) {
 				if (data.weapons[key].data.data.consume.type === "ammo") {
 					try {
 						await mobAttackRoll.addField(["ammo",{name: data.weapons[key].actor.items.get(data.weapons[key].data.data.consume.target).name}]);
+						await mobAttackRoll.toMessage();
 					} catch (error) {
 						console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
+						ui.notifications.error(`There was an error while trying to add an ammo field to this ${key} attack.`);
 					}
+				} else {
+					await mobAttackRoll.toMessage();
 				}
-				await mobAttackRoll.toMessage();
+				
 
 			// neither midi-qol or betterrolls5e active
 			} else if (!midi_QOL_Active) {
@@ -473,13 +481,14 @@ async function rollMobAttack(data) {
 			} else {
 				await new Promise(resolve => setTimeout(resolve, 300));
 
-				let [diceFormula, damageType, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key]);
+				let [diceFormulas, damageType, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key]);
+				let diceFormula = diceFormulas.join(" + ");
 				let damageRoll = new Roll(diceFormula,{mod: data.weapons[key].actor.data.data.abilities[data.weapons[key].abilityMod].mod});
 				await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
 
 				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
 				let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(
-					data.weapons[key].actor, 
+					data.weapons[key].options.actor, 
 					data.targetToken, 
 					damageRoll.total, 
 					damageTypeLabels[0], 
