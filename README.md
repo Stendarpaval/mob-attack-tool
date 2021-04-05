@@ -20,6 +20,7 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 
 * You can choose to either use the official Mob Rules, or you can let each creature in the mob attack individually. Go to Mob Attack Tool's settings to set your preference.
 * Also, you can now allow players to use Mob Attack Tool. Perfect for necromancers or druids!
+* Don't want to click "Next Turn" all the time? Now Mob Attack Tool can skip the turns of mob attackers that participated in a mob attack!
 
 ## Examples
 
@@ -34,7 +35,8 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 * Further (optional) automation of the initial selection of tokens -> _In Progress_
 * Some documentation and better structuring of the repo -> _In Progress_
 * Custom Mob Attack tables
-* Enable access to Mob Attack Tool to players
+* Add `lang` and `css` folders and use them
+
 
 ## Inspirations
 * This module was inspired by [Multiattack 5e](https://github.com/jessev14/Multiattack-5e).
