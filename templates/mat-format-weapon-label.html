@@ -1,0 +1,10 @@
+<div style="display:grid; grid-template-columns:10px 30px 130px 60px 130px 30px; column-gap:5px;">
+	<label style="grid-column-start:1; grid-column-end:2; align-self:center;"></label>
+	<label style="grid-column-start:2; grid-column-end:3; align-self:center;">
+		<img src="{{weaponImg}}" title="{{weaponNameImg}}" width="30" height="30" style="margin:0px 5px 0px 0px; border:none;">
+	</label>
+	<label style="grid-column-start:3; grid-column-end:4; align-self:center; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">{{weaponName}}</label>
+	<label class="hint" style="grid-column-start:4; grid-column-end:5; align-self:center;">+{{weaponAttackBonus}} to hit</label>
+	<label class="hint" style="white-space: pre-wrap; grid-column-start:5; grid-column-end:6; align-self:center; text-align:center;">{{{weaponDamageText}}}</label>
+	<input type="checkbox" name="{{useButtonName}}" style="grid-column-start:6; grid-column-end:7; align-self:center;"/>
+</div>

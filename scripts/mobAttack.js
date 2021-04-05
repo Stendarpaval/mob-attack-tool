@@ -30,7 +30,7 @@ Hooks.once("init", () => {
 
 	game.settings.register(MODULE, "showIndividualAttackRolls", {
 		name: "Show individual attack rolls",
-		hint: "Choose whether or not to show the successful individual attack rolls. (Only relevant if rolling attacks individually instead of using mob rules, and if Better Rolls for 5e is installed) (Client specific setting)",
+		hint: "Choose whether or not to show the successful individual attack rolls. Only relevant if rolling attacks individually instead of using mob rules. Midi-QOL support only in combination with Better Rolls for 5e for now. (Client specific setting)",
 		config: true,
 		scope: "client",
 		default: false,
@@ -43,6 +43,15 @@ Hooks.once("init", () => {
 		config: true,
 		scope: "world",
 		default: false,
+		type: Boolean
+	});
+
+	game.settings.register(MODULE, "endMobTurn", {
+		name: "Include option to end grouped mob turns",
+		hint: "If enabled, an option is added to the Mob Attack dialog to skip the turns of mob attackers that are grouped together in the combat tracker. Works well with the Grouped Initiative module.",
+		config: true,
+		scope: "world",
+		default: true,
 		type: Boolean
 	});
 
