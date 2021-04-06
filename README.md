@@ -10,7 +10,7 @@ A module for Foundry VTT that offers a tool for handling mob attacks in the dnd5
 You can install this module by pasting this url in the corresponding text field of Foundry's package installer: `https://raw.githubusercontent.com/Stendarpaval/mob-attack-tool/main/module.json`
 
 ## How to use
-After activating this module, a new button appears in the token controls bar. This button is only visible to users with the GM role. To use the Mob Attack tool, make sure you have at least one token selected and exactly one token targeted. 
+After activating this module, a new button appears in the token controls bar. By default this button is only visible to users with the GM role, but this can be changed in settings. To use the Mob Attack tool, make sure you have at least one token selected and exactly one token targeted. 
 
 A dialog window will appear, populated with the weapon options of the selected tokens along with their respective attack bonuses and a checkbox. Tick the checkbox of the weapon(s) you want to use for the mob attack. 
 
@@ -21,14 +21,25 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 * You can choose to either use the official Mob Rules, or you can let each creature in the mob attack individually. Go to Mob Attack Tool's settings to set your preference.
 * Also, you can now allow players to use Mob Attack Tool. Perfect for necromancers or druids!
 * Don't want to click "Next Turn" all the time? Now Mob Attack Tool can skip the turns of mob attackers that participated in a mob attack!
+* Added examples and screenshots in [EXAMPLES.md](EXAMPLES.md)!
 
 ## Examples
 
-![MAT-video-v0 0 3](https://user-images.githubusercontent.com/17188192/110196581-c81b2f00-7e45-11eb-908a-f0fd73567e10.gif)
+Below are some (older) GIFs that give a brief idea of how you can use Mob Attack Tool.
 
-### Example Mob Attack Tool + Better Rolls for 5e + Midi-QOL
+<details>
+  <summary>Click to show GIF of Mob Attack Tool</summary>
 
-![MAT-video-midi-qol-v0 0 3](https://user-images.githubusercontent.com/17188192/110196624-0fa1bb00-7e46-11eb-9ec1-ade1ef8dff96.gif)
+  ![MAT-video-v0 0 3](https://user-images.githubusercontent.com/17188192/110196581-c81b2f00-7e45-11eb-908a-f0fd73567e10.gif)
+</details>
+
+<details>
+  <summary>Click to show GIF of Mob Attack Tool + Better Rolls for 5e + Midi-QOL</summary>
+
+  ![MAT-video-midi-qol-v0 0 3](https://user-images.githubusercontent.com/17188192/110196624-0fa1bb00-7e46-11eb-9ec1-ade1ef8dff96.gif)
+</details>
+
+For more elaborate examples and screenshots, please head over to [EXAMPLES.md](EXAMPLES.md). 
 
 ## Planned improvements
 * Improved support for [midi-qol](https://gitlab.com/tposney/midi-qol). -> _In Progress_
