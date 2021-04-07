@@ -37,21 +37,28 @@ async function mobAttackTool() {
 	const dialogContentLabel = `<p>Choose weapon option:</p><p class="hint">You have selected ${numSelected} token${pluralTokensOrNot}.${targetACtext}</p>`;
 	const dialogContentEnd = `</form>`;
 	
-	
 	let content = dialogContentStart + dialogContentLabel + `<div class="flexcol">`;
 
 	// Show weapon options per selected token type
 	let monsters = {};
+	for (let token of canvas.tokens.controlled) {
+		if (monsters[token.actor.id]) {
+			if (monsters[token.actor.id].id == token.actor.id) {
+				monsters[token.actor.id].amount += 1;
+			}
+		} else {
+			monsters[token.actor.id] = {id: token.actor.id, amount: 1, optionVisible: false, img: token.actor.img, name: token.actor.name};
+		}
+	}
+
 	let weapons = {};
 	let availableAttacks = {};
 	for (let token of canvas.tokens.controlled) {
-		if (monsters[token.actor.name]) {
-			if (monsters[token.actor.name].id == token.actor.id) {
-				console.log("Mob Attack Tool | Actor already known.");
+		if (monsters[token.actor.id]) {
+			if (!monsters[token.actor.id].optionVisible) {
+				content += `<hr>` + await formatMonsterLabel(monsters[token.actor.id]);
+				monsters[token.actor.id].optionVisible = true;
 			}
-		} else {
-			monsters[token.actor.name] = token.actor;
-			content += `<hr>` + await formatMonsterLabel(token.actor);
 		}
 
 		// Check if Core is 0.8.x or even newer
@@ -59,27 +66,16 @@ async function mobAttackTool() {
 		let items = (coreVersion08x) ? token.actor.items.contents : token.actor.items.entries;
 
 		for (let item of items) {
-			if (item.data.type == "weapon") {
+			if (item.data.type == "weapon" || (item.data.type == "spell" && item.data.data.level == 0 && item.data.data.damage.parts.length > 0 && item.data.data.save.ability === "")) {
 				if (weapons[item.data.name]) {
-					if (weapons[item.data.name].id == item.id) {
+					if (weapons[item.data.name].id === item.id) {
 						availableAttacks[item.data.name] += 1;
 						// console.log("Mob Attack Tool | Weapon already known.");
 					}
 				} else {
 					weapons[item.data.name] = item;
 					availableAttacks[item.data.name] = 1;
-					content += await formatWeaponLabel(weapons,item.data);	
-				}
-			} else if (item.data.type == "spell" && item.data.data.level == 0 && item.data.data.damage.parts.length > 0 && item.data.data.save.ability === "") {
-				if (weapons[item.data.name]) {
-					if (weapons[item.data.name].id == item.id) {
-						availableAttacks[item.data.name] += 1;
-						// console.log("Mob Attack Tool | Cantrip already known.");
-					}
-				} else {
-					weapons[item.data.name] = item;
-					availableAttacks[item.data.name] = 1;
-					content += await formatWeaponLabel(weapons,item.data);
+					content += await formatWeaponLabel(weapons, item.data, false);
 				}
 			}
 		};	
@@ -104,9 +100,14 @@ async function mobAttackTool() {
 
 					let attacks = {};
 					let weaponLocators = [];
+					let numAttacksMultiplier = 1;
 					for (let [weapon, weaponData] of Object.entries(weapons)) {
 						if (html.find(`input[name="use` + weapon.replace(" ","-") + `"]`)[0].checked) {
-							attacks[weapon] = availableAttacks[weapon];
+							numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weapon.replace(" ","-")}"]`)[0].value);
+							if (numAttacksMultiplier === NaN) {
+								numAttacksMultiplier = 0;
+							}
+							attacks[weapon] = availableAttacks[weapon] * numAttacksMultiplier;
 							weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name});
 						}
 					}
@@ -304,7 +305,7 @@ async function rollMobAttackIndividually(data) {
 		let msgText = await renderTemplate('modules/mob-attack-tool/templates/mat-msg-individual-rolls.html', msgData);
 		sendChatMessage(msgText);
 
-		// Process attack and adamage rolls
+		// Process attack and damage rolls
 		if (numHitAttacks != 0) {
 			// Better Rolls 5e active
 			if (betterrollsActive) {
@@ -348,8 +349,7 @@ async function rollMobAttackIndividually(data) {
 			// Midi-QOL active, Better Rolls inactive
 			} else if (midi_QOL_Active) {
 				await new Promise(resolve => setTimeout(resolve, 300));
-
-				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key]);
+				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key],false);
 
 				let diceFormula = diceFormulas.join(" + ");
 				let damageType = damageTypes.join(", ");
@@ -490,7 +490,7 @@ async function rollMobAttack(data) {
 			} else {
 				await new Promise(resolve => setTimeout(resolve, 300));
 
-				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key]);
+				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key],false);
 				let diceFormula = diceFormulas.join(" + ");
 				let damageType = damageTypes.join(", ");
 				let damageRoll = new Roll(diceFormula,{mod: data.weapons[key].actor.data.data.abilities[data.weapons[key].abilityMod].mod});
@@ -553,31 +553,34 @@ async function endGroupedMobTurn(data) {
 }
 
 
-async function formatMonsterLabel(actorData) {
+async function formatMonsterLabel(monsterData) {
 	let labelData = {
-		actorImg: actorData.img,
-		actorNameImg: actorData.name.replace(" ","-"),
-		actorName: actorData.name
+		actorAmount: `${monsterData.amount}x`,
+		actorImg: monsterData.img,
+		actorNameImg: monsterData.name.replace(" ","-"),
+		actorName: monsterData.name
 	};
 	let monsterLabel = await renderTemplate('modules/mob-attack-tool/templates/mat-format-monster-label.html',labelData);
 	return monsterLabel;
 }
 
 
-async function formatWeaponLabel(weapons,itemData) {
-	let damageData = getDamageFormulaAndType(weapons[itemData.name]);
+async function formatWeaponLabel(weapons, itemData, isVersatile) {	
+	let damageData = getDamageFormulaAndType(weapons[itemData.name], isVersatile);
 	let weaponDamageText = ``;
 	for (let i = 0; i < damageData[0].length; i++) {
 		((i > 0) ? weaponDamageText += `<br>${damageData[0][i]} ${damageData[1][i].capitalize()}` : weaponDamageText += `${damageData[0][i]} ${damageData[1][i].capitalize()}`);
 	}
 
 	let labelData = {
+		numAttacksName: `numAttacks${(itemData.name + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
+		numAttack: 1,
 		weaponImg: itemData.img,
 		weaponNameImg: itemData.name.replace(" ","-"),
-		weaponName: itemData.name,
+		weaponName: itemData.name + ((isVersatile) ? ` (Versatile)` : ``),
 		weaponAttackBonus: getAttackBonus(weapons[itemData.name]),
 		weaponDamageText: weaponDamageText,
-		useButtonName: `use${itemData.name.replace(" ","-")}`
+		useButtonName: `use${(itemData.name + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`
 	};
 	let weaponLabel = await renderTemplate('modules/mob-attack-tool/templates/mat-format-weapon-label.html', labelData);
 	return weaponLabel;
@@ -684,7 +687,7 @@ function getScalingFactor(weaponData) {
 }
 
 
-function getDamageFormulaAndType(weaponData) {
+function getDamageFormulaAndType(weaponData, versatile) {
 	let cantripScalingFactor = getScalingFactor(weaponData);
 	let diceFormulas = [];
 	let damageTypes = [];
@@ -694,14 +697,14 @@ function getDamageFormulaAndType(weaponData) {
 		damageTypes.push(diceFormulaParts[1].capitalize());
 		if (weaponData.type == "spell") {
 			if (weaponData.data.data.scaling.mode == "cantrip") {
-				let rollFormula = new Roll(diceFormulaParts[0],{mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+				let rollFormula = new Roll(((versatile) ? weaponData.data.data.damage.versatile : diceFormulaParts[0]),{mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
 				rollFormula.alter(0,cantripScalingFactor,{multiplyNumeric: false})
 				diceFormulas.push(rollFormula.formula);
 			} else {
-				diceFormulas.push(diceFormulaParts[0].replace("@mod",weaponData.actor.data.data.abilities[weaponData.abilityMod].mod));
+				diceFormulas.push(((versatile) ? weaponData.data.data.damage.versatile : diceFormulaParts[0]).replace("@mod",weaponData.actor.data.data.abilities[weaponData.abilityMod].mod));
 			}
 		} else {
-			diceFormulas.push(diceFormulaParts[0].replace("@mod",weaponData.actor.data.data.abilities[weaponData.abilityMod].mod));
+			diceFormulas.push(((versatile) ? weaponData.data.data.damage.versatile : diceFormulaParts[0]).replace("@mod",weaponData.actor.data.data.abilities[weaponData.abilityMod].mod));
 		}
 	}
 	return [diceFormulas, damageTypes, damageTypeLabels];
