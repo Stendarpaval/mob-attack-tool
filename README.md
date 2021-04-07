@@ -22,6 +22,7 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 * Also, you can now allow players to use Mob Attack Tool. Perfect for necromancers or druids!
 * Don't want to click "Next Turn" all the time? Now Mob Attack Tool can skip the turns of mob attackers that participated in a mob attack!
 * Added examples and screenshots in [EXAMPLES.md](EXAMPLES.md)!
+* You can now specify how often each mob attacker can use a weapon as part of a multiattack action. 
 
 ## Examples
 
