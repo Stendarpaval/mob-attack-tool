@@ -37,6 +37,21 @@ Hooks.once("init", () => {
 		type: Boolean
 	})
 
+	game.settings.register(MODULE, "autoDetectMultiattacks", {
+		name: "Autodetect multiattack",
+		hint: `Attempt to automatically detect the multiattack weapon options of mob attackers. If set to "Autodetect + autoselect", then the multiattack weapon options should already be selected when you open the Mob Attack dialog. (Client specific setting)`,
+		config: true,
+		scope: "client",
+		type: Number,
+		default: 0,
+		choices: {
+			0: "No autodetect",
+			1: "Autodetect only",
+			2: "Autodetect + autoselect"
+		}
+
+	})
+
 	game.settings.register(MODULE, "shareWeapons", {
 		name: "Share weapon options in mob",
 		hint: "If enabled, then selected weapons in the Mob Attack dialog will be used by all mob attackers. Disable this to only allow attackers that own that weapon to use it in a mob attack.",

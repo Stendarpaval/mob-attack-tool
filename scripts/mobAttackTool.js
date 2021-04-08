@@ -64,18 +64,26 @@ async function mobAttackTool() {
 		// Check if Core is 0.8.x or even newer
 		let coreVersion08x = parseInt(game.data.version.slice(2)) > 7;
 		let items = (coreVersion08x) ? token.actor.items.contents : token.actor.items.entries;
-
+		let isVersatile;
 		for (let item of items) {
 			if (item.data.type == "weapon" || (item.data.type == "spell" && item.data.data.level == 0 && item.data.data.damage.parts.length > 0 && item.data.data.save.ability === "")) {
 				if (weapons[item.data.name]) {
-					if (weapons[item.data.name].id === item.id) {
+					if (weapons[item.data.name].id == item.id) {
 						availableAttacks[item.data.name] += 1;
 						// console.log("Mob Attack Tool | Weapon already known.");
+						// if (weapons[item.data.name].data.data.damage.versatile != "") {
+						// 	availableAttacks[item.data.name + ` (Versatile)`] += 1;
+						// }
 					}
 				} else {
 					weapons[item.data.name] = item;
 					availableAttacks[item.data.name] = 1;
 					content += await formatWeaponLabel(weapons, item.data, false);
+					// if (weapons[item.data.name].data.data.damage.versatile != "") {
+					// 	weapons[(item.data.name + ` (Versatile)`)] = item;
+					// 	availableAttacks[(item.data.name + ` (Versatile)`)] = 1;
+					// 	content += await formatWeaponLabel(weapons, item.data, true);
+					// }
 				}
 			}
 		};	
@@ -101,7 +109,11 @@ async function mobAttackTool() {
 					let attacks = {};
 					let weaponLocators = [];
 					let numAttacksMultiplier = 1;
+					// let isVersatile = false;
 					for (let [weapon, weaponData] of Object.entries(weapons)) {
+						// isVersatile = weaponData.data.data.damage.versatile != "";
+						// weapon += ((isVersatile) ?  ` (Versatile)` : ``);
+						console.log("weapon:",weapon);
 						if (html.find(`input[name="use` + weapon.replace(" ","-") + `"]`)[0].checked) {
 							numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weapon.replace(" ","-")}"]`)[0].value);
 							if (numAttacksMultiplier === NaN) {
@@ -204,6 +216,9 @@ export function MobAttacks() {
 			}
 		})();
 	}
+
+	
+
 	return {
 		quickRoll:quickRoll
 	};
@@ -306,6 +321,10 @@ async function rollMobAttackIndividually(data) {
 		sendChatMessage(msgText);
 
 		// Process attack and damage rolls
+		let isVersatile = false;
+		if (data.weapons[key].name.endsWith(`(Versatile)`)) {
+			isVersatile = true;
+		}
 		if (numHitAttacks != 0) {
 			// Better Rolls 5e active
 			if (betterrollsActive) {
@@ -349,7 +368,7 @@ async function rollMobAttackIndividually(data) {
 			// Midi-QOL active, Better Rolls inactive
 			} else if (midi_QOL_Active) {
 				await new Promise(resolve => setTimeout(resolve, 300));
-				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key],false);
+				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key],isVersatile);
 
 				let diceFormula = diceFormulas.join(" + ");
 				let damageType = damageTypes.join(", ");
@@ -433,6 +452,10 @@ async function rollMobAttack(data) {
 		}
 		
 		// Process hit attacks
+		let isVersatile = false;
+		if (data.weapons[key].name.endsWith(`(Versatile)`)) {
+			isVersatile = true;
+		}
 		if (availableAttacks / attackersNeeded >= 1) {
 			const numHitAttacks = Math.floor(availableAttacks/attackersNeeded);
 			const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
@@ -490,7 +513,7 @@ async function rollMobAttack(data) {
 			} else {
 				await new Promise(resolve => setTimeout(resolve, 300));
 
-				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key],false);
+				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key],isVersatile);
 				let diceFormula = diceFormulas.join(" + ");
 				let damageType = damageTypes.join(", ");
 				let damageRoll = new Roll(diceFormula,{mod: data.weapons[key].actor.data.data.abilities[data.weapons[key].abilityMod].mod});
@@ -571,17 +594,23 @@ async function formatWeaponLabel(weapons, itemData, isVersatile) {
 	for (let i = 0; i < damageData[0].length; i++) {
 		((i > 0) ? weaponDamageText += `<br>${damageData[0][i]} ${damageData[1][i].capitalize()}` : weaponDamageText += `${damageData[0][i]} ${damageData[1][i].capitalize()}`);
 	}
-
+	let numAttacksTotal = 1, preChecked = false;
+	let autoDetect = game.settings.get("mob-attack-tool","autoDetectMultiattacks");
+	if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(itemData.name, weapons[itemData.name].actor);
+	if (autoDetect === 1) preChecked = false;
+	
 	let labelData = {
 		numAttacksName: `numAttacks${(itemData.name + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
-		numAttack: 1,
+		numAttack: numAttacksTotal,
 		weaponImg: itemData.img,
 		weaponNameImg: itemData.name.replace(" ","-"),
 		weaponName: itemData.name + ((isVersatile) ? ` (Versatile)` : ``),
 		weaponAttackBonus: getAttackBonus(weapons[itemData.name]),
 		weaponDamageText: weaponDamageText,
-		useButtonName: `use${(itemData.name + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`
+		useButtonName: `use${(itemData.name + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
+		useButtonValue: (preChecked) ? `checked` : ``
 	};
+	if (isVersatile) console.log(labelData);
 	let weaponLabel = await renderTemplate('modules/mob-attack-tool/templates/mat-format-weapon-label.html', labelData);
 	return weaponLabel;
 }
@@ -708,4 +737,153 @@ function getDamageFormulaAndType(weaponData, versatile) {
 		}
 	}
 	return [diceFormulas, damageTypes, damageTypeLabels];
+}
+
+
+function getMultiattackFromActor(weaponName, actorData) {
+
+	let dictStrNum = {	"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10};
+	let multiattack = [1, false];
+	if (actorData.items.getName("Multiattack") !== null) {
+
+		let weaponData = actorData.items.getName(weaponName);
+		if (weaponData.type === "spell") {
+			if (weaponName === "Eldritch Blast") {
+				multiattack = [getScalingFactor(weaponData), false];
+			}
+		}
+
+		let desc = actorData.items.getName("Multiattack").data.data.description.value;
+		if (desc.endsWith(".</p>")) {
+			desc = desc.slice(0,-5);
+		}
+
+		// First split multiattack description in general and specific parts
+		let attackIndex = desc.indexOf(`attack`);
+		let attackType = ``;
+		if (desc.indexOf(`melee attacks`) !== -1) {
+			attackIndex = desc.indexOf(`melee attacks`);
+			if (desc.indexOf(`ranged attacks`) !== -1) {
+				attackType = `choose`;
+			} else {
+				attackType = `melee`;	
+			}
+		} else if (desc.indexOf(`ranged attacks`) !== -1) {
+			attackIndex = desc.indexOf(`ranged attacks`);
+			attackType = `ranged`;
+		} else if (desc.indexOf(`${weaponName.toLowerCase()} attacks`) !== -1 || desc.indexOf(`${weaponName.toLowerCase()}s attacks`) !== -1) {
+			attackIndex = desc.indexOf(`${weaponName.toLowerCase()} attacks`);
+			attackType = `specific`;
+		}
+
+		// Split up description into words for analysis
+		let initialWords = desc.slice(0,attackIndex).split(" ");
+
+		// Then detect overall number of multiattack attacks
+		let numAttacksTotal = 0;
+		let numAttacksWeapon = 0;
+		for (let word of initialWords) {
+			if (dictStrNum[word]) {
+				if (attackType !== ``) {
+					numAttacksWeapon = dictStrNum[word];
+				} 
+				numAttacksTotal = dictStrNum[word];
+				break;
+			}
+		}
+
+		// Next detect specific number of attacks of this weapon
+		// (This is the complicated / messy part.)
+		let remainingWords = desc.slice(attackIndex + attackType.length + 8).split(" ");
+
+		let weaponDetected = false;
+		let twiceAtEnd = false;
+
+		// Step backwards through multiattack description
+		for (let word of remainingWords.reverse()) {
+			
+			// homogenize words to simplify detection
+			word = word.toLowerCase();
+			let interpunction = [",",".",":"];
+			for (let ip of interpunction) {
+				if (word.endsWith(ip)) word = word.slice(0,word.indexOf(ip));	
+			}
+			
+			// check if description ends with 'twice' (a rare exception)
+			if (word === "twice") {
+				twiceAtEnd = true;
+			}
+
+			// detect weapon
+			if (weaponName.toLowerCase().split(" ").includes(word) || `${weaponName.toLowerCase()}s`.split(" ").includes(word)) {	
+				weaponDetected = true;
+			}
+
+			// detect possibility of choosing what kind of multiattack to use
+			if (weaponDetected && [`or`,`alternatively`,`instead`].includes(word)) {
+				let wordRegex = new RegExp(weaponName.toLowerCase(),"g");
+				let wordCount = (desc.toLowerCase().match(wordRegex) || []).length;
+
+				attackType = `choose`;
+				if (twiceAtEnd) {
+					numAttacksWeapon = 2;
+					break;
+				}
+			}
+
+			// match text number to actual value for number of attacks	
+			if (weaponDetected && dictStrNum[word]) {
+				numAttacksWeapon = dictStrNum[word];
+				break;
+			}
+		}
+
+		// either return the specific or total number of multiattacks 
+		if (numAttacksTotal !== 0) {
+			if (numAttacksWeapon !== 0) {
+				multiattack = [numAttacksWeapon, (attackType !== `choose`) ? true : false];
+			} else if (weaponDetected) {
+				multiattack = [numAttacksTotal, (attackType !== `choose`) ? true : false];
+			}
+		}
+
+	// for actors with the Extra Attack item
+	} else if (actorData.items.getName("Extra Attack") !== null) {
+		let weaponData = actorData.items.getName(weaponName);
+		if (weaponData.type === "spell") {
+			if (weaponName === "Eldritch Blast") {
+				multiattack = [getScalingFactor(weaponData), false];
+			}
+		} else {
+			multiattack = [2, false];	
+		}
+
+	// for fighters
+	} else if (actorData.items.getName("Extra Attack (Fighter)") !== null) {
+		let weaponData = actorData.items.getName(weaponName);
+		if (weaponData.type === "spell") {
+			if (weaponName === "Eldritch Blast") {
+				multiattack = [getScalingFactor(weaponData), false];
+			}	
+		} else {
+			let actorLevel = actorData.data.data.details.level;
+			if (actorLevel < 11) {
+				multiattack = [2, false];
+			} else if (11 <= actorLevel && actorLevel < 20) {
+				multiattack = [3, false];
+			} else if (actorLevel === 20) {
+				multiattack = [4, false];
+			}
+		}
+
+	// for actors without multiattack
+	} else {
+		let weaponData = actorData.items.getName(weaponName);
+		if (weaponData.type === "spell") {
+			if (weaponName === "Eldritch Blast") {
+				multiattack = [getScalingFactor(weaponData), false];
+			}	
+		}
+	};
+	return multiattack;
 }
