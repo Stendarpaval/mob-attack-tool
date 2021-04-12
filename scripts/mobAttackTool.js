@@ -1,3 +1,5 @@
+import { getMultiattackFromActor } from "./multiattack.js";
+
 export function initMobAttackTool() {
 	Hooks.on("getSceneControlButtons", (controls) => {
 		const playerAccess = game.settings.get("mob-attack-tool","playerAccess");
@@ -67,26 +69,15 @@ async function mobAttackTool() {
 		let isVersatile;
 		for (let item of items) {
 			if (item.data.type == "weapon" || (item.data.type == "spell" && item.data.data.level == 0 && item.data.data.damage.parts.length > 0 && item.data.data.save.ability === "")) {
-				if (weapons[item.data.name]) {
-					if (weapons[item.data.name].id == item.id) {
-						availableAttacks[item.data.name] += 1;
-						// console.log("Mob Attack Tool | Weapon already known.");
-						// if (weapons[item.data.name].data.data.damage.versatile != "") {
-						// 	availableAttacks[item.data.name + ` (Versatile)`] += 1;
-						// }
-					}
+				if (weapons[item.id]?.id === item.id) {
+					availableAttacks[item.id] += 1;
 				} else {
-					weapons[item.data.name] = item;
-					availableAttacks[item.data.name] = 1;
-					content += await formatWeaponLabel(weapons, item.data, false);
-					// if (weapons[item.data.name].data.data.damage.versatile != "") {
-					// 	weapons[(item.data.name + ` (Versatile)`)] = item;
-					// 	availableAttacks[(item.data.name + ` (Versatile)`)] = 1;
-					// 	content += await formatWeaponLabel(weapons, item.data, true);
-					// }
+					weapons[item.id] = item;
+					availableAttacks[item.id] = 1;
+					content += await formatWeaponLabel(weapons, item, false);
 				}
 			}
-		};	
+		}
 	}
 
 	
@@ -110,17 +101,17 @@ async function mobAttackTool() {
 					let weaponLocators = [];
 					let numAttacksMultiplier = 1;
 					// let isVersatile = false;
-					for (let [weapon, weaponData] of Object.entries(weapons)) {
+					for (let [weaponID, weaponData] of Object.entries(weapons)) {
 						// isVersatile = weaponData.data.data.damage.versatile != "";
 						// weapon += ((isVersatile) ?  ` (Versatile)` : ``);
-						console.log("weapon:",weapon);
-						if (html.find(`input[name="use` + weapon.replace(" ","-") + `"]`)[0].checked) {
-							numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weapon.replace(" ","-")}"]`)[0].value);
+						console.log("weapon:",weaponData.name);
+						if (html.find(`input[name="use` + weaponData.id.replace(" ","-") + `"]`)[0].checked) {
+							numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponID.replace(" ","-")}"]`)[0].value);
 							if (numAttacksMultiplier === NaN) {
 								numAttacksMultiplier = 0;
 							}
-							attacks[weapon] = availableAttacks[weapon] * numAttacksMultiplier;
-							weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name});
+							attacks[weaponID] = availableAttacks[weaponData.id] * numAttacksMultiplier;
+							weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name, "weaponID": weaponID});
 						}
 					}
 					let withAdvantage = false;
@@ -150,7 +141,7 @@ async function mobAttackTool() {
 						Macro.create({
 							type: "script", 
 							name: macroName,
-							command: `MobAttacks.quickRoll({numSelected: ${numSelected}, weaponLocators: ${JSON.stringify(weaponLocators)}, attacks: ${JSON.stringify(attacks)}, withAdvantage: ${withAdvantage}, withDisadvantage: ${withDisadvantage}, rollTypeValue: ${rollTypeValue}, rollTypeMessage: "${rollTypeMessage}", endMobTurn: ${endMobTurn}})`,
+							command: `MobAttacks.quickRoll({numSelected: ${numSelected}, weaponLocators: ${JSON.stringify(weaponLocators)}, attacks: ${JSON.stringify(attacks)}, withAdvantage: ${withAdvantage}, withDisadvantage: ${withDisadvantage}, rollTypeValue: ${rollTypeValue}, rollTypeMessage: "${rollTypeMessage}", endMobTurn: ${endMobTurn}, monsters: ${JSON.stringify(monsters)}})`,
 							img: weapons[Object.keys(attacks)[0]].img,
 						});
 					ui.notifications.info(`Macro ${macroName} was saved to the macro directory`);
@@ -167,7 +158,8 @@ async function mobAttackTool() {
 						"withDisadvantage": withDisadvantage,
 						"rollTypeValue": rollTypeValue,
 						"rollTypeMessage": rollTypeMessage,
-						"endMobTurn": endMobTurn
+						"endMobTurn": endMobTurn,
+						"monsters": monsters
 					};
 
 					if (game.settings.get(MODULE,"mobRules") === 0) {
@@ -201,12 +193,22 @@ export function MobAttacks() {
 
 		let weapons = {};
 		let attacker, weapon;
+		let attacks = {}, oldMacroCompatibility = false;
 		data.weaponLocators.forEach(locator => {
 			attacker = game.actors.get(locator["actorID"]);
 			weapon = attacker.items.getName(locator["weaponName"])
-			weapons[weapon.name] = weapon;
+			weapons[weapon.id] = weapon;
+
+			// compatibility with macro's from before v0.1.21:
+			if (data.attacks[locator["weaponName"]]) {
+				oldMacroCompatibility = true;
+				attacks[weapon.id] = data.attacks[locator["weaponName"]];
+			}
 		})
 		data["weapons"] = weapons;
+		if (oldMacroCompatibility) {
+			data["attacks"] = attacks;
+		}
 
 		(async () => {
 			if (game.settings.get("mob-attack-tool","mobRules") === 0) {
@@ -216,8 +218,6 @@ export function MobAttacks() {
 			}
 		})();
 	}
-
-	
 
 	return {
 		quickRoll:quickRoll
@@ -242,16 +242,14 @@ function checkTarget() {
 
 async function rollMobAttackIndividually(data) {
 
-	// Check for betterrolls5e and midi-qol
-	let betterrollsActive = false;
-	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
-	let midi_QOL_Active = false;
-	if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
-
 	// Cycle through selected weapons
+	let attackData = [];
+	let messageData = {messages: {}};
 	for ( let [key, value] of Object.entries(data.attacks) ) {
-		const actorName = data.weapons[key].actor.name;
-		const finalAttackBonus = getAttackBonus(data.weapons[key]);
+		const weaponData = data.weapons[key]; 
+		const actorName = weaponData.actor.name;
+		// messageData.attackers.push(actorName);
+		const finalAttackBonus = getAttackBonus(weaponData);
 
 		let attackFormula = '';
 		
@@ -266,6 +264,7 @@ async function rollMobAttackIndividually(data) {
 		//TODO: check for crits and crit fails. Add separate props.
 		let numHitAttacks = 0;
 		let numCrits = 0;
+		let numCritFails = 0;
 
 		// Check how many attackers have this weapon
 		let availableAttacks = data.numSelected;
@@ -295,153 +294,213 @@ async function rollMobAttackIndividually(data) {
 				numCrits++;
 				numHitAttacks += 1;
 				successfulAttackRolls.push(attackRollEvaluated[i]);
+			} else if (attackRollEvaluated[i].total - finalAttackBonus == 1) {
+				numCritFails++;
 			} else if (attackRollEvaluated[i].total >= data.targetAC && attackRollEvaluated[i].total - finalAttackBonus > 1) {
 				numHitAttacks += 1;
 				successfulAttackRolls.push(attackRollEvaluated[i]);
 			}
 		}
 		
-		const critMsg = (numCrits > 0) ? `, ${numCrits} of them critically` : ``;
-		const pluralOrNot = ((numHitAttacks == 1) ? ` attack hits${(numCrits > 0) ? ` critically` : ``}!` : ` attacks hit${critMsg}!`);
+		const hitTarget = numHitAttacks > 0;
+		let crits, hitOrMiss;
+		if (hitTarget) {
+			crits = numCrits;
+			hitOrMiss = (crits === 1) ? ` hits ` : ` hit `;
+		} else {
+			crits = numCritFails;
+			hitOrMiss = (crits === 1) ? ` misses ` : ` miss `;
+		}
+		const critMsg = (crits > 0) ? `, ${crits}${hitOrMiss}critically` : ``;
+		const pluralOrNot = ((numHitAttacks === 1) ? ` attack${(availableAttacks > 1) ? `s` : ``} hits${(numCrits > 0) ? ` critically` : ``}!` : ` attack${(availableAttacks > 1) ? `s` : ``} hit${critMsg}!`);
 		const targetACtext = game.user.isGM ? ` (AC ${data.targetAC})` : ``;
+
+		let actorAmount = data.numSelected;
+		if (data.monsters?.[weaponData.actor.id]?.["amount"]) {
+			actorAmount = data.monsters[weaponData.actor.id]["amount"];
+		}
 
 		// Mob attack results message
 		let msgData = {
+			actorAmount: actorAmount,
+			actorName: actorName,
 			targetName: data.targetToken.name,
 			targetACtext: targetACtext,
 			finalAttackBonus: finalAttackBonus,
-			weaponName: key,
+			weaponName: weaponData.name,
 			availableAttacks: availableAttacks,
 			numSelected: data.numSelected,
-			attackUseText: (availableAttacks === 1) ? ` uses a ${key} attack` : `s use ${key} attacks`,
+			attackUseText: (availableAttacks === 1) ? ` uses a ${weaponData.name} attack` : `s use ${weaponData.name} attacks`,
 			numHitAttacks: numHitAttacks,
+			hitTarget: hitTarget,
 			pluralOrNot: pluralOrNot
 		}
-		let msgText = await renderTemplate('modules/mob-attack-tool/templates/mat-msg-individual-rolls.html', msgData);
-		sendChatMessage(msgText);
 
-		// Process attack and damage rolls
-		let isVersatile = false;
-		if (data.weapons[key].name.endsWith(`(Versatile)`)) {
-			isVersatile = true;
+		// Store message data for later
+		if (!messageData.messages[actorName]) {
+			messageData.messages[actorName] = [msgData];
+		} else {
+			messageData.messages[actorName].push(msgData);
 		}
-		if (numHitAttacks != 0) {
-			// Better Rolls 5e active
-			if (betterrollsActive) {
-				let mobAttackRoll = BetterRolls.rollItem(data.weapons[key], {},
-					[
-						["header"],
-						["desc"]
-					]
-				);
-				let attackFieldOptions = {};
-				let damageFieldOptions = {};
-				let showAttackRolls = game.settings.get("mob-attack-tool", "showIndividualAttackRolls");
-				for (let i = 0; i < numHitAttacks; i++) {
-					if (successfulAttackRolls[i].total - finalAttackBonus == 20 && numCrits > 0) {
-						let attackFormula = showAttackRolls ? "0d0 + " + (successfulAttackRolls[i].total).toString() : "0d0 + " + (data.targetAC).toString();
-					 	attackFieldOptions =  {formula: attackFormula, forceCrit: true};
-						damageFieldOptions = {index: "all", isCrit: true};
-						numCrits--;
-						console.log("attack data:",successfulAttackRolls[i].total, "num crits remaining:",numCrits);
-					} else {
-						let attackFormula = showAttackRolls ? "0d0 + " + (successfulAttackRolls[i].total).toString() : "0d0 + " + (data.targetAC).toString();
-					 	attackFieldOptions = {formula: attackFormula};
-					 	damageFieldOptions = {index: "all", isCrit: false};
-					}
-					if (i === 0 || showAttackRolls) await mobAttackRoll.addField(["attack", attackFieldOptions]);
-					await mobAttackRoll.addField(["damage", damageFieldOptions]);
-				}
-				if (data.weapons[key].data.data.consume.type === "ammo") {
-					try {
-						await mobAttackRoll.addField(["ammo", {name: data.weapons[key].actor.items.get(data.weapons[key].data.data.consume.target).name}]);	
-						await mobAttackRoll.toMessage();
-					} catch (error) {
-						console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
-						ui.notifications.error(`There was an error while trying to add an ammo field to this ${key} attack.`);
-					}
-				} else {
-					await mobAttackRoll.toMessage();
-				}
-				
 
-			// Midi-QOL active, Better Rolls inactive
-			} else if (midi_QOL_Active) {
-				await new Promise(resolve => setTimeout(resolve, 300));
-				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key],isVersatile);
-
-				let diceFormula = diceFormulas.join(" + ");
-				let damageType = damageTypes.join(", ");
-				let damageRoll = new Roll(diceFormula, {mod: data.weapons[key].actor.data.data.abilities[data.weapons[key].abilityMod].mod});
-
-				//TODO: use better crit formula
-				await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true}).roll();
-				
-				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
-				
-				//TODO: find out how to properly tell MidiQOL about multiple damage types
-				new MidiQOL.DamageOnlyWorkflow(
-					data.weapons[key].options.actor, 
-					data.targetToken, 
-					damageRoll.total, 
-					damageTypeLabels[0], 
-					[data.targetToken], 
-					damageRoll, 
-					{
-						flavor: `${key} - Damage Roll (${damageType})${(numCrits > 0) ? ` (Crit included)` : ``}`, 
-						itemData: data.weapons[key], 
-						itemCardId: "new"
-					}
-				);
-				
-			
-			// Neither Better Rolls nor Midi-QOL active
-			} else {
-				for (let i = 0; i < numHitAttacks; i++) {
-					await new Promise(resolve => setTimeout(resolve, 300));
-					if (game.settings.get("mob-attack-tool", "showIndividualAttackRolls")) {
-						await successfulAttackRolls[i].toMessage(
-							{
-								flavor: `${data.weapons[key].name} - Attack Roll`,
-								speaker: {
-									actor: data.weapons[key].actor.id,
-									alias: data.weapons[key].actor.name
-								}
-							}
-						);
-						await new Promise(resolve => setTimeout(resolve, 200));
-					}
-					let damageOptions = {};
-					if (successfulAttackRolls[i].total - finalAttackBonus == 20 && numCrits > 0) {
-						damageOptions = {"critical": true, "event": {"altKey": true}};
-						numCrits--
-					} else {
-						damageOptions = {"critical": false, "event": {"altKey": true}};
-					}
-					await data.weapons[key].rollDamage(damageOptions);
-				}
-			}
+		if (!messageData["totalHitAttacks"]) {
+			messageData["totalHitAttacks"] = numHitAttacks;
+		} else {
+			messageData["totalHitAttacks"] += numHitAttacks;
 		}
-	await new Promise(resolve => setTimeout(resolve, 750));	
+
+		attackData.push({
+			data: data,
+			weaponData: weaponData,
+			finalAttackBonus: finalAttackBonus,
+			successfulAttackRolls: successfulAttackRolls,
+			numHitAttacks: numHitAttacks,
+			numCrits: numCrits
+		})
+
+		await new Promise(resolve => setTimeout(resolve, 250));	
 	}
+
+	let totalPluralOrNot = ((messageData.totalHitAttacks === 1) ? ` attack hits in total!` : ` attacks hit in total!`);
+	messageData["totalPluralOrNot"] = totalPluralOrNot;
+
+	// Send message
+	let messageText = await renderTemplate('modules/mob-attack-tool/templates/mat-msg-individual-rolls.html', messageData);
+	sendChatMessage(messageText);
+
+	// Process damage rolls
+	for (let attack of attackData) {
+		await processIndividualDamageRolls(attack.data, attack.weaponData, attack.finalAttackBonus, attack.successfulAttackRolls, attack.numHitAttacks, attack.numCrits);
+		await new Promise(resolve => setTimeout(resolve, 500));
+	}
+
 	if (data.endMobTurn) {
 		await endGroupedMobTurn(data);
 	}
 }
 
 
-async function rollMobAttack(data) {
-
+async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, successfulAttackRolls, numHitAttacks, numCrits) {
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
 	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
 	let midi_QOL_Active = false;
 	if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
+	
+	// Process attack and damage rolls
+	let isVersatile = false;
+	if (weaponData.name.endsWith(`(Versatile)`)) {
+		isVersatile = true;
+	}
+	if (numHitAttacks != 0) {
+		// Better Rolls 5e active
+		if (betterrollsActive) {
+			let mobAttackRoll = BetterRolls.rollItem(weaponData, {},
+				[
+					["header"],
+					["desc"]
+				]
+			);
+			let attackFieldOptions = {};
+			let damageFieldOptions = {};
+			let showAttackRolls = game.settings.get("mob-attack-tool", "showIndividualAttackRolls");
+			for (let i = 0; i < numHitAttacks; i++) {
+				if (successfulAttackRolls[i].total - finalAttackBonus == 20 && numCrits > 0) {
+					let attackFormula = showAttackRolls ? "0d0 + " + (successfulAttackRolls[i].total).toString() : "0d0 + " + (data.targetAC).toString();
+				 	attackFieldOptions =  {formula: attackFormula, forceCrit: true};
+					damageFieldOptions = {index: "all", isCrit: true};
+					numCrits--;
+					console.log("attack data:",successfulAttackRolls[i].total, "num crits remaining:",numCrits);
+				} else {
+					let attackFormula = showAttackRolls ? "0d0 + " + (successfulAttackRolls[i].total).toString() : "0d0 + " + (data.targetAC).toString();
+				 	attackFieldOptions = {formula: attackFormula};
+				 	damageFieldOptions = {index: "all", isCrit: false};
+				}
+				if (i === 0 || showAttackRolls) await mobAttackRoll.addField(["attack", attackFieldOptions]);
+				await mobAttackRoll.addField(["damage", damageFieldOptions]);
+			}
+			if (weaponData.data.data.consume.type === "ammo") {
+				try {
+					await mobAttackRoll.addField(["ammo", {name: weaponData.actor.items.get(weaponData.data.data.consume.target).name}]);	
+					await mobAttackRoll.toMessage();
+				} catch (error) {
+					console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
+					ui.notifications.error(`There was an error while trying to add an ammo field to this ${weaponData.name} attack.`);
+				}
+			} else {
+				await mobAttackRoll.toMessage();
+			}
+			
+
+		// Midi-QOL active, Better Rolls inactive
+		} else if (midi_QOL_Active) {
+			await new Promise(resolve => setTimeout(resolve, 300));
+			let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
+
+			let diceFormula = diceFormulas.join(" + ");
+			let damageType = damageTypes.join(", ");
+			let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+
+			//TODO: use better crit formula
+			await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true}).roll();
+			
+			if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
+			
+			//TODO: find out how to properly tell MidiQOL about multiple damage types
+			new MidiQOL.DamageOnlyWorkflow(
+				weaponData.options.actor, 
+				data.targetToken, 
+				damageRoll.total, 
+				damageTypeLabels[0], 
+				[data.targetToken], 
+				damageRoll, 
+				{
+					flavor: `${weaponData.name} - Damage Roll (${damageType})${(numCrits > 0) ? ` (Crit included)` : ``}`, 
+					itemData: weaponData, 
+					itemCardId: "new"
+				}
+			);
+			
+		
+		// Neither Better Rolls nor Midi-QOL active
+		} else {
+			for (let i = 0; i < numHitAttacks; i++) {
+				await new Promise(resolve => setTimeout(resolve, 300));
+				if (game.settings.get("mob-attack-tool", "showIndividualAttackRolls")) {
+					await successfulAttackRolls[i].toMessage(
+						{
+							flavor: `${weaponData.name} - Attack Roll`,
+							speaker: {
+								actor: weaponData.actor.id,
+								alias: weaponData.actor.name
+							}
+						}
+					);
+					await new Promise(resolve => setTimeout(resolve, 200));
+				}
+				let damageOptions = {};
+				if (successfulAttackRolls[i].total - finalAttackBonus == 20 && numCrits > 0) {
+					damageOptions = {"critical": true, "event": {"altKey": true}};
+					numCrits--
+				} else {
+					damageOptions = {"critical": false, "event": {"altKey": true}};
+				}
+				await weaponData.rollDamage(damageOptions);
+			}
+		}
+	}
+}
+
+
+async function rollMobAttack(data) {
 
 	// Cycle through selected weapons
+	let attackData = [];
+	let messageData = {messages: {}};
 	for ( let [key, value] of Object.entries(data.attacks) ) { 
-		const actorName = data.weapons[key].actor.name;
-		const finalAttackBonus = getAttackBonus(data.weapons[key]);
+		const weaponData = data.weapons[key]; 
+		const actorName = weaponData.actor.name;
+		const finalAttackBonus = getAttackBonus(weaponData);
 		const d20Needed = calcD20Needed(finalAttackBonus, data.targetAC, data.rollTypeValue);
 		const attackersNeeded = calcAttackersNeeded(d20Needed);
 
@@ -451,92 +510,67 @@ async function rollMobAttack(data) {
 			availableAttacks = value;
 		}
 		
-		// Process hit attacks
-		let isVersatile = false;
-		if (data.weapons[key].name.endsWith(`(Versatile)`)) {
-			isVersatile = true;
-		}
 		if (availableAttacks / attackersNeeded >= 1) {
 			const numHitAttacks = Math.floor(availableAttacks/attackersNeeded);
-			const pluralOrNot = ((numHitAttacks == 1) ? " attack hits!" : " attacks hit!");
-			const targetACtext = game.user.isGM ? ` (AC ${data.targetAC})` : ``;
+			const pluralOrNot = ((numHitAttacks === 1) ? " attack hits!" : " attacks hit!");
+			const sOrNot = ((numHitAttacks > 1) ? "s" : "");
+			const targetACtext = game.user.isGM ? `Target AC ${data.targetAC}` : ``;
+
+			let actorAmount = data.numSelected;
+			if (data.monsters?.[weaponData.actor.id]?.["amount"]) {
+				actorAmount = data.monsters[weaponData.actor.id]["amount"];
+			}
 
 			// Mob attack results message
 			let msgData = {
+				actorAmount: actorAmount,
 				targetName: data.targetToken.name,
 				targetACtext: targetACtext,
 				d20Needed: d20Needed,
 				finalAttackBonus: finalAttackBonus,
-				weaponName: key,
+				weaponName: weaponData.name,
 				availableAttacks: availableAttacks,
 				attackersNeeded: attackersNeeded,
 				numSelected: data.numSelected,
 				numHitAttacks: numHitAttacks,
-				pluralOrNot: pluralOrNot
+				pluralOrNot: pluralOrNot,
+				sOrNot: sOrNot
 			}
-			let msgText = await renderTemplate('modules/mob-attack-tool/templates/mat-msg-mob-rules.html', msgData);
-			sendChatMessage(msgText);
-			
-			// betterrolls5e active
-			if (betterrollsActive) {
-				let mobAttackRoll = BetterRolls.rollItem(data.weapons[key], {},
-					[
-						["header"],
-						["desc"],
-						["attack", {formula: "0d0 + " + (data.targetAC).toString()}]
-					]
-				);
-				// Add damage fields from each successful hit to the same card
-				for (let i = 0; i < numHitAttacks; i++) {
-					await mobAttackRoll.addField(["damage",{index: "all"}]);
-				}
-				if (data.weapons[key].data.data.consume.type === "ammo") {
-					try {
-						await mobAttackRoll.addField(["ammo",{name: data.weapons[key].actor.items.get(data.weapons[key].data.data.consume.target).name}]);
-						await mobAttackRoll.toMessage();
-					} catch (error) {
-						console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
-						ui.notifications.error(`There was an error while trying to add an ammo field to this ${key} attack.`);
-					}
-				} else {
-					await mobAttackRoll.toMessage();
-				}
-				
-			// neither midi-qol or betterrolls5e active
-			} else if (!midi_QOL_Active) {
-				for (let i = 0; i < numHitAttacks; i++) {
-					await data.weapons[key].rollDamage({"critical": false, "event": {"altKey": true}});	
-					await new Promise(resolve => setTimeout(resolve, 300));						
-				}
 
-			// midi-qol is active,  betterrolls5e is not active
+			if (!messageData.messages[actorName]) {
+				messageData.messages[actorName] = [msgData];
 			} else {
-				await new Promise(resolve => setTimeout(resolve, 300));
-
-				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(data.weapons[key],isVersatile);
-				let diceFormula = diceFormulas.join(" + ");
-				let damageType = damageTypes.join(", ");
-				let damageRoll = new Roll(diceFormula,{mod: data.weapons[key].actor.data.data.abilities[data.weapons[key].abilityMod].mod});
-				await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
-
-				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
-				let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(
-					data.weapons[key].options.actor, 
-					data.targetToken, 
-					damageRoll.total, 
-					damageTypeLabels[0], 
-					[data.targetToken], 
-					damageRoll, 
-					{
-						flavor: `${key} - Damage Roll (${damageType})`, 
-						itemCardId: data.weapons[key].itemCardId
-					}
-				);
+				messageData.messages[actorName].push(msgData);
 			}
-			await new Promise(resolve => setTimeout(resolve, 750));	
+
+			if (!messageData["totalHitAttacks"]) {
+				messageData["totalHitAttacks"] = numHitAttacks;
+			} else {
+				messageData["totalHitAttacks"] += numHitAttacks;
+			}
+
+			attackData.push({
+				data: data,
+				weaponData: weaponData,
+				numHitAttacks: numHitAttacks,
+			})
+
+			await new Promise(resolve => setTimeout(resolve, 250));
 		} else {
 			ui.notifications.warn("Attack bonus too low or not enough mob attackers to hit the target!");
+			return;
 		}
+	}
+
+	let totalPluralOrNot = ((messageData.totalHitAttacks === 1) ? ` attack hits in total!` : ` attacks hit in total!`);
+	messageData["totalPluralOrNot"] = totalPluralOrNot;
+	console.log(messageData);
+	let messageText = await renderTemplate('modules/mob-attack-tool/templates/mat-msg-mob-rules.html', messageData);
+	sendChatMessage(messageText);
+
+	for (let attack of attackData) {
+		await processMobRulesDamageRolls(attack.data, attack.weaponData, attack.numHitAttacks);
+		await new Promise(resolve => setTimeout(resolve, 500));
 	}
 
 	if (data.endMobTurn) {
@@ -545,11 +579,83 @@ async function rollMobAttack(data) {
 }
 
 
+async function processMobRulesDamageRolls(data, weaponData, numHitAttacks) {
+	// Process hit attacks
+	let isVersatile = false;
+	if (weaponData.name.endsWith(`(Versatile)`)) {
+		isVersatile = true;
+	}
+
+	// Check for betterrolls5e and midi-qol
+	let betterrollsActive = false;
+	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
+	let midi_QOL_Active = false;
+	if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
+
+	// betterrolls5e active
+	if (betterrollsActive) {
+		let mobAttackRoll = BetterRolls.rollItem(weaponData, {},
+			[
+				["header"],
+				["desc"],
+				["attack", {formula: "0d0 + " + (data.targetAC).toString()}]
+			]
+		);
+		// Add damage fields from each successful hit to the same card
+		for (let i = 0; i < numHitAttacks; i++) {
+			await mobAttackRoll.addField(["damage",{index: "all"}]);
+		}
+		if (weaponData.data.data.consume.type === "ammo") {
+			try {
+				await mobAttackRoll.addField(["ammo",{name: weaponData.actor.items.get(weaponData.data.data.consume.target).name}]);
+				await mobAttackRoll.toMessage();
+			} catch (error) {
+				console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
+				ui.notifications.error(`There was an error while trying to add an ammo field to this ${weaponData.name} attack.`);
+			}
+		} else {
+			await mobAttackRoll.toMessage();
+		}
+		
+	// neither midi-qol or betterrolls5e active
+	} else if (!midi_QOL_Active) {
+		for (let i = 0; i < numHitAttacks; i++) {
+			await weaponData.rollDamage({"critical": false, "event": {"altKey": true}});	
+			await new Promise(resolve => setTimeout(resolve, 300));						
+		}
+
+	// midi-qol is active,  betterrolls5e is not active
+	} else {
+		await new Promise(resolve => setTimeout(resolve, 300));
+
+		let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
+		let diceFormula = diceFormulas.join(" + ");
+		let damageType = damageTypes.join(", ");
+		let damageRoll = new Roll(diceFormula,{mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+		await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
+
+		if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
+		let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(
+			weaponData.options.actor, 
+			data.targetToken, 
+			damageRoll.total, 
+			damageTypeLabels[0], 
+			[data.targetToken], 
+			damageRoll, 
+			{
+				flavor: `${weaponData.name} - Damage Roll (${damageType})`, 
+				itemCardId: weaponData.itemCardId
+			}
+		);
+	}
+}
+
+
 async function endGroupedMobTurn(data) {
 	if (game.combat != null) {
 		let mobActors = [];
 
-		for (let [key, value] of Object.entries(data.attacks)) { 
+		for (let [key, value] of Object.entries(data.attacks)) {
 			mobActors.push(data.weapons[key].actor);
 		}
 
@@ -589,25 +695,25 @@ async function formatMonsterLabel(monsterData) {
 
 
 async function formatWeaponLabel(weapons, itemData, isVersatile) {	
-	let damageData = getDamageFormulaAndType(weapons[itemData.name], isVersatile);
+	let damageData = getDamageFormulaAndType(itemData, isVersatile);
 	let weaponDamageText = ``;
 	for (let i = 0; i < damageData[0].length; i++) {
 		((i > 0) ? weaponDamageText += `<br>${damageData[0][i]} ${damageData[1][i].capitalize()}` : weaponDamageText += `${damageData[0][i]} ${damageData[1][i].capitalize()}`);
 	}
 	let numAttacksTotal = 1, preChecked = false;
 	let autoDetect = game.settings.get("mob-attack-tool","autoDetectMultiattacks");
-	if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(itemData.name, weapons[itemData.name].actor);
+	if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(itemData.name, itemData.actor, weapons);
 	if (autoDetect === 1) preChecked = false;
 	
 	let labelData = {
-		numAttacksName: `numAttacks${(itemData.name + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
+		numAttacksName: `numAttacks${(itemData.id + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
 		numAttack: numAttacksTotal,
 		weaponImg: itemData.img,
 		weaponNameImg: itemData.name.replace(" ","-"),
 		weaponName: itemData.name + ((isVersatile) ? ` (Versatile)` : ``),
-		weaponAttackBonus: getAttackBonus(weapons[itemData.name]),
+		weaponAttackBonus: getAttackBonus(itemData),
 		weaponDamageText: weaponDamageText,
-		useButtonName: `use${(itemData.name + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
+		useButtonName: `use${(itemData.id + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
 		useButtonValue: (preChecked) ? `checked` : ``
 	};
 	if (isVersatile) console.log(labelData);
@@ -668,7 +774,7 @@ function sendChatMessage(text) {
 
 	let chatData = {
 		user: game.user.id,
-		speaker: game.user,
+		speaker: {alias: "Mob Attack Results"},
 		content: text,
 		whisper: whisperIDs
 	};
@@ -687,9 +793,9 @@ function getAttackBonus(weaponData) {
 		}
 	}
 	const actorAbilityMod = parseInt(weaponData.actor.data.data.abilities[weaponAbility].mod);
-	const attackBonus = parseInt(weaponData.data.data.attackBonus);
+	const attackBonus = parseInt(weaponData.data.data.attackBonus) || 0;
 	let profBonus;
-	if (!weaponData.type == "spell") {
+	if (weaponData.type != "spell") {
 		profBonus = parseInt(((weaponData.data.data.proficient) ? weaponData.actor.data.data.attributes.prof : 0));
 	} else {
 		profBonus = parseInt(weaponData.actor.data.data.attributes.prof);
@@ -700,7 +806,7 @@ function getAttackBonus(weaponData) {
 }
 
 
-function getScalingFactor(weaponData) {
+export function getScalingFactor(weaponData) {
 	let cantripScalingFactor = 1;
 	if (weaponData.type == "spell") {
 		let casterLevel = weaponData.actor.data.data.details.level || weaponData.actor.data.data.details.spellLevel;
@@ -737,153 +843,4 @@ function getDamageFormulaAndType(weaponData, versatile) {
 		}
 	}
 	return [diceFormulas, damageTypes, damageTypeLabels];
-}
-
-
-function getMultiattackFromActor(weaponName, actorData) {
-
-	let dictStrNum = {	"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10};
-	let multiattack = [1, false];
-	if (actorData.items.getName("Multiattack") !== null) {
-
-		let weaponData = actorData.items.getName(weaponName);
-		if (weaponData.type === "spell") {
-			if (weaponName === "Eldritch Blast") {
-				multiattack = [getScalingFactor(weaponData), false];
-			}
-		}
-
-		let desc = actorData.items.getName("Multiattack").data.data.description.value;
-		if (desc.endsWith(".</p>")) {
-			desc = desc.slice(0,-5);
-		}
-
-		// First split multiattack description in general and specific parts
-		let attackIndex = desc.indexOf(`attack`);
-		let attackType = ``;
-		if (desc.indexOf(`melee attacks`) !== -1) {
-			attackIndex = desc.indexOf(`melee attacks`);
-			if (desc.indexOf(`ranged attacks`) !== -1) {
-				attackType = `choose`;
-			} else {
-				attackType = `melee`;	
-			}
-		} else if (desc.indexOf(`ranged attacks`) !== -1) {
-			attackIndex = desc.indexOf(`ranged attacks`);
-			attackType = `ranged`;
-		} else if (desc.indexOf(`${weaponName.toLowerCase()} attacks`) !== -1 || desc.indexOf(`${weaponName.toLowerCase()}s attacks`) !== -1) {
-			attackIndex = desc.indexOf(`${weaponName.toLowerCase()} attacks`);
-			attackType = `specific`;
-		}
-
-		// Split up description into words for analysis
-		let initialWords = desc.slice(0,attackIndex).split(" ");
-
-		// Then detect overall number of multiattack attacks
-		let numAttacksTotal = 0;
-		let numAttacksWeapon = 0;
-		for (let word of initialWords) {
-			if (dictStrNum[word]) {
-				if (attackType !== ``) {
-					numAttacksWeapon = dictStrNum[word];
-				} 
-				numAttacksTotal = dictStrNum[word];
-				break;
-			}
-		}
-
-		// Next detect specific number of attacks of this weapon
-		// (This is the complicated / messy part.)
-		let remainingWords = desc.slice(attackIndex + attackType.length + 8).split(" ");
-
-		let weaponDetected = false;
-		let twiceAtEnd = false;
-
-		// Step backwards through multiattack description
-		for (let word of remainingWords.reverse()) {
-			
-			// homogenize words to simplify detection
-			word = word.toLowerCase();
-			let interpunction = [",",".",":"];
-			for (let ip of interpunction) {
-				if (word.endsWith(ip)) word = word.slice(0,word.indexOf(ip));	
-			}
-			
-			// check if description ends with 'twice' (a rare exception)
-			if (word === "twice") {
-				twiceAtEnd = true;
-			}
-
-			// detect weapon
-			if (weaponName.toLowerCase().split(" ").includes(word) || `${weaponName.toLowerCase()}s`.split(" ").includes(word)) {	
-				weaponDetected = true;
-			}
-
-			// detect possibility of choosing what kind of multiattack to use
-			if (weaponDetected && [`or`,`alternatively`,`instead`].includes(word)) {
-				let wordRegex = new RegExp(weaponName.toLowerCase(),"g");
-				let wordCount = (desc.toLowerCase().match(wordRegex) || []).length;
-
-				attackType = `choose`;
-				if (twiceAtEnd) {
-					numAttacksWeapon = 2;
-					break;
-				}
-			}
-
-			// match text number to actual value for number of attacks	
-			if (weaponDetected && dictStrNum[word]) {
-				numAttacksWeapon = dictStrNum[word];
-				break;
-			}
-		}
-
-		// either return the specific or total number of multiattacks 
-		if (numAttacksTotal !== 0) {
-			if (numAttacksWeapon !== 0) {
-				multiattack = [numAttacksWeapon, (attackType !== `choose`) ? true : false];
-			} else if (weaponDetected) {
-				multiattack = [numAttacksTotal, (attackType !== `choose`) ? true : false];
-			}
-		}
-
-	// for actors with the Extra Attack item
-	} else if (actorData.items.getName("Extra Attack") !== null) {
-		let weaponData = actorData.items.getName(weaponName);
-		if (weaponData.type === "spell") {
-			if (weaponName === "Eldritch Blast") {
-				multiattack = [getScalingFactor(weaponData), false];
-			}
-		} else {
-			multiattack = [2, false];	
-		}
-
-	// for fighters
-	} else if (actorData.items.getName("Extra Attack (Fighter)") !== null) {
-		let weaponData = actorData.items.getName(weaponName);
-		if (weaponData.type === "spell") {
-			if (weaponName === "Eldritch Blast") {
-				multiattack = [getScalingFactor(weaponData), false];
-			}	
-		} else {
-			let actorLevel = actorData.data.data.details.level;
-			if (actorLevel < 11) {
-				multiattack = [2, false];
-			} else if (11 <= actorLevel && actorLevel < 20) {
-				multiattack = [3, false];
-			} else if (actorLevel === 20) {
-				multiattack = [4, false];
-			}
-		}
-
-	// for actors without multiattack
-	} else {
-		let weaponData = actorData.items.getName(weaponName);
-		if (weaponData.type === "spell") {
-			if (weaponName === "Eldritch Blast") {
-				multiattack = [getScalingFactor(weaponData), false];
-			}	
-		}
-	};
-	return multiattack;
 }

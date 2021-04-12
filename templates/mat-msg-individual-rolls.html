@@ -1,4 +1,17 @@
-<strong>Mob Attack Results</strong>
+{{#each messages}}
+<table style="width:100%">
+	<tr>
+		<th colspan="1">{{this.[0].actorAmount}}x {{@key}}</th>
+	</tr>
+	{{#each this}}
+	<tr>
+		<td>{{this.numHitAttacks}} of {{this.availableAttacks}} {{this.weaponName}}{{this.pluralOrNot}}</td>
+	</tr>
+	{{/each}}
+</table>
+{{/each}}
+<!-- {{#if hitTarget}}
+<hr>
 <table style="width:100%">
 	<tr>
 		<td>Target: </td>
@@ -13,6 +26,6 @@
 		<td>{{weaponName}} ({{availableAttacks}} of {{numSelected}})</td>
 	</tr>
 </table>
-{{availableAttacks}} attacker{{attackUseText}}
-<br><hr>
-<strong>Conclusion:</strong> {{numHitAttacks}}{{pluralOrNot}}
+{{/if}} -->
+<hr>
+<strong>Conclusion:</strong> {{totalHitAttacks}}{{totalPluralOrNot}}
