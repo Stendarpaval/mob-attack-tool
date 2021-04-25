@@ -150,13 +150,15 @@ async function mobAttackTool() {
 
 					// Create macro
 					if (html.find(`input[name="exportMobAttack"]`)[0].checked) {
-						let macroName = `${weapons[Object.keys(attacks)[0]].name} Mob Attack of ${canvas.tokens.controlled.length} ${canvas.tokens.controlled[0].name}(s)`;
+						let key = Object.keys(attacks)[0];
+						if (key.endsWith(`(Versatile)`)) key = key.slice(0,key.indexOf(` (Versatile)`));
+						let macroName = `${weapons[key].name} Mob Attack of ${canvas.tokens.controlled.length} ${canvas.tokens.controlled[0].name}(s)`;
 						
 						Macro.create({
 							type: "script", 
 							name: macroName,
 							command: `MobAttacks.quickRoll({numSelected: ${numSelected}, weaponLocators: ${JSON.stringify(weaponLocators)}, attacks: ${JSON.stringify(attacks)}, withAdvantage: ${withAdvantage}, withDisadvantage: ${withDisadvantage}, rollTypeValue: ${rollTypeValue}, rollTypeMessage: "${rollTypeMessage}", endMobTurn: ${endMobTurn}, monsters: ${JSON.stringify(monsters)}})`,
-							img: weapons[Object.keys(attacks)[0]].img,
+							img: weapons[key].img,
 						});
 					ui.notifications.info(`Macro ${macroName} was saved to the macro directory`);
 					}
