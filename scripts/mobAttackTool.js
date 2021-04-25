@@ -66,7 +66,6 @@ async function mobAttackTool() {
 		// Check if Core is 0.8.x or even newer
 		let coreVersion08x = parseInt(game.data.version.slice(2)) > 7;
 		let items = (coreVersion08x) ? token.actor.items.contents : token.actor.items.entries;
-		let isVersatile;
 		for (let item of items) {
 			if (item.data.type == "weapon" || (item.data.type == "spell" && item.data.data.level == 0 && item.data.data.damage.parts.length > 0 && item.data.data.save.ability === "")) {
 				if (weapons[item.id]?.id === item.id) {
@@ -74,7 +73,7 @@ async function mobAttackTool() {
 				} else {
 					weapons[item.id] = item;
 					availableAttacks[item.id] = 1;
-					content += await formatWeaponLabel(weapons, item, false);
+					content += await formatWeaponLabel(weapons, item);
 				}
 			}
 		}
@@ -100,12 +99,20 @@ async function mobAttackTool() {
 					let attacks = {};
 					let weaponLocators = [];
 					let numAttacksMultiplier = 1;
-					// let isVersatile = false;
+					let isVersatile = false;
+					let key;
 					for (let [weaponID, weaponData] of Object.entries(weapons)) {
-						// isVersatile = weaponData.data.data.damage.versatile != "";
-						// weapon += ((isVersatile) ?  ` (Versatile)` : ``);
-						console.log("weapon:",weaponData.name);
+						isVersatile = weaponData.data.data.damage.versatile != "";
+						weaponID += ((isVersatile) ?  ` (Versatile)` : ``);
 						if (html.find(`input[name="use` + weaponData.id.replace(" ","-") + `"]`)[0].checked) {
+							numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponData.id.replace(" ","-")}"]`)[0].value);
+							if (numAttacksMultiplier === NaN) {
+								numAttacksMultiplier = 0;
+							}
+							attacks[weaponData.id] = availableAttacks[weaponData.id] * numAttacksMultiplier;
+							weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name, "weaponID": weaponData.id});
+						}
+						if (html.find(`input[name="use` + weaponID.replace(" ","-") + `"]`)[0].checked) {
 							numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponID.replace(" ","-")}"]`)[0].value);
 							if (numAttacksMultiplier === NaN) {
 								numAttacksMultiplier = 0;
@@ -245,8 +252,14 @@ async function rollMobAttackIndividually(data) {
 	// Cycle through selected weapons
 	let attackData = [];
 	let messageData = {messages: {}};
+	let isVersatile;
 	for ( let [key, value] of Object.entries(data.attacks) ) {
-		const weaponData = data.weapons[key]; 
+		isVersatile = false;
+		if (key.endsWith(`(Versatile)`.replace(" ", "-"))) {
+			isVersatile = true;
+			key = key.slice(0,key.indexOf(` (Versatile)`));
+		}
+		const weaponData = data.weapons[key];
 		const actorName = weaponData.actor.name;
 		// messageData.attackers.push(actorName);
 		const finalAttackBonus = getAttackBonus(weaponData);
@@ -327,7 +340,7 @@ async function rollMobAttackIndividually(data) {
 			targetName: data.targetToken.name,
 			targetACtext: targetACtext,
 			finalAttackBonus: finalAttackBonus,
-			weaponName: weaponData.name,
+			weaponName: `${weaponData.name}${(isVersatile) ? ` (Versatile)` : ``}`,
 			availableAttacks: availableAttacks,
 			numSelected: data.numSelected,
 			attackUseText: (availableAttacks === 1) ? ` uses a ${weaponData.name} attack` : `s use ${weaponData.name} attacks`,
@@ -355,7 +368,8 @@ async function rollMobAttackIndividually(data) {
 			finalAttackBonus: finalAttackBonus,
 			successfulAttackRolls: successfulAttackRolls,
 			numHitAttacks: numHitAttacks,
-			numCrits: numCrits
+			numCrits: numCrits,
+			isVersatile: isVersatile
 		})
 
 		await new Promise(resolve => setTimeout(resolve, 250));	
@@ -370,7 +384,7 @@ async function rollMobAttackIndividually(data) {
 
 	// Process damage rolls
 	for (let attack of attackData) {
-		await processIndividualDamageRolls(attack.data, attack.weaponData, attack.finalAttackBonus, attack.successfulAttackRolls, attack.numHitAttacks, attack.numCrits);
+		await processIndividualDamageRolls(attack.data, attack.weaponData, attack.finalAttackBonus, attack.successfulAttackRolls, attack.numHitAttacks, attack.numCrits, attack.isVersatile);
 		await new Promise(resolve => setTimeout(resolve, 500));
 	}
 
@@ -380,7 +394,7 @@ async function rollMobAttackIndividually(data) {
 }
 
 
-async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, successfulAttackRolls, numHitAttacks, numCrits) {
+async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, successfulAttackRolls, numHitAttacks, numCrits, isVersatile) {
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
 	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
@@ -388,10 +402,6 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 	if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
 	
 	// Process attack and damage rolls
-	let isVersatile = false;
-	if (weaponData.name.endsWith(`(Versatile)`)) {
-		isVersatile = true;
-	}
 	if (numHitAttacks != 0) {
 		// Better Rolls 5e active
 		if (betterrollsActive) {
@@ -404,20 +414,29 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 			let attackFieldOptions = {};
 			let damageFieldOptions = {};
 			let showAttackRolls = game.settings.get("mob-attack-tool", "showIndividualAttackRolls");
-			for (let i = 0; i < numHitAttacks; i++) {
-				if (successfulAttackRolls[i].total - finalAttackBonus == 20 && numCrits > 0) {
-					let attackFormula = showAttackRolls ? "0d0 + " + (successfulAttackRolls[i].total).toString() : "0d0 + " + (data.targetAC).toString();
-				 	attackFieldOptions =  {formula: attackFormula, forceCrit: true};
-					damageFieldOptions = {index: "all", isCrit: true};
-					numCrits--;
-					console.log("attack data:",successfulAttackRolls[i].total, "num crits remaining:",numCrits);
-				} else {
-					let attackFormula = showAttackRolls ? "0d0 + " + (successfulAttackRolls[i].total).toString() : "0d0 + " + (data.targetAC).toString();
-				 	attackFieldOptions = {formula: attackFormula};
-				 	damageFieldOptions = {index: "all", isCrit: false};
+			if (showAttackRolls) {
+				for (let i = 0; i < numHitAttacks; i++) {
+					let attackFormula = "0d0 + " + (successfulAttackRolls[i].total).toString();
+					if (successfulAttackRolls[i].total - finalAttackBonus == 20 && numCrits > 0) {
+					 	attackFieldOptions =  {formula: attackFormula, forceCrit: true};
+						damageFieldOptions = {index: "all", isCrit: true};
+						numCrits--;
+					} else {
+					 	attackFieldOptions = {formula: attackFormula};
+					 	damageFieldOptions = {index: "all", isCrit: false};
+					}
+					await mobAttackRoll.addField(["attack", attackFieldOptions]);
+					await mobAttackRoll.addField(["damage", damageFieldOptions]);
 				}
-				if (i === 0 || showAttackRolls) await mobAttackRoll.addField(["attack", attackFieldOptions]);
-				await mobAttackRoll.addField(["damage", damageFieldOptions]);
+			} else {
+				await mobAttackRoll.addField(["attack", {formula: "0d0 + " + (data.targetAC).toString(), title: `Attack - Target AC`}]);
+				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
+				for (let diceFormula of diceFormulas) {
+					let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+					await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true});
+					await mobAttackRoll.addField(["damage", {formula: damageRoll.formula, damageType: damageTypes[diceFormulas.indexOf(diceFormula)], title: `Damage - ${damageTypes[diceFormulas.indexOf(diceFormula)]}`, isCrit: false}]);
+				}
+				
 			}
 			if (weaponData.data.data.consume.type === "ammo") {
 				try {
@@ -497,7 +516,13 @@ async function rollMobAttack(data) {
 	// Cycle through selected weapons
 	let attackData = [];
 	let messageData = {messages: {}};
+	let isVersatile;
 	for ( let [key, value] of Object.entries(data.attacks) ) { 
+		isVersatile = false;
+		if (key.endsWith(`(Versatile)`.replace(" ", "-"))) {
+			isVersatile = true;
+			key = key.slice(0,key.indexOf(` (Versatile)`));
+		}
 		const weaponData = data.weapons[key]; 
 		const actorName = weaponData.actor.name;
 		const finalAttackBonus = getAttackBonus(weaponData);
@@ -528,7 +553,7 @@ async function rollMobAttack(data) {
 				targetACtext: targetACtext,
 				d20Needed: d20Needed,
 				finalAttackBonus: finalAttackBonus,
-				weaponName: weaponData.name,
+				weaponName: `${weaponData.name}${(isVersatile) ? ` (Versatile)` : ``}`,
 				availableAttacks: availableAttacks,
 				attackersNeeded: attackersNeeded,
 				numSelected: data.numSelected,
@@ -553,6 +578,7 @@ async function rollMobAttack(data) {
 				data: data,
 				weaponData: weaponData,
 				numHitAttacks: numHitAttacks,
+				isVersatile: isVersatile
 			})
 
 			await new Promise(resolve => setTimeout(resolve, 250));
@@ -564,12 +590,11 @@ async function rollMobAttack(data) {
 
 	let totalPluralOrNot = ((messageData.totalHitAttacks === 1) ? ` attack hits in total!` : ` attacks hit in total!`);
 	messageData["totalPluralOrNot"] = totalPluralOrNot;
-	console.log(messageData);
 	let messageText = await renderTemplate('modules/mob-attack-tool/templates/mat-msg-mob-rules.html', messageData);
 	sendChatMessage(messageText);
 
 	for (let attack of attackData) {
-		await processMobRulesDamageRolls(attack.data, attack.weaponData, attack.numHitAttacks);
+		await processMobRulesDamageRolls(attack.data, attack.weaponData, attack.numHitAttacks, attack.isVersatile);
 		await new Promise(resolve => setTimeout(resolve, 500));
 	}
 
@@ -579,12 +604,8 @@ async function rollMobAttack(data) {
 }
 
 
-async function processMobRulesDamageRolls(data, weaponData, numHitAttacks) {
+async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVersatile) {
 	// Process hit attacks
-	let isVersatile = false;
-	if (weaponData.name.endsWith(`(Versatile)`)) {
-		isVersatile = true;
-	}
 
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
@@ -598,12 +619,22 @@ async function processMobRulesDamageRolls(data, weaponData, numHitAttacks) {
 			[
 				["header"],
 				["desc"],
-				["attack", {formula: "0d0 + " + (data.targetAC).toString()}]
+				["attack", {formula: "0d0 + " + (data.targetAC).toString(), title: `Attack - Target AC`}]
 			]
 		);
 		// Add damage fields from each successful hit to the same card
-		for (let i = 0; i < numHitAttacks; i++) {
-			await mobAttackRoll.addField(["damage",{index: "all"}]);
+		let showAttackRolls = game.settings.get("mob-attack-tool", "showIndividualAttackRolls");
+		if (showAttackRolls) {
+			for (let i = 0; i < numHitAttacks; i++) {
+				await mobAttackRoll.addField(["damage",{index: "all"}]);
+			}
+		} else {
+			let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
+			for (let diceFormula of diceFormulas) {
+				let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+				await damageRoll.alter(numHitAttacks, 0, {multiplyNumeric: true});
+				await mobAttackRoll.addField(["damage", {formula: damageRoll.formula, damageType: damageTypes[diceFormulas.indexOf(diceFormula)], title: `Damage - ${damageTypes[diceFormulas.indexOf(diceFormula)]}`, isCrit: false}]);
+			}
 		}
 		if (weaponData.data.data.consume.type === "ammo") {
 			try {
@@ -694,30 +725,34 @@ async function formatMonsterLabel(monsterData) {
 }
 
 
-async function formatWeaponLabel(weapons, itemData, isVersatile) {	
-	let damageData = getDamageFormulaAndType(itemData, isVersatile);
-	let weaponDamageText = ``;
-	for (let i = 0; i < damageData[0].length; i++) {
-		((i > 0) ? weaponDamageText += `<br>${damageData[0][i]} ${damageData[1][i].capitalize()}` : weaponDamageText += `${damageData[0][i]} ${damageData[1][i].capitalize()}`);
+async function formatWeaponLabel(weapons, itemData) {
+	let weaponLabel = ``;
+	let checkVersatile = itemData.data.data.damage.versatile != "";
+	for (let j = 0; j < ((checkVersatile) ? 2 : 1); j++) {
+		let isVersatile = (j < 1) ? false : itemData.data.data.damage.versatile != "";
+		let damageData = getDamageFormulaAndType(itemData, isVersatile);
+		let weaponDamageText = ``;
+		for (let i = 0; i < damageData[0].length; i++) {
+			((i > 0) ? weaponDamageText += `<br>${damageData[0][i]} ${damageData[1][i].capitalize()}` : weaponDamageText += `${damageData[0][i]} ${damageData[1][i].capitalize()}`);
+		}
+		let numAttacksTotal = 1, preChecked = false;
+		let autoDetect = game.settings.get("mob-attack-tool","autoDetectMultiattacks");
+		if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(itemData.name, itemData.actor, weapons);
+		if (autoDetect === 1) preChecked = false;
+		
+		let labelData = {
+			numAttacksName: `numAttacks${(itemData.id + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
+			numAttack: numAttacksTotal,
+			weaponImg: itemData.img,
+			weaponNameImg: itemData.name.replace(" ","-"),
+			weaponName: itemData.name + ((isVersatile) ? ` (Versatile)` : ``),
+			weaponAttackBonus: getAttackBonus(itemData),
+			weaponDamageText: weaponDamageText,
+			useButtonName: `use${(itemData.id + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
+			useButtonValue: (preChecked) ? `checked` : ``
+		};
+		weaponLabel += await renderTemplate('modules/mob-attack-tool/templates/mat-format-weapon-label.html', labelData);
 	}
-	let numAttacksTotal = 1, preChecked = false;
-	let autoDetect = game.settings.get("mob-attack-tool","autoDetectMultiattacks");
-	if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(itemData.name, itemData.actor, weapons);
-	if (autoDetect === 1) preChecked = false;
-	
-	let labelData = {
-		numAttacksName: `numAttacks${(itemData.id + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
-		numAttack: numAttacksTotal,
-		weaponImg: itemData.img,
-		weaponNameImg: itemData.name.replace(" ","-"),
-		weaponName: itemData.name + ((isVersatile) ? ` (Versatile)` : ``),
-		weaponAttackBonus: getAttackBonus(itemData),
-		weaponDamageText: weaponDamageText,
-		useButtonName: `use${(itemData.id + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
-		useButtonValue: (preChecked) ? `checked` : ``
-	};
-	if (isVersatile) console.log(labelData);
-	let weaponLabel = await renderTemplate('modules/mob-attack-tool/templates/mat-format-weapon-label.html', labelData);
 	return weaponLabel;
 }
 
