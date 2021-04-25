@@ -60,6 +60,13 @@ async function mobAttackTool() {
 			if (!monsters[token.actor.id].optionVisible) {
 				content += `<hr>` + await formatMonsterLabel(monsters[token.actor.id]);
 				monsters[token.actor.id].optionVisible = true;
+				if (game.settings.get(MODULE, "showMultiattackDescription")) {
+					if (token.actor.items.entries.filter(i => i.name.startsWith("Multiattack")).length > 0) {
+						content += `<div class="hint">${token.actor.items.filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value}</div>`;
+					} else if (token.actor.items.entries.filter(i => i.name.startsWith("Extra Attack")).length > 0) {
+						content += `<div class="hint">${token.actor.items.filter(i => i.name.startsWith("Extra Attack"))[0].data.data.description.value}</div>`;
+					}
+				}
 			}
 		}
 
@@ -459,13 +466,11 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 			let diceFormula = diceFormulas.join(" + ");
 			let damageType = damageTypes.join(", ");
 			let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
-
-			//TODO: use better crit formula
 			await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true}).roll();
 			
+			// Roll Dice so Nice dice
 			if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
 			
-			//TODO: find out how to properly tell MidiQOL about multiple damage types
 			new MidiQOL.DamageOnlyWorkflow(
 				weaponData.options.actor, 
 				data.targetToken, 
@@ -728,7 +733,7 @@ async function formatMonsterLabel(monsterData) {
 async function formatWeaponLabel(weapons, itemData) {
 	let weaponLabel = ``;
 	let checkVersatile = itemData.data.data.damage.versatile != "";
-	for (let j = 0; j < ((checkVersatile) ? 2 : 1); j++) {
+	for (let j = 0; j < 1 + ((checkVersatile) ? 1 : 0); j++) {
 		let isVersatile = (j < 1) ? false : itemData.data.data.damage.versatile != "";
 		let damageData = getDamageFormulaAndType(itemData, isVersatile);
 		let weaponDamageText = ``;
@@ -738,14 +743,14 @@ async function formatWeaponLabel(weapons, itemData) {
 		let numAttacksTotal = 1, preChecked = false;
 		let autoDetect = game.settings.get("mob-attack-tool","autoDetectMultiattacks");
 		if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(itemData.name, itemData.actor, weapons);
-		if (autoDetect === 1) preChecked = false;
+		if (autoDetect === 1 || isVersatile) preChecked = false;
 		
 		let labelData = {
 			numAttacksName: `numAttacks${(itemData.id + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
 			numAttack: numAttacksTotal,
 			weaponImg: itemData.img,
 			weaponNameImg: itemData.name.replace(" ","-"),
-			weaponName: itemData.name + ((isVersatile) ? ` (Versatile)` : ``),
+			weaponName: `${itemData.name}${((isVersatile) ? ` (Versatile)` : ``)}`,
 			weaponAttackBonus: getAttackBonus(itemData),
 			weaponDamageText: weaponDamageText,
 			useButtonName: `use${(itemData.id + ((isVersatile) ? ` (Versatile)` : ``)).replace(" ","-")}`,
@@ -821,7 +826,7 @@ function getAttackBonus(weaponData) {
 	const actorName = weaponData.actor.name;
 	let weaponAbility = weaponData.abilityMod;
 	if (weaponAbility === "" || typeof weaponAbility === "undefined" || weaponAbility == null) {
-		if (!weaponData.type == "spell") {
+		if (!weaponData.type === "spell") {
 			weaponAbility =  "str";
 		} else {
 			weaponAbility = weaponData.actor.data.data.attributes.spellcasting;
@@ -862,20 +867,23 @@ function getDamageFormulaAndType(weaponData, versatile) {
 	let diceFormulas = [];
 	let damageTypes = [];
 	let damageTypeLabels = []
+	let partsLength = weaponData.data.data.damage.parts.length;
+	let lengthIndex = 0;
 	for (let diceFormulaParts of weaponData.data.data.damage.parts) {
 		damageTypeLabels.push(diceFormulaParts[1]);
 		damageTypes.push(diceFormulaParts[1].capitalize());
 		if (weaponData.type == "spell") {
 			if (weaponData.data.data.scaling.mode == "cantrip") {
-				let rollFormula = new Roll(((versatile) ? weaponData.data.data.damage.versatile : diceFormulaParts[0]),{mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+				let rollFormula = new Roll(((versatile && lengthIndex === 0) ? weaponData.data.data.damage.versatile : diceFormulaParts[0]),{mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
 				rollFormula.alter(0,cantripScalingFactor,{multiplyNumeric: false})
 				diceFormulas.push(rollFormula.formula);
 			} else {
-				diceFormulas.push(((versatile) ? weaponData.data.data.damage.versatile : diceFormulaParts[0]).replace("@mod",weaponData.actor.data.data.abilities[weaponData.abilityMod].mod));
+				diceFormulas.push(((versatile && lengthIndex === 0) ? weaponData.data.data.damage.versatile : diceFormulaParts[0]).replace("@mod",weaponData.actor.data.data.abilities[weaponData.abilityMod].mod));
 			}
 		} else {
-			diceFormulas.push(((versatile) ? weaponData.data.data.damage.versatile : diceFormulaParts[0]).replace("@mod",weaponData.actor.data.data.abilities[weaponData.abilityMod].mod));
+			diceFormulas.push(((versatile && lengthIndex === 0) ? weaponData.data.data.damage.versatile : diceFormulaParts[0]).replace("@mod",weaponData.actor.data.data.abilities[weaponData.abilityMod].mod));
 		}
+		lengthIndex++;
 	}
 	return [diceFormulas, damageTypes, damageTypeLabels];
 }

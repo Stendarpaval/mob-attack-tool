@@ -61,13 +61,14 @@ export function getMultiattackFromActor(weaponName, actorData, weapons) {
 			if (attackType === `melee`) {
 				if (![`mwak`, `msak`].includes(weaponData.data.data.actionType)) {
 					attackType = `choose`;
+					numAttacksWeapon = 1;
 				}
 			} else if (attackType === `ranged`) {
 				if (![`rwak`, `rsak`].includes(weaponData.data.data.actionType)) {
 					attackType = `choose`;
+					numAttacksWeapon = 1;
 				}
 			}
-			console.log(weaponName, attackType);
 		}
 
 		let weaponDetected = false;
@@ -76,8 +77,6 @@ export function getMultiattackFromActor(weaponName, actorData, weapons) {
 		// Step backwards through multiattack description
 		for (let word of remainingWords) {
 
-			
-			
 			// homogenize words to simplify detection
 			word = word.toLowerCase();
 			let interpunction = [",",".",":"];
@@ -96,7 +95,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons) {
 			}
 			
 			// detect possibility of choosing what kind of multiattack to use
-			const optionKeywordsSingle = [`or`,`alternatively`,` instead`];
+			const optionKeywordsSingle = [`or`, `alternatively`, `instead`, `while`];
 			if (weaponDetected) {
 				if (optionKeywordsSingle.includes(word)) {
 					attackType = `choose`;
@@ -129,7 +128,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons) {
 		// either return the specific or total number of multiattacks 
 		if (numAttacksTotal !== 0) {
 			if (numAttacksWeapon !== 0) {
-				multiattack = [(numWeaponsInventory === numAttacksWeapon) ? 1 : numAttacksWeapon, (attackType !== `choose`) ? true : false];
+				multiattack = [(numWeaponsInventory === numAttacksWeapon && numWeaponsInventory === numAttacksTotal) ? 1 : numAttacksWeapon, (attackType !== `choose`) ? true : false];
 			} else if (weaponDetected) {
 				multiattack = [(numWeaponsInventory === numAttacksTotal) ? 1 : numAttacksTotal, (attackType !== `choose`) ? true : false];
 			}

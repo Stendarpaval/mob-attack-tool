@@ -37,6 +37,15 @@ Hooks.once("init", () => {
 		type: Boolean
 	})
 
+	game.settings.register(MODULE, "showMultiattackDescription", {
+		name: "Show multiattack description",
+		hint: "If enabled, then a multiattack description will be shown for any mob attacker that has a multiattack feature on their actor sheet. (Client specific setting)",
+		config: true,
+		scope: "client",
+		default: true,
+		type: Boolean
+	})
+
 	game.settings.register(MODULE, "autoDetectMultiattacks", {
 		name: "Autodetect multiattack",
 		hint: `Attempt to automatically detect the multiattack weapon options of mob attackers. If set to "Autodetect + autoselect", then the multiattack weapon options should already be selected when you open the Mob Attack dialog. (Client specific setting)`,
