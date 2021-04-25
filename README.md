@@ -24,6 +24,7 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 * Added examples and screenshots in [EXAMPLES.md](EXAMPLES.md)!
 * You can now specify how often each mob attacker can use a weapon as part of a multiattack action. 
 * Mob Attack Tool can now automatically detect and select multiattack options! 
+* There is now support for versatile weapon damage. No need to create duplicate weapons anymore!
 
 ## Examples
 
