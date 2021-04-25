@@ -25,6 +25,7 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 * You can now specify how often each mob attacker can use a weapon as part of a multiattack action. 
 * Mob Attack Tool can now automatically detect and select multiattack options! 
 * There is now support for versatile weapon damage. No need to create duplicate weapons anymore!
+* For ease of use, Mob Attack Tool now shows the multiattack description for creatures that have it. Can be turned off in settings if so desired.
 
 ## Examples
 
