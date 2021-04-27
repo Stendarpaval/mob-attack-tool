@@ -1,0 +1,99 @@
+.mat-table {
+	width:100%;
+}
+
+.mat-mob-rules-line {
+	border-bottom:1px solid gray;
+}
+
+.mat-rolltype {
+	display:grid; 
+	grid-template-columns:285px 120px; 
+	column-gap:5px;
+}
+
+.mat-macro-export {
+	display:grid; 
+	grid-template-columns:380px 30px; 
+	column-gap:5px;
+}
+
+.mat-end-turn {
+	display:grid; 
+	grid-template-columns:380px 30px; 
+	column-gap:5px;
+}
+
+.mat-monster-label {
+	display:grid; 
+	grid-template-columns: 20px 36px 240px 50px; 
+	column-gap:5px;
+}
+
+.mat-weapon-label {
+	display:grid; 
+	grid-template-columns:30px 30px 120px 50px 130px 30px; 
+	column-gap:5px;
+}
+
+.mat-label {
+	align-self:center;
+}
+
+.mat-label.mat-col1 {
+	grid-column-start:1; 
+	grid-column-end:1; 
+}
+
+.mat-label.mat-col2 {
+	grid-column-start:2; 
+	grid-column-end:2; 
+}
+
+.mat-label.mat-col3 {
+	grid-column-start:3;
+	grid-column-end:3;
+}
+
+.mat-label.mat-col4 {
+	grid-column-start:4;
+	grid-column-end:4;
+}
+
+.mat-label.mat-col5 {
+	grid-column-start:5;
+	grid-column-end:5;
+}
+
+.mat-label.mat-col6 {
+	grid-column-start:6;
+	grid-column-end:6;
+}
+
+.mat-monster-icon {
+	margin:0px 5px 0px 0px; 
+	border:none;
+}
+
+.mat-weapon-icon {
+	margin:0px 5px 0px 0px; 
+	border:none;
+}
+
+.mat-label.mat-col3.mat-monster-name {
+	text-overflow:ellipsis; 
+	white-space:nowrap; 
+	overflow:hidden;
+}
+
+.mat-label.mat-col3.mat-weapon-name {
+	text-overflow:ellipsis; 
+	white-space:nowrap; 
+	overflow:hidden;
+}
+
+.mat-label.mat-col5.mat-damage-text {
+	white-space: pre-wrap; 
+	text-align:center;
+}
+

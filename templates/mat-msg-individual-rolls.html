@@ -1,14 +1,14 @@
 {{#each messages}}
-<table style="width:100%">
+<table class="mat-table">
 	<tr>
 		<th colspan="1">{{this.[0].actorAmount}}x {{@key}}</th>
 	</tr>
 	{{#each this}}
 	<tr>
-		<td>{{this.numHitAttacks}} of {{this.availableAttacks}} {{this.weaponName}}{{this.pluralOrNot}}</td>
+		<td>{{this.numHitAttacks}} {{localize 'of'}} {{this.availableAttacks}} {{this.weaponName}}{{this.pluralOrNot}}</td>
 	</tr>
 	{{/each}}
 </table>
 {{/each}}
 <hr>
-<strong>Conclusion:</strong> {{totalHitAttacks}}{{totalPluralOrNot}}
+<strong>{{localize 'Conclusion'}}:</strong> {{totalHitAttacks}}{{totalPluralOrNot}}

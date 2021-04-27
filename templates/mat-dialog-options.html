@@ -1,0 +1,20 @@
+{{#if selectRollType}}
+<div class="mat-rolltype">
+	<label class="mat-label.mat-col1">{{localize 'MAT.selectRollType'}}: </label>
+	<select class="mat-label.mat-col2" id="rollType" name="rollType">
+		<option value="advantage">{{localize 'Advantage'}}</option>
+		<option value="normal" selected>{{localize 'Normal'}}</option>
+		<option value="disadvantage">{{localize 'Disadvantage'}}</option>
+	</select>
+</div>
+{{/if}}
+{{#if endMobTurn}}
+<div class="mat-end-turn">
+	<label class="mat-label.mat-col1">{{localize 'MAT.endMobTurnText'}}: </label>
+	<input class="mat-label.mat-col2" type="checkbox" name="endMobTurn" value="false"/>
+</div>
+{{/if}}
+<div class="mat-macro-export">
+	<label class="mat-label.mat-col1">{{localize 'MAT.exportToMacro'}}: </label>
+	<input class="mat-label.mat-col2" type="checkbox" name="exportMobAttack" value="false"/>
+</div>

@@ -1,5 +1,5 @@
 {{#each messages}}
-<table style="width:100%">
+<table class="mat-table">
 	<tr>
 		<th colspan="2">{{this.[0].actorAmount}}x {{@key}}</th>
 	</tr>
@@ -8,7 +8,7 @@
 		<td>{{this.weaponName}} (+{{this.finalAttackBonus}}{{this.rollTypeMessage}} to hit)</td> 
 		<td><em>{{this.targetACtext}}</em></td>
 	</tr>
-	<tr style="border-bottom:1px solid gray">
+	<tr class="mat-mob-rules-line">
 		<td>{{this.availableAttacks}} Attack{{this.sOrNot}} vs {{this.attackersNeeded}} Needed:</td>
 		<td>{{numHitAttacks}}{{pluralOrNot}}</td>
 	</tr>
