@@ -4,10 +4,10 @@
 [![Foundry Hub Endorsements](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fmob-attack-tool%2Fshield%2Fendorsements)](https://www.foundryvtt-hub.com/package/mob-attack-tool/) [![Foundry Hub Comments](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fmob-attack-tool%2Fshield%2Fcomments)](https://www.foundryvtt-hub.com/package/mob-attack-tool/)
 
 # Mob Attack Tool
-A module for Foundry VTT that offers a tool for handling mob attacks in the dnd5e system.
+A module for Foundry VTT that offers a tool for handling mob attacks in the dnd5e system. 
 
 ## How to install
-You can install this module by pasting this url in the corresponding text field of Foundry's package installer: `https://raw.githubusercontent.com/Stendarpaval/mob-attack-tool/main/module.json`
+You can install this module by searching Foundry's package browser or by pasting this url in the corresponding text field of Foundry's package installer: `https://raw.githubusercontent.com/Stendarpaval/mob-attack-tool/main/module.json`
 
 ## How to use
 After activating this module, a new button appears in the token controls bar. By default this button is only visible to users with the GM role, but this can be changed in settings. To use the Mob Attack tool, make sure you have at least one token selected and exactly one token targeted. 
@@ -29,6 +29,10 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 
 ## Examples
 
+This is what the Mob Attack dialog looks like (as of v0.1.26) with multiattack autodetect + autoselect enabled:
+
+<img width="434" alt="screenshot_mob_attack_tool_v0 1 26" src="https://user-images.githubusercontent.com/17188192/116324965-6500a580-a7c1-11eb-9e06-dee966cb5f48.png">
+
 Below are some (older) GIFs that give a brief idea of how you can use Mob Attack Tool.
 
 <details>
@@ -46,12 +50,13 @@ Below are some (older) GIFs that give a brief idea of how you can use Mob Attack
 For more elaborate examples and screenshots, please head over to [EXAMPLES.md](EXAMPLES.md). 
 
 ## Planned improvements
-* Improved support for [midi-qol](https://gitlab.com/tposney/midi-qol). -> _In Progress_
 * Further (optional) automation of the initial selection of tokens -> _In Progress_
 * Some documentation and better structuring of the repo -> _In Progress_
 * Custom Mob Attack tables
-* Add `lang` and `css` folders and use them
 
+# Translations
+Mob Attack Tool currently supports these languages:
+* English
 
 ## Inspirations
 * This module was inspired by [Multiattack 5e](https://github.com/jessev14/Multiattack-5e).
