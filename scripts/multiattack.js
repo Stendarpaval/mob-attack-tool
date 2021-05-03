@@ -1,12 +1,15 @@
 import { getScalingFactor } from "./mobAttackTool.js";
-export function getMultiattackFromActor(weaponName, actorData, weapons) {
+export function getMultiattackFromActor(weaponName, actorData, weapons, options) {
 
-	let dictStrNum = {	"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10};
-	let multiattack = [1, false];
+	// If attacker has only one weapon and no multiattack, autoselect it
+	let multiattack = [1, Object.keys(weapons).length === 1];
+	let weaponData = actorData.items.getName(weaponName);
+
+	// Otherwise, find out details about multiattack
+	let dictStrNum = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10};
 	if (actorData.items.entries.filter(i => i.name.startsWith("Multiattack")).length > 0) {
 
 		// Check for eldritch blast
-		let weaponData = actorData.items.getName(weaponName);
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
 				multiattack = [getScalingFactor(weaponData), false];
@@ -136,7 +139,6 @@ export function getMultiattackFromActor(weaponName, actorData, weapons) {
 
 	// for actors with the Extra Attack item
 	} else if (actorData.items.getName("Extra Attack") !== null) {
-		let weaponData = actorData.items.getName(weaponName);
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
 				multiattack = [getScalingFactor(weaponData), false];
@@ -147,7 +149,6 @@ export function getMultiattackFromActor(weaponName, actorData, weapons) {
 
 	// for fighters
 	} else if (actorData.items.getName("Extra Attack (Fighter)") !== null) {
-		let weaponData = actorData.items.getName(weaponName);
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
 				multiattack = [getScalingFactor(weaponData), false];
@@ -165,12 +166,18 @@ export function getMultiattackFromActor(weaponName, actorData, weapons) {
 
 	// for actors without multiattack
 	} else {
-		let weaponData = actorData.items.getName(weaponName);
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
 				multiattack = [getScalingFactor(weaponData), false];
 			}	
 		}
 	};
+
+	// select this weapon if it deals the most damage and no other weapons or spells aree selected
+	if (options?.checkMaxDamageWeapon) {
+		if (weaponData === options?.maxDamageWeapon) {
+			multiattack[1] = true;
+		}
+	}
 	return multiattack;
 }

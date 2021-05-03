@@ -19,6 +19,9 @@ export function initMobAttackTool() {
 async function mobAttackTool() {
 	const MODULE = "mob-attack-tool";
 
+	// Check if Core is 0.8.x or even newer
+	const coreVersion08x = parseInt(game.data.version.slice(2)) > 7;
+
 	// Check selected tokens
 	if (canvas.tokens.controlled.length == 0) {
 		ui.notifications.warn(game.i18n.localize("MAT.selectTokenWarning"));
@@ -55,23 +58,24 @@ async function mobAttackTool() {
 
 	let weapons = {};
 	let availableAttacks = {};
+	let autoDetect = game.settings.get("mob-attack-tool","autoDetectMultiattacks");
+	
 	for (let token of canvas.tokens.controlled) {
 		if (monsters[token.actor.id]) {
 			if (!monsters[token.actor.id].optionVisible) {
 				content += `<hr>` + await formatMonsterLabel(monsters[token.actor.id]);
 				monsters[token.actor.id].optionVisible = true;
 				if (game.settings.get(MODULE, "showMultiattackDescription")) {
-					if (token.actor.items.entries.filter(i => i.name.startsWith("Multiattack")).length > 0) {
+					if (token.actor.items[(coreVersion08x) ? "contents" : "entries"].filter(i => i.name.startsWith("Multiattack")).length > 0) {
 						content += `<div class="hint">${token.actor.items.filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value}</div>`;
-					} else if (token.actor.items.entries.filter(i => i.name.startsWith("Extra Attack")).length > 0) {
+					} else if (token.actor.items[(coreVersion08x) ? "contents" : "entries"].filter(i => i.name.startsWith("Extra Attack")).length > 0) {
 						content += `<div class="hint">${token.actor.items.filter(i => i.name.startsWith("Extra Attack"))[0].data.data.description.value}</div>`;
 					}
 				}
 			}
 		}
 
-		// Check if Core is 0.8.x or even newer
-		let coreVersion08x = parseInt(game.data.version.slice(2)) > 7;
+		let tokenWeapons = {};
 		let items = (coreVersion08x) ? token.actor.items.contents : token.actor.items.entries;
 		for (let item of items) {
 			if (item.data.type == "weapon" || (item.data.type == "spell" && item.data.data.level == 0 && item.data.data.damage.parts.length > 0 && item.data.data.save.ability === "")) {
@@ -80,9 +84,39 @@ async function mobAttackTool() {
 				} else {
 					weapons[item.id] = item;
 					availableAttacks[item.id] = 1;
-					content += await formatWeaponLabel(weapons, item);
+					tokenWeapons[item.id] = item;
 				}
 			}
+		}
+		let numAttacksTotal, preChecked;
+		let numCheckedWeapons = 0;
+		let highestDamageFormula = 0, maxDamage, maxDamageWeapon;
+		let options = {};
+		for (let [weaponID, weaponData] of Object.entries(tokenWeapons)) {
+			if (autoDetect === 2) {
+				[numAttacksTotal, preChecked] = getMultiattackFromActor(weaponData.name, weaponData.actor, weapons, options);
+				if (preChecked) numCheckedWeapons++;
+			}
+			let damageData = getDamageFormulaAndType(weaponData, false);
+			// console.log(typeof damageData[0][0], damageData[0][0]);
+			damageData = (typeof damageData[0][0] === "undefined") ? "0" : damageData;
+			maxDamage = new Roll(damageData[0]?.[0]).alter(numAttacksTotal,0,{multiplyNumeric: true}).evaluate({maximize: true}).total;
+			// console.log("maxDamage:", maxDamage);
+			if (highestDamageFormula < maxDamage) {
+				highestDamageFormula = maxDamage;
+				maxDamageWeapon = weaponData;
+				// console.log("maxDamageWeapon:",maxDamageWeapon);
+			}
+		}
+		
+		if (numCheckedWeapons === 0) {
+			options["checkMaxDamageWeapon"] = true;
+			options["maxDamageWeapon"] = maxDamageWeapon;
+		}
+		// console.log("options:", options);
+		
+		for (let [weaponID, weaponData] of Object.entries(tokenWeapons)) {
+			content += await formatWeaponLabel(weaponData, tokenWeapons, options);
 		}
 	}
 	
@@ -377,7 +411,7 @@ async function rollMobAttackIndividually(data) {
 
 	// Send message
 	let messageText = await renderTemplate('modules/mob-attack-tool/templates/mat-msg-individual-rolls.html', messageData);
-	sendChatMessage(messageText);
+	await sendChatMessage(messageText);
 
 	// Process damage rolls
 	for (let attack of attackData) {
@@ -497,7 +531,7 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 					damageOptions = {"critical": true, "event": {"altKey": true}};
 					numCrits--
 				} else {
-					damageOptions = {"critical": false, "event": {"altKey": true}};
+					damageOptions = {"critical": false, "event": {"shiftKey": true}};
 				}
 				await weaponData.rollDamage(damageOptions);
 			}
@@ -586,7 +620,7 @@ async function rollMobAttack(data) {
 	let totalPluralOrNot = ` ${game.i18n.localize((messageData.totalHitAttacks === 1) ? "MAT.numTotalHitsSingular" : "MAT.numTotalHitsPlural")}`;
 	messageData["totalPluralOrNot"] = totalPluralOrNot;
 	let messageText = await renderTemplate('modules/mob-attack-tool/templates/mat-msg-mob-rules.html', messageData);
-	sendChatMessage(messageText);
+	await sendChatMessage(messageText);
 
 	for (let attack of attackData) {
 		await processMobRulesDamageRolls(attack.data, attack.weaponData, attack.numHitAttacks, attack.isVersatile);
@@ -646,14 +680,15 @@ async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVer
 		
 	// neither midi-qol or betterrolls5e active
 	} else if (!midi_QOL_Active) {
+		await new Promise(resolve => setTimeout(resolve, 100));	
 		for (let i = 0; i < numHitAttacks; i++) {
-			await weaponData.rollDamage({"critical": false, "event": {"altKey": true}});	
-			await new Promise(resolve => setTimeout(resolve, 300));						
+			await weaponData.rollDamage({"critical": false, "event": {"shiftKey": true}});	
+			await new Promise(resolve => setTimeout(resolve, 300));	
 		}
 
 	// midi-qol is active,  betterrolls5e is not active
 	} else {
-		await new Promise(resolve => setTimeout(resolve, 300));
+		await new Promise(resolve => setTimeout(resolve, 100));
 
 		let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
 		let diceFormula = diceFormulas.join(" + ");
@@ -721,7 +756,7 @@ async function formatMonsterLabel(monsterData) {
 }
 
 
-async function formatWeaponLabel(weapons, itemData) {
+async function formatWeaponLabel(itemData, weapons, options) {
 	let weaponLabel = ``;
 	let checkVersatile = itemData.data.data.damage.versatile != "";
 	for (let j = 0; j < 1 + ((checkVersatile) ? 1 : 0); j++) {
@@ -733,7 +768,7 @@ async function formatWeaponLabel(weapons, itemData) {
 		}
 		let numAttacksTotal = 1, preChecked = false;
 		let autoDetect = game.settings.get("mob-attack-tool","autoDetectMultiattacks");
-		if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(itemData.name, itemData.actor, weapons);
+		if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(itemData.name, itemData.actor, weapons, options);
 		if (autoDetect === 1 || isVersatile) preChecked = false;
 		
 		let labelData = {
@@ -798,7 +833,7 @@ function isTargeted(token) {
 }
 
 
-function sendChatMessage(text) {
+async function sendChatMessage(text) {
 	// Check if Core version is 0.8 or newer:
 	let coreVersion08x = parseInt(game.data.version.slice(2)) > 7;
 	let whisperIDs = (coreVersion08x) ? game.users.contents.filter(u => u.isGM).map(u => u.id) : game.users.entities.filter(u => u.isGM).map(u => u.id);
@@ -809,7 +844,7 @@ function sendChatMessage(text) {
 		content: text,
 		whisper: whisperIDs
 	};
-	ChatMessage.create(chatData,{});
+	await ChatMessage.create(chatData,{});
 }
 
 
