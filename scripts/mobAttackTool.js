@@ -98,14 +98,13 @@ async function mobAttackTool() {
 				if (preChecked) numCheckedWeapons++;
 			}
 			let damageData = getDamageFormulaAndType(weaponData, false);
-			// console.log(typeof damageData[0][0], damageData[0][0]);
-			damageData = (typeof damageData[0][0] === "undefined") ? "0" : damageData;
-			maxDamage = new Roll(damageData[0]?.[0]).alter(numAttacksTotal,0,{multiplyNumeric: true}).evaluate({maximize: true}).total;
-			// console.log("maxDamage:", maxDamage);
+			damageData = (typeof damageData[0][0] === "undefined") ? "0" : damageData[0][0];
+			maxDamage = new Roll(damageData).alter(((numAttacksTotal > 1) ? numAttacksTotal : 1),0,{multiplyNumeric: true});
+			maxDamage = maxDamage.evaluate({maximize: true, async: true});
+			maxDamage = maxDamage.total;
 			if (highestDamageFormula < maxDamage) {
 				highestDamageFormula = maxDamage;
 				maxDamageWeapon = weaponData;
-				// console.log("maxDamageWeapon:",maxDamageWeapon);
 			}
 		}
 		
@@ -113,7 +112,6 @@ async function mobAttackTool() {
 			options["checkMaxDamageWeapon"] = true;
 			options["maxDamageWeapon"] = maxDamageWeapon;
 		}
-		// console.log("options:", options);
 		
 		for (let [weaponID, weaponData] of Object.entries(tokenWeapons)) {
 			content += await formatWeaponLabel(weaponData, tokenWeapons, options);
