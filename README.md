@@ -26,12 +26,13 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 * Mob Attack Tool can now automatically detect and select multiattack options! 
 * There is now support for versatile weapon damage. No need to create duplicate weapons anymore!
 * For ease of use, Mob Attack Tool now shows the multiattack description for creatures that have it. Can be turned off in settings if so desired.
+* You can now click on icons to open actor or item sheets!
 
 ## Examples
 
-This is what the Mob Attack dialog looks like (as of v0.1.26) with multiattack autodetect + autoselect enabled:
+This is what the Mob Attack dialog looks like (as of v0.1.29) with multiattack autodetect + autoselect enabled:
 
-<img width="434" alt="screenshot_mob_attack_tool_v0 1 26" src="https://user-images.githubusercontent.com/17188192/116324965-6500a580-a7c1-11eb-9e06-dee966cb5f48.png">
+<img width="440" alt="screenshot_v0 1 29" src="https://user-images.githubusercontent.com/17188192/117154076-d345f900-adbb-11eb-9acc-471dd0429c96.png">
 
 Below are some (older) GIFs that give a brief idea of how you can use Mob Attack Tool.
 
