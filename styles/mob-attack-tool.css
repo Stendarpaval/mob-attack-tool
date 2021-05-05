@@ -2,6 +2,10 @@
 	width:100%;
 }
 
+.mat-dialog-content {
+	cursor: default;
+}
+
 .mat-mob-rules-line {
 	border-bottom:1px solid gray;
 }
@@ -73,23 +77,27 @@
 .mat-monster-icon {
 	margin:0px 5px 0px 0px; 
 	border:none;
+	cursor: pointer;
 }
 
 .mat-weapon-icon {
 	margin:0px 5px 0px 0px; 
 	border:none;
+	cursor: pointer;
 }
 
 .mat-label.mat-col3.mat-monster-name {
 	text-overflow:ellipsis; 
 	white-space:nowrap; 
 	overflow:hidden;
+	cursor: default;
 }
 
 .mat-label.mat-col3.mat-weapon-name {
 	text-overflow:ellipsis; 
 	white-space:nowrap; 
 	overflow:hidden;
+	cursor: default;
 }
 
 .mat-label.mat-col5.mat-damage-text {

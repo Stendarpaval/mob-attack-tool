@@ -37,8 +37,8 @@ async function mobAttackTool() {
 	let pluralTokensOrNot = ((numSelected == 1) ? `` : `s`);
 
 	// Format tool dialog content
-	const dialogContentStart = `<form id="mobattack-tool" class="dialog-content";>`;
-	const targetACtext = game.user.isGM ? ` ${game.i18n.localize("MAT.dialogTargetArmorClassMessage")} ${targetAC}.` : ``;
+	const dialogContentStart = `<form id="mobattack-tool" class="mat-dialog-content";>`;
+	const targetACtext = (game.user.isGM ? ` ${game.i18n.localize("MAT.dialogTargetArmorClassMessage")} ${targetAC}.` : ``) + ` Click icons to open actor or weapon sheets.`;
 	const dialogContentLabel = `<p>${game.i18n.localize("MAT.dialogChooseWeaponOption")}:</p><p class="hint">${game.i18n.localize("MAT.dialogNumSelected")} ${numSelected} token${pluralTokensOrNot}.${targetACtext}</p>`;
 	const dialogContentEnd = `</form>`;
 	
@@ -67,9 +67,9 @@ async function mobAttackTool() {
 				monsters[token.actor.id].optionVisible = true;
 				if (game.settings.get(MODULE, "showMultiattackDescription")) {
 					if (token.actor.items[(coreVersion08x) ? "contents" : "entries"].filter(i => i.name.startsWith("Multiattack")).length > 0) {
-						content += `<div class="hint">${token.actor.items.filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value}</div>`;
+						content += `<div class="hint" style="cursor: default;">${token.actor.items.filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value}</div>`;
 					} else if (token.actor.items[(coreVersion08x) ? "contents" : "entries"].filter(i => i.name.startsWith("Extra Attack")).length > 0) {
-						content += `<div class="hint">${token.actor.items.filter(i => i.name.startsWith("Extra Attack"))[0].data.data.description.value}</div>`;
+						content += `<div class="hint" style="cursor: default;">${token.actor.items.filter(i => i.name.startsWith("Extra Attack"))[0].data.data.description.value}</div>`;
 					}
 				}
 			}
@@ -122,101 +122,145 @@ async function mobAttackTool() {
 	let dialogOptionsText = await renderTemplate('modules/mob-attack-tool/templates/mat-dialog-options.html', dialogOptions);
 	content += `</div><hr>` + dialogOptionsText + dialogContentEnd + `<hr>`;
 
-	new Dialog({
-		title: "Mob Attack Tool",
-		content: content,
-		buttons: {
-			one: {
-				label: game.i18n.localize("MAT.mobAttack"),
-				icon: `<i class="fas fa-fist-raised"></i>`,
-				callback: (html) => {
 
-					let attacks = {};
-					let weaponLocators = [];
-					let numAttacksMultiplier = 1;
-					let isVersatile = false;
-					for (let [weaponID, weaponData] of Object.entries(weapons)) {
-						isVersatile = weaponData.data.data.damage.versatile != "";
-						weaponID += ((isVersatile) ?  ` (${game.i18n.localize("Versatile")})` : ``);
-						if (html.find(`input[name="use` + weaponData.id.replace(" ","-") + `"]`)[0].checked) {
-							numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponData.id.replace(" ","-")}"]`)[0].value);
-							if (numAttacksMultiplier === NaN) {
-								numAttacksMultiplier = 0;
-							}
-							attacks[weaponData.id] = availableAttacks[weaponData.id] * numAttacksMultiplier;
-							weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name, "weaponID": weaponData.id});
-						}
-						if (html.find(`input[name="use` + weaponID.replace(" ","-") + `"]`)[0].checked) {
-							numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponID.replace(" ","-")}"]`)[0].value);
-							if (numAttacksMultiplier === NaN) {
-								numAttacksMultiplier = 0;
-							}
-							attacks[weaponID] = availableAttacks[weaponData.id] * numAttacksMultiplier;
-							weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name, "weaponID": weaponID});
-						}
-					}
-					let withAdvantage = false;
-					let withDisadvantage = false;
-					let rollTypeValue = 0;
-					let rollTypeMessage = ``;
-					if (game.settings.get(MODULE,"askRollType")) {
-						let rtValue = Math.floor(game.settings.get(MODULE,"rollTypeValue"));
-						if (html.find("[name=rollType]")[0].value === "advantage") {
-							rollTypeValue = rtValue;
-							withAdvantage = true;
-							rollTypeMessage = ` + ${rtValue} [adv]`; 
-						} else if (html.find("[name=rollType]")[0].value === "disadvantage") {
-							rollTypeValue = -1 * rtValue;
-							withDisadvantage = true;
-							rollTypeMessage = ` - ${rtValue} [disadv]`;
-						}
-					}
-
-					// End the turn of mob attackers grouped together in initiative
-					let endMobTurn = html.find(`input[name="endMobTurn"]`)[0].checked;
-
-					// Create macro
-					if (html.find(`input[name="exportMobAttack"]`)[0].checked) {
-						let key = Object.keys(attacks)[0];
-						if (key.endsWith(`(${game.i18n.localize("Versatile")})`)) key = key.slice(0,key.indexOf(` (${game.i18n.localize("Versatile")})`));
-						let macroName = `${weapons[key].name} ${game.i18n.localize("MAT.macroNamePrefix")} ${canvas.tokens.controlled.length} ${canvas.tokens.controlled[0].name}${game.i18n.localize("MAT.macroNamePostfix")}`;
-						
-						Macro.create({
-							type: "script", 
-							name: macroName,
-							command: `MobAttacks.quickRoll({numSelected: ${numSelected}, weaponLocators: ${JSON.stringify(weaponLocators)}, attacks: ${JSON.stringify(attacks)}, withAdvantage: ${withAdvantage}, withDisadvantage: ${withDisadvantage}, rollTypeValue: ${rollTypeValue}, rollTypeMessage: "${rollTypeMessage}", endMobTurn: ${endMobTurn}, monsters: ${JSON.stringify(monsters)}})`,
-							img: weapons[key].img,
-						});
-					ui.notifications.info(`Macro ${macroName} ${game.i18n.localize("MAT.macroNotification")}`);
-					}
-
-					// Bundle data together
-					let mobAttackData = {
-						"targetToken": targetToken,
-						"targetAC": targetAC,
-						"numSelected": numSelected,
-						"weapons": weapons,
-						"attacks": attacks,
-						"withAdvantage": withAdvantage,
-						"withDisadvantage": withDisadvantage,
-						"rollTypeValue": rollTypeValue,
-						"rollTypeMessage": rollTypeMessage,
-						"endMobTurn": endMobTurn,
-						"monsters": monsters
-					};
-
-					if (game.settings.get(MODULE,"mobRules") === 0) {
-						rollMobAttack(mobAttackData);
-					} else {
-						rollMobAttackIndividually(mobAttackData);
-					}
-					
-				}
-			}
-		},
-		default: "one"
-	},{width: 430}).render(true);
+	const dialog = await MobAttackDialog.create(weapons, availableAttacks, targetToken, targetAC, numSelected, monsters, {content: content});
 }
+
+
+class MobAttackDialog extends Dialog {
+	constructor(weapons, availableAttacks, targetToken, targetAC, numSelected, monsters, dialogData={}, options={}) {
+		super(dialogData, options);
+		this.options.classes =  ["mat-monster-icon", "mat-weapon-icon"];
+		let weaponArray = [];
+		for (let [weaponID, weaponData] of Object.entries(weapons)) {
+			weaponArray.push(weaponData);
+		}
+		let monsterArray = [];
+		for (let [monsterID, monsterData] of Object.entries(monsters)) {
+			monsterArray.push(monsterData);
+		}
+		this.weapons = weapons;
+		this.monsterArray = monsterArray;
+		this.weaponArray = weaponArray;
+	}
+
+	activateListeners(html) {
+		super.activateListeners(html);
+		// render the item's sheet if its image is clicked
+		html.on('click', '.mat-weapon-icon', (event) => {
+			const weapon = this.weaponArray.find((weapon) => weapon.id === event.currentTarget.dataset?.itemId);
+			weapon?.sheet.render(true);
+		})
+		// render the mob attacker's sheet if its imiage is clicked
+		html.on('click', '.mat-monster-icon', (event) => {
+			const monster = this.monsterArray.find((monster) => monster.id === event.currentTarget.dataset?.itemId);
+			game.actors.get(monster?.id)?.sheet.render(true);
+		})
+	}
+
+	static async create(weapons, availableAttacks, targetToken, targetAC, numSelected, monsters, {content}) {
+		const html = content;
+		return new Promise((resolve) => {
+			const dialog = new this(weapons, availableAttacks, targetToken, targetAC, numSelected, monsters, {
+				title: game.i18n.localize("MAT.name"),
+				content: html,
+				buttons: {
+					one: {
+						icon: `<i class="fas fa-fist-raised"></i>`,
+						label: game.i18n.localize("MAT.mobAttack"),
+						callback: html => {
+							let MODULE = "mob-attack-tool";
+							let attacks = {};
+							let weaponLocators = [];
+							let numAttacksMultiplier = 1;
+							let isVersatile = false;
+							for (let [weaponID, weaponData] of Object.entries(weapons)) {
+								isVersatile = weaponData.data.data.damage.versatile != "";
+								weaponID += ((isVersatile) ?  ` (${game.i18n.localize("Versatile")})` : ``);
+								if (html.find(`input[name="use` + weaponData.id.replace(" ","-") + `"]`)[0].checked) {
+									numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponData.id.replace(" ","-")}"]`)[0].value);
+									if (numAttacksMultiplier === NaN) {
+										numAttacksMultiplier = 0;
+									}
+									attacks[weaponData.id] = availableAttacks[weaponData.id] * numAttacksMultiplier;
+									weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name, "weaponID": weaponData.id});
+								}
+								if (html.find(`input[name="use` + weaponID.replace(" ","-") + `"]`)[0].checked) {
+									numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponID.replace(" ","-")}"]`)[0].value);
+									if (numAttacksMultiplier === NaN) {
+										numAttacksMultiplier = 0;
+									}
+									attacks[weaponID] = availableAttacks[weaponData.id] * numAttacksMultiplier;
+									weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name, "weaponID": weaponID});
+								}
+							}
+							let withAdvantage = false;
+							let withDisadvantage = false;
+							let rollTypeValue = 0;
+							let rollTypeMessage = ``;
+							if (game.settings.get(MODULE,"askRollType")) {
+								let rtValue = Math.floor(game.settings.get(MODULE,"rollTypeValue"));
+								if (html.find("[name=rollType]")[0].value === "advantage") {
+									rollTypeValue = rtValue;
+									withAdvantage = true;
+									rollTypeMessage = ` + ${rtValue} [adv]`; 
+								} else if (html.find("[name=rollType]")[0].value === "disadvantage") {
+									rollTypeValue = -1 * rtValue;
+									withDisadvantage = true;
+									rollTypeMessage = ` - ${rtValue} [disadv]`;
+								}
+							}
+
+							// End the turn of mob attackers grouped together in initiative
+							let endMobTurn = html.find(`input[name="endMobTurn"]`)[0].checked;
+
+							// Create macro
+							if (html.find(`input[name="exportMobAttack"]`)[0].checked) {
+								let key = Object.keys(attacks)[0];
+								if (key.endsWith(`(${game.i18n.localize("Versatile")})`)) key = key.slice(0,key.indexOf(` (${game.i18n.localize("Versatile")})`));
+								let macroName = `${weapons[key].name} ${game.i18n.localize("MAT.macroNamePrefix")} ${canvas.tokens.controlled.length} ${canvas.tokens.controlled[0].name}${game.i18n.localize("MAT.macroNamePostfix")}`;
+								
+								Macro.create({
+									type: "script", 
+									name: macroName,
+									command: `MobAttacks.quickRoll({numSelected: ${numSelected}, weaponLocators: ${JSON.stringify(weaponLocators)}, attacks: ${JSON.stringify(attacks)}, withAdvantage: ${withAdvantage}, withDisadvantage: ${withDisadvantage}, rollTypeValue: ${rollTypeValue}, rollTypeMessage: "${rollTypeMessage}", endMobTurn: ${endMobTurn}, monsters: ${JSON.stringify(monsters)}})`,
+									img: weapons[key].img,
+								});
+							ui.notifications.info(`Macro ${macroName} ${game.i18n.localize("MAT.macroNotification")}`);
+							}
+
+							// Bundle data together
+							let mobAttackData = {
+								"targetToken": targetToken,
+								"targetAC": targetAC,
+								"numSelected": numSelected,
+								"weapons": weapons,
+								"attacks": attacks,
+								"withAdvantage": withAdvantage,
+								"withDisadvantage": withDisadvantage,
+								"rollTypeValue": rollTypeValue,
+								"rollTypeMessage": rollTypeMessage,
+								"endMobTurn": endMobTurn,
+								"monsters": monsters
+							};
+
+							if (game.settings.get(MODULE,"mobRules") === 0) {
+								rollMobAttack(mobAttackData);
+							} else {
+								rollMobAttackIndividually(mobAttackData);
+							}
+							resolve([]);
+						}
+					}
+				},
+				default: "one",
+				close: () => resolve([])
+			},{width: 430});
+			dialog.render(true);
+		});
+	}
+}
+
 
 
 String.prototype.capitalize = function() {
@@ -744,6 +788,7 @@ async function endGroupedMobTurn(data) {
 
 async function formatMonsterLabel(monsterData) {
 	let labelData = {
+		actorId: monsterData.id,
 		actorAmount: `${monsterData.amount}x`,
 		actorImg: monsterData.img,
 		actorNameImg: monsterData.name.replace(" ","-"),
@@ -772,6 +817,7 @@ async function formatWeaponLabel(itemData, weapons, options) {
 		let labelData = {
 			numAttacksName: `numAttacks${(itemData.id + ((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)).replace(" ","-")}`,
 			numAttack: numAttacksTotal,
+			weaponId: itemData.id,
 			weaponImg: itemData.img,
 			weaponNameImg: itemData.name.replace(" ","-"),
 			weaponName: `${itemData.name}${((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)}`,
