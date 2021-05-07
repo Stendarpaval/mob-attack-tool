@@ -12,6 +12,7 @@
 	"MAT.dialogTargetArmorClassMessage": "Your target has an AC of",
 	"MAT.dialogChooseWeaponOption": "Choose weapon option",
 	"MAT.dialogNumSelected": "You have selected",
+	"MAT.dialogClickIconText": "Click icons to open actor or weapon sheets.",
 
 	"MAT.macroNamePrefix": "Mob Attack of",
 	"MAT.macroNamePostfix": "(s)",
@@ -64,8 +65,6 @@
 	"SETTINGS.MAT.noAutoDetect": "No autodetect",
 	"SETTINGS.MAT.autoDetectOnly": "Autodetect only",
 	"SETTINGS.MAT.autoDetectAndSelect": "Autodetect + autoselect",
-	"SETTINGS.MAT.shareWeapons": "Share weapon options in mob",
-	"SETTINGS.MAT.shareWeaponsHint": "If enabled, then selected weapons in the Mob Attack dialog will be used by all mob attackers. Disable this to only allow attackers that own that weapon to use it in a mob attack.",
 	"SETTINGS.MAT.endMobTurn": "Include option to end grouped mob turns",
 	"SETTINGS.MAT.endMobTurnHint": "If enabled, an option is added to the Mob Attack dialog to skip the turns of mob attackers that are grouped together in the combat tracker. Works well with the Grouped Initiative module.",
 	"SETTINGS.MAT.askRollType": "Include Advantage / Disadvantage selection",

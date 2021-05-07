@@ -38,8 +38,8 @@ async function mobAttackTool() {
 
 	// Format tool dialog content
 	const dialogContentStart = `<form id="mobattack-tool" class="mat-dialog-content";>`;
-	const targetACtext = (game.user.isGM ? ` ${game.i18n.localize("MAT.dialogTargetArmorClassMessage")} ${targetAC}.` : ``) + ` Click icons to open actor or weapon sheets.`;
-	const dialogContentLabel = `<p>${game.i18n.localize("MAT.dialogChooseWeaponOption")}:</p><p class="hint">${game.i18n.localize("MAT.dialogNumSelected")} ${numSelected} token${pluralTokensOrNot}.${targetACtext}</p>`;
+	const targetACtext = (game.user.isGM ? ` ${game.i18n.localize("MAT.dialogTargetArmorClassMessage")} ${targetAC}.` : ``) + ` ${game.i18n.localize("MAT.dialogClickIconText")}`;
+	const dialogContentLabel = `<p style="cursor: default;">${game.i18n.localize("MAT.dialogChooseWeaponOption")}:</p><p class="hint" style="cursor: default;">${game.i18n.localize("MAT.dialogNumSelected")} ${numSelected} token${pluralTokensOrNot}.${targetACtext}</p>`;
 	const dialogContentEnd = `</form>`;
 	
 	let content = dialogContentStart + dialogContentLabel + `<div>`;
@@ -360,10 +360,7 @@ async function rollMobAttackIndividually(data) {
 		let numCritFails = 0;
 
 		// Check how many attackers have this weapon
-		let availableAttacks = data.numSelected;
-		if (!game.settings.get("mob-attack-tool","shareWeapons")) {
-			availableAttacks = value;
-		}
+		let availableAttacks = value;
 
 		// Evaluate how many individually rolled attacks hit
 		let attackRoll, attackRollEvaluated = [], successfulAttackRolls = [];
@@ -601,10 +598,7 @@ async function rollMobAttack(data) {
 		const attackersNeeded = calcAttackersNeeded(d20Needed);
 
 		// Check whether how many attackers can use this weapon
-		let availableAttacks = data.numSelected;
-		if (!game.settings.get("mob-attack-tool","shareWeapons")) {
-			availableAttacks = value;
-		}
+		let availableAttacks = value;
 		
 		if (availableAttacks / attackersNeeded >= 1) {
 			const numHitAttacks = Math.floor(availableAttacks/attackersNeeded);

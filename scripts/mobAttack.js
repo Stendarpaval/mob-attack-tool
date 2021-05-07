@@ -61,15 +61,6 @@ Hooks.once("init", () => {
 
 	})
 
-	game.settings.register(MODULE, "shareWeapons", {
-		name: "SETTINGS.MAT.shareWeapons",
-		hint: "SETTINGS.MAT.shareWeaponsHint",
-		config: true,
-		scope: "world",
-		default: false,
-		type: Boolean
-	});
-
 	game.settings.register(MODULE, "endMobTurn", {
 		name: "SETTINGS.MAT.endMobTurn",
 		hint: "SETTINGS.MAT.endMobTurnHint",

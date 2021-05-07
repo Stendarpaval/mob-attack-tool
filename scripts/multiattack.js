@@ -118,7 +118,6 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 			}
 		}
 
-
 		let typeArray = [];
 		let numWeaponsInventory = actorData.items.filter(w => w.data.type === "weapon").length
 		if (attackType !== ``) {
@@ -140,7 +139,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		}
 
 	// for actors with the Extra Attack item
-	} else if (actorData.items.getName("Extra Attack") !== (coreVersion08x) ? undefined : null) {
+	} else if (actorData.items.getName("Extra Attack") !== ((coreVersion08x) ? undefined : null)) {
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
 				multiattack = [getScalingFactor(weaponData), false];
@@ -150,7 +149,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		}
 
 	// for fighters
-	} else if (actorData.items.getName("Extra Attack (Fighter)") !== (coreVersion08x) ? undefined : null) {
+	} else if (actorData.items.getName("Extra Attack (Fighter)") !== ((coreVersion08x) ? undefined : null)) {
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
 				multiattack = [getScalingFactor(weaponData), false];
@@ -175,7 +174,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		}
 	};
 
-	// select this weapon if it deals the most damage and no other weapons or spells aree selected
+	// select this weapon if it deals the most damage and no other weapons or spells are selected
 	if (options?.checkMaxDamageWeapon) {
 		if (weaponData === options?.maxDamageWeapon) {
 			multiattack[1] = true;
