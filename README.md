@@ -27,6 +27,8 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 * There is now support for versatile weapon damage. No need to create duplicate weapons anymore!
 * For ease of use, Mob Attack Tool now shows the multiattack description for creatures that have it. Can be turned off in settings if so desired.
 * You can now click on icons to open actor or item sheets!
+* Mob Attack Tool has been translated to Korean by KLO!
+* Now you can name and save Mobs for later reuse. If you have saved mobs, then you don't need to select any tokens to begin using Mob Attack Tool. 
 
 ## Examples
 
@@ -58,6 +60,7 @@ For more elaborate examples and screenshots, please head over to [EXAMPLES.md](E
 # Translations
 Mob Attack Tool currently supports these languages:
 * English
+* Korean (translation provided by KLO (discord : KLO#1490). Thanks, KLO!)
 
 ## Inspirations
 * This module was inspired by [Multiattack 5e](https://github.com/jessev14/Multiattack-5e).
