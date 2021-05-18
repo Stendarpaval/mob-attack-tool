@@ -4,8 +4,9 @@
 	"MAT.mobAttackResults": "Mob Attack Results",
 
 	"MAT.selectTokenWarning": "You need to select one or more tokens!",
-	"MAT.singleTargetWarning": "Make sure only a single token is targeted!",
+	"MAT.singleTargetWarning": "Make sure no more than one token is targeted!",
 	"MAT.targetValidACWarning": "Select a target with a valid AC value!",
+	"MAT.noTargetAllAttacksHitText": "No tokens are targeted, so all attacks will hit.",
 	"MAT.lowAttackBonusOrSmallMob": "Attack bonus too low or not enough mob attackers to hit the target!",
 	"MAT.ammoError": "There was an error while trying to add an ammo field to this {weaponName} attack.",
 	
@@ -13,6 +14,17 @@
 	"MAT.dialogChooseWeaponOption": "Choose weapon option",
 	"MAT.dialogNumSelected": "You have selected",
 	"MAT.dialogClickIconText": "Click icons to open actor or weapon sheets.",
+	"MAT.numAttacksTitle": "Number of Attacks",
+	"MAT.useWeaponTitle": "Use Weapon",
+
+	"MAT.selectMob": "Select mob",
+	"MAT.savedMobNotify": "{mobName} saved!",
+	"MAT.overwriteMobDialog": "There already exists a mob with the name \"{mobName}\". Do you want to overwrite it?",
+	"MAT.resetMobsNotify": "List of saved mobs was reset!",
+	"MAT.resetMobsDialog": "Reset all Mobs",
+	"MAT.mobNameDialog": "Mob name",
+	"MAT.saveMobButtonTitle": "Save Mob",
+	"MAT.loadMobButtonTitle": "Load Mob",
 
 	"MAT.macroNamePrefix": "Mob Attack of",
 	"MAT.macroNamePostfix": "(s)",
@@ -49,6 +61,7 @@
 	"Disadvantage": "Disadvantage",
 	"Conclusion": "Conclusion",
 	"of": "of",
+	"Select": "Select",
 
 	"SETTINGS.MAT.playerAccess": "Allow players to use Mob Attack Tool",
 	"SETTINGS.MAT.playerAccessHint": "If enabled, players will be able to see and use the Mob Attack Tool button. However, they will not see target AC. If disabled, only the GM will be able to use Mob Attack Tool.",
@@ -57,7 +70,7 @@
 	"SETTINGS.MAT.mobRules": "Mob Rules",
 	"SETTINGS.MAT.individualAttackRolls": "Individual Attack Rolls",
 	"SETTINGS.MAT.showIndividualAttackRolls": "Show individual attack rolls",
-	"SETTINGS.MAT.showIndividualAttackRollsHint": "Choose whether or not to show the successful individual attack rolls. Only relevant if rolling attacks individually instead of using mob rules. Midi-QOL support only in combination with Better Rolls for 5e for now. (Client specific setting)",
+	"SETTINGS.MAT.showIndividualAttackRollsHint": "Choose whether or not to show the successful individual attack rolls. Only relevant if rolling attacks individually instead of using mob rules. Midi-QOL support only in combination with Better Rolls for 5e for now, though Dice So Nice rolls will work regardless. (Client specific setting)",
 	"SETTINGS.MAT.showMultiattackDescription": "Show multiattack description",
 	"SETTINGS.MAT.showMultiattackDescriptionHint": "If enabled, then a multiattack description will be shown for any mob attacker that has a multiattack feature on their actor sheet. (Client specific setting)",
 	"SETTINGS.MAT.autoDetectMultiattacks": "Autodetect multiattack",

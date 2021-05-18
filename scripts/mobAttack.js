@@ -87,6 +87,42 @@ Hooks.once("init", () => {
 		type: Number
 	});
 
+	game.settings.register(MODULE, "hiddenMobList", {
+		name: "hiddenMobList",
+		hint: "hiddenMobList",
+		scope: "world",
+		config: false,
+		default: {},
+		type: Object
+	});	
+
+	game.settings.register(MODULE, "hiddenMobName", {
+		name: "hiddenMobName",
+		hint: "hiddenMobName",
+		scope: "world",
+		config: false,
+		default: "",
+		type: String
+	});	
+
+	game.settings.register(MODULE, "hiddenDialogContent", {
+		name: "hiddenDialogContent",
+		hint: "hiddenDialogContent",
+		scope: "world",
+		config: false,
+		default: "",
+		type: String
+	});	
+
+	game.settings.register(MODULE, "hiddenChangedMob", {
+		name: "hiddenChangedMob",
+		hint: "hiddenChangedMob",
+		scope: "world",
+		config: false,
+		default: false,
+		type: Boolean
+	});
+
 	initMobAttackTool();
 })
 
