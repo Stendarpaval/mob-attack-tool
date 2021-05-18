@@ -5,7 +5,9 @@
 			<div class="form-fields">
 				<select name="selectMob">
 					{{#each this}}
-					<option value="{{this.mobName}}">{{this.mobName}}</option>
+						{{#if this.visible}}
+						<option value="{{this.mobName}}">{{this.mobName}}</option>
+						{{/if}}
 					{{/each}}
 				</select>
 			</div>

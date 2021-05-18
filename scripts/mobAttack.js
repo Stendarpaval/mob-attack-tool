@@ -90,7 +90,7 @@ Hooks.once("init", () => {
 	game.settings.register(MODULE, "hiddenMobList", {
 		name: "hiddenMobList",
 		hint: "hiddenMobList",
-		scope: "world",
+		scope: "client",
 		config: false,
 		default: {},
 		type: Object
@@ -99,7 +99,7 @@ Hooks.once("init", () => {
 	game.settings.register(MODULE, "hiddenMobName", {
 		name: "hiddenMobName",
 		hint: "hiddenMobName",
-		scope: "world",
+		scope: "client",
 		config: false,
 		default: "",
 		type: String
@@ -108,7 +108,7 @@ Hooks.once("init", () => {
 	game.settings.register(MODULE, "hiddenDialogContent", {
 		name: "hiddenDialogContent",
 		hint: "hiddenDialogContent",
-		scope: "world",
+		scope: "client",
 		config: false,
 		default: "",
 		type: String
@@ -117,7 +117,7 @@ Hooks.once("init", () => {
 	game.settings.register(MODULE, "hiddenChangedMob", {
 		name: "hiddenChangedMob",
 		hint: "hiddenChangedMob",
-		scope: "world",
+		scope: "client",
 		config: false,
 		default: false,
 		type: Boolean

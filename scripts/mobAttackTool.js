@@ -198,7 +198,7 @@ class MobAttackDialog extends Dialog {
 
 		// save the current mob
 		async function saveMobList(mobList, mobName, monsterArray, numSelected) {
-			mobList[mobName] = {mobName: mobName, monsters: monsterArray, numSelected: numSelected};
+			mobList[mobName] = {mobName: mobName, monsters: monsterArray, numSelected: numSelected, userId: game.user.id};
 			await game.settings.set("mob-attack-tool","hiddenMobList",mobList);	
 			ui.notifications.info(game.i18n.format("MAT.savedMobNotify",{mobName: mobName}));
 		}
@@ -234,6 +234,13 @@ class MobAttackDialog extends Dialog {
 		// load a previously saved mob
 		html.on('click', '.loadMobButton', async (event) => {
 			let mobList = game.settings.get("mob-attack-tool","hiddenMobList");
+			for (let [key,value] of Object.entries(mobList)) {
+				if (mobList[key].userId === game.user.id) {
+					mobList[key]["visible"] = true;
+				} else {
+					mobList[key]["visible"] = false;
+				}
+			}
 			let dialogMobList = await renderTemplate('modules/mob-attack-tool/templates/mat-dialog-mob-list.html', mobList);
 			let initialMobName = html.find(`input[name="mobName"]`)[0].value;
 
