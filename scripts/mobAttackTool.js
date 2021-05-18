@@ -369,6 +369,10 @@ class MobAttackDialog extends Dialog {
 			} else {
 				macroName = `${weapons[key].name} ${game.i18n.localize("MAT.macroNamePrefix")} ${mobList[Object.keys(mobList)[0]].numSelected} ${Object.keys(mobList)[0]}${game.i18n.localize("MAT.macroNamePostfix")}`;
 			}
+
+			if (game.settings.get("mob-attack-tool", "hiddenChangedMob")) {
+				numSelected = mobList[Object.keys(mobList)[0]].numSelected;
+			}
 			
 			Macro.create({
 				type: "script", 
@@ -752,6 +756,7 @@ async function rollMobAttack(data) {
 	let attackData = [];
 	let messageData = {messages: {}};
 	let isVersatile;
+	console.log(data.attacks);
 	for ( let [key, value] of Object.entries(data.attacks) ) { 
 		isVersatile = false;
 		if (key.endsWith(`(${game.i18n.localize("Versatile")})`.replace(" ", "-"))) {
@@ -766,6 +771,9 @@ async function rollMobAttack(data) {
 
 		// Check whether how many attackers can use this weapon
 		let availableAttacks = value;
+		console.log(attackersNeeded);
+		console.log(availableAttacks);
+		console.log(availableAttacks / attackersNeeded);
 		
 		if (availableAttacks / attackersNeeded >= 1) {
 			const numHitAttacks = Math.floor(availableAttacks/attackersNeeded);
@@ -816,9 +824,9 @@ async function rollMobAttack(data) {
 			await new Promise(resolve => setTimeout(resolve, 250));
 		} else {
 			ui.notifications.warn(game.i18n.localize("MAT.lowAttackBonusOrSmallMob"));
-			return;
 		}
 	}
+	if (attackData === []) return;
 
 	let totalPluralOrNot = ` ${game.i18n.localize((messageData.totalHitAttacks === 1) ? "MAT.numTotalHitsSingular" : "MAT.numTotalHitsPlural")}`;
 	messageData["totalPluralOrNot"] = totalPluralOrNot;
