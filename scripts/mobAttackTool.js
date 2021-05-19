@@ -588,13 +588,29 @@ async function rollMobAttackIndividually(data) {
 			actorAmount = data.monsters[weaponData.actor.id]["amount"];
 		}
 
+		let successfulAttackRollsString = ``;
+		for (let i = 0; i < successfulAttackRolls.length; i++) {
+			if (successfulAttackRolls.length > 1) {
+				if (i !== successfulAttackRolls.length - 1) {
+					successfulAttackRollsString += `${successfulAttackRolls[i].total}, `;
+				} else {
+					successfulAttackRollsString += `${successfulAttackRolls[i].total}`;
+				}
+			} else if (successfulAttackRolls.length === 1) {
+				successfulAttackRollsString += `${successfulAttackRolls[i].total}`;
+			}
+		}
+
 		// Mob attack results message
 		let msgData = {
 			actorAmount: actorAmount,
 			weaponName: `${weaponData.name}${(isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``}`,
 			availableAttacks: availableAttacks,
 			numHitAttacks: numHitAttacks,
-			pluralOrNot: pluralOrNot
+			pluralOrNot: pluralOrNot,
+			successfulAttackRollsString: successfulAttackRollsString,
+			showIndividualAttackRolls: (successfulAttackRolls.length === 0) ? false : game.settings.get("mob-attack-tool", "showIndividualAttackRolls"),
+			finalAttackBonus: finalAttackBonus
 		}
 
 		// Store message data for later
@@ -609,6 +625,7 @@ async function rollMobAttackIndividually(data) {
 		} else {
 			messageData["totalHitAttacks"] += numHitAttacks;
 		}
+
 
 		attackData.push({
 			data: data,
@@ -763,7 +780,6 @@ async function rollMobAttack(data) {
 	let attackData = [];
 	let messageData = {messages: {}};
 	let isVersatile;
-	console.log(data.attacks);
 	for ( let [key, value] of Object.entries(data.attacks) ) { 
 		isVersatile = false;
 		if (key.endsWith(`(${game.i18n.localize("Versatile")})`.replace(" ", "-"))) {
@@ -778,9 +794,6 @@ async function rollMobAttack(data) {
 
 		// Check whether how many attackers can use this weapon
 		let availableAttacks = value;
-		console.log(attackersNeeded);
-		console.log(availableAttacks);
-		console.log(availableAttacks / attackersNeeded);
 		
 		if (availableAttacks / attackersNeeded >= 1) {
 			const numHitAttacks = Math.floor(availableAttacks/attackersNeeded);

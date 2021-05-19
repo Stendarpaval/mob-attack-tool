@@ -62,6 +62,7 @@
 	"Conclusion": "Conclusion",
 	"of": "of",
 	"Select": "Select",
+	"Rolls": "Rolls",
 
 	"SETTINGS.MAT.playerAccess": "Allow players to use Mob Attack Tool",
 	"SETTINGS.MAT.playerAccessHint": "If enabled, players will be able to see and use the Mob Attack Tool button. However, they will not see target AC. If disabled, only the GM will be able to use Mob Attack Tool.",
@@ -70,7 +71,7 @@
 	"SETTINGS.MAT.mobRules": "Mob Rules",
 	"SETTINGS.MAT.individualAttackRolls": "Individual Attack Rolls",
 	"SETTINGS.MAT.showIndividualAttackRolls": "Show individual attack rolls",
-	"SETTINGS.MAT.showIndividualAttackRollsHint": "Choose whether or not to show the successful individual attack rolls. Only relevant if rolling attacks individually instead of using mob rules. Midi-QOL support only in combination with Better Rolls for 5e for now, though Dice So Nice rolls will work regardless. (Client specific setting)",
+	"SETTINGS.MAT.showIndividualAttackRollsHint": "Choose whether or not to show the successful individual attack rolls. Only relevant if rolling attacks individually instead of using mob rules. (Client specific setting)",
 	"SETTINGS.MAT.showMultiattackDescription": "Show multiattack description",
 	"SETTINGS.MAT.showMultiattackDescriptionHint": "If enabled, then a multiattack description will be shown for any mob attacker that has a multiattack feature on their actor sheet. (Client specific setting)",
 	"SETTINGS.MAT.autoDetectMultiattacks": "Autodetect multiattack",
