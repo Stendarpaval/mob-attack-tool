@@ -32,9 +32,9 @@ Clicking on the Mob Attack button in the dialog window will then whisper a messa
 
 ## Examples
 
-This is what the Mob Attack dialog looks like (as of v0.1.29) with multiattack autodetect + autoselect enabled:
+This is what the Mob Attack dialog looks like (as of v0.1.31) with multiattack autodetect + autoselect enabled:
 
-<img width="440" alt="screenshot_v0 1 29" src="https://user-images.githubusercontent.com/17188192/117154076-d345f900-adbb-11eb-9acc-471dd0429c96.png">
+<img width="440" alt="Screenshot v0.1.31 (1)" src="https://user-images.githubusercontent.com/17188192/118686279-2a0ff180-b804-11eb-9c34-b8dfb2011228.png">
 
 Below are some (older) GIFs that give a brief idea of how you can use Mob Attack Tool.
 
