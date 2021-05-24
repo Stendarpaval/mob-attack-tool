@@ -227,8 +227,7 @@ class MobAttackDialog extends Dialog {
 					},
 					default: "yes"
 				}).render(true);
-			}
-			
+			}	
 		})
 
 		// load a previously saved mob
@@ -271,9 +270,6 @@ class MobAttackDialog extends Dialog {
 			await game.settings.set("mob-attack-tool", "hiddenChangedMob", true);
 			html.find(`input[name="mobName"]`)[0].value = selectedMob;
 			await game.settings.set('mob-attack-tool','hiddenMobName',selectedMob);
-
-			// Check if Core is 0.8.x or even newer
-			const coreVersion08x = parseInt(game.data.version.slice(2)) > 7;
 			
 			let mobData = mobList[selectedMob];
 			let weapons = {}, monsters = {}, availableAttacks = {};
@@ -437,7 +433,6 @@ class MobAttackDialog extends Dialog {
 }
 
 
-
 String.prototype.capitalize = function() {
     return this.charAt(0).toUpperCase() + this.slice(1);
 }
@@ -532,16 +527,24 @@ async function rollMobAttackIndividually(data) {
 			attackFormula = `1d20 + ${finalAttackBonus}`
 		}
 
-		//TODO: check for crits and crit fails. Add separate props.
+		// Check how many attackers have this weapon
 		let numHitAttacks = 0;
 		let numCrits = 0;
 		let numCritFails = 0;
-
-		// Check how many attackers have this weapon
 		let availableAttacks = value;
 
 		// Evaluate how many individually rolled attacks hit
 		let attackRoll, attackRollEvaluated = [], successfulAttackRolls = [];
+		let atkRollData = [];
+
+		// Determine crit threshold
+		let critThreshold = 20;
+		if (weaponData.type === "weapon" && weaponData.actor.getFlag("dnd5e","weaponCriticalThreshold") > 0) {
+			critThreshold = weaponData.actor.getFlag("dnd5e","weaponCriticalThreshold");
+		} else if (weaponData.type === "spell" && weaponData.actor.getFlag("dnd5e","spellCriticalThreshold") > 0) {
+			critThreshold = weaponData.actor.getFlag("dnd5e","spellCriticalThreshold");
+		}
+
 		for (let i = 0; i < availableAttacks; i++) {	
 			attackRoll = new Roll(attackFormula);
 
@@ -557,16 +560,23 @@ async function rollMobAttackIndividually(data) {
 				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(attackRoll);
 			}
 
-			// Always count 20's as hits and 1's as misses. Maybe add option flag?
-			if (attackRollEvaluated[i].total - finalAttackBonus == 20) {
+			// Always count 20's as hits and 1's as misses.
+			if (attackRollEvaluated[i].total - finalAttackBonus >= critThreshold) {
 				numCrits++;
 				numHitAttacks += 1;
 				successfulAttackRolls.push(attackRollEvaluated[i]);
+				atkRollData.push({roll: attackRollEvaluated[i].total, color: "max", finalAttackBonus: finalAttackBonus});
 			} else if (attackRollEvaluated[i].total - finalAttackBonus == 1) {
 				numCritFails++;
+				if (game.settings.get("mob-attack-tool","showAllAttackRolls")) {
+					atkRollData.push({roll: attackRollEvaluated[i].total, color: "min", finalAttackBonus: finalAttackBonus});
+				}
 			} else if (attackRollEvaluated[i].total >= ((data.targetAC) ? data.targetAC : 0) && attackRollEvaluated[i].total - finalAttackBonus > 1) {
 				numHitAttacks += 1;
 				successfulAttackRolls.push(attackRollEvaluated[i]);
+				atkRollData.push({roll: attackRollEvaluated[i].total, color: "", finalAttackBonus: finalAttackBonus});
+			} else if (game.settings.get("mob-attack-tool","showAllAttackRolls")) {
+				atkRollData.push({roll: attackRollEvaluated[i].total, color: "discarded", finalAttackBonus: finalAttackBonus});
 			}
 		}
 		
@@ -588,19 +598,6 @@ async function rollMobAttackIndividually(data) {
 			actorAmount = data.monsters[weaponData.actor.id]["amount"];
 		}
 
-		let successfulAttackRollsString = ``;
-		for (let i = 0; i < successfulAttackRolls.length; i++) {
-			if (successfulAttackRolls.length > 1) {
-				if (i !== successfulAttackRolls.length - 1) {
-					successfulAttackRollsString += `${successfulAttackRolls[i].total}, `;
-				} else {
-					successfulAttackRollsString += `${successfulAttackRolls[i].total}`;
-				}
-			} else if (successfulAttackRolls.length === 1) {
-				successfulAttackRollsString += `${successfulAttackRolls[i].total}`;
-			}
-		}
-
 		// Mob attack results message
 		let msgData = {
 			actorAmount: actorAmount,
@@ -608,9 +605,8 @@ async function rollMobAttackIndividually(data) {
 			availableAttacks: availableAttacks,
 			numHitAttacks: numHitAttacks,
 			pluralOrNot: pluralOrNot,
-			successfulAttackRollsString: successfulAttackRollsString,
-			showIndividualAttackRolls: (successfulAttackRolls.length === 0) ? false : game.settings.get("mob-attack-tool", "showIndividualAttackRolls"),
-			finalAttackBonus: finalAttackBonus
+			atkRollData: atkRollData,
+			showIndividualAttackRolls: (atkRollData.length === 0) ? false : game.settings.get("mob-attack-tool", "showIndividualAttackRolls")
 		}
 
 		// Store message data for later
@@ -665,8 +661,18 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
 	let midi_QOL_Active = false;
 	if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
+
+	// Determine crit threshold
+	let critThreshold = 20;
+	if (weaponData.type === "weapon" && weaponData.actor.getFlag("dnd5e","weaponCriticalThreshold") > 0) {
+		critThreshold = weaponData.actor.getFlag("dnd5e","weaponCriticalThreshold");
+	} else if (weaponData.type === "spell" && weaponData.actor.getFlag("dnd5e","spellCriticalThreshold") > 0) {
+		critThreshold = weaponData.actor.getFlag("dnd5e","spellCriticalThreshold");
+	}
 	
 	// Process attack and damage rolls
+	let showAttackRolls = game.settings.get("mob-attack-tool", "showIndividualAttackRolls");
+	let showDamageRolls = game.settings.get("mob-attack-tool", "showIndividualDamageRolls");
 	if (numHitAttacks != 0) {
 		// Better Rolls 5e active
 		if (betterrollsActive) {
@@ -678,11 +684,10 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 			);
 			let attackFieldOptions = {};
 			let damageFieldOptions = {};
-			let showAttackRolls = game.settings.get("mob-attack-tool", "showIndividualAttackRolls");
-			if (showAttackRolls) {
+			if (showAttackRolls && showDamageRolls) {
 				for (let i = 0; i < numHitAttacks; i++) {
 					let attackFormula = "0d0 + " + (successfulAttackRolls[i].total).toString();
-					if (successfulAttackRolls[i].total - finalAttackBonus == 20 && numCrits > 0) {
+					if (successfulAttackRolls[i].total - finalAttackBonus >= critThreshold && numCrits > 0) {
 					 	attackFieldOptions =  {formula: attackFormula, forceCrit: true};
 						damageFieldOptions = {index: "all", isCrit: true};
 						numCrits--;
@@ -694,14 +699,13 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 					await mobAttackRoll.addField(["damage", damageFieldOptions]);
 				}
 			} else {
-				if (midi_QOL_Active) await mobAttackRoll.addField(["attack", {formula: "0d0 + " + (data.targetAC).toString(), title: game.i18n.localize("MAT.midiDamageLabel")}]);
+				if (midi_QOL_Active && data.targetAC > 0) await mobAttackRoll.addField(["attack", {formula: "0d0 + " + (data.targetAC).toString(), title: game.i18n.localize("MAT.midiDamageLabel")}]);
 				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
 				for (let diceFormula of diceFormulas) {
 					let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
 					await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true});
 					await mobAttackRoll.addField(["damage", {formula: damageRoll.formula, damageType: damageTypes[diceFormulas.indexOf(diceFormula)], title: `${game.i18n.localize("Damage")} - ${damageTypes[diceFormulas.indexOf(diceFormula)]}`, isCrit: false}]);
 				}
-				
 			}
 			if (weaponData.data.data.consume.type === "ammo") {
 				try {
@@ -714,7 +718,6 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 			} else {
 				await mobAttackRoll.toMessage();
 			}
-			
 
 		// Midi-QOL active, Better Rolls inactive
 		} else if (midi_QOL_Active) {
@@ -743,31 +746,32 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 				}
 			);
 			
-		
 		// Neither Better Rolls nor Midi-QOL active
 		} else {
-			for (let i = 0; i < numHitAttacks; i++) {
+			if (showDamageRolls) {
+				for (let i = 0; i < numHitAttacks; i++) {
+					await new Promise(resolve => setTimeout(resolve, 300));
+					let damageOptions = {};
+					if (successfulAttackRolls[i].total - finalAttackBonus >= critThreshold && numCrits > 0) {
+						damageOptions = {"critical": true, "event": {"altKey": true}};
+						numCrits--
+					} else {
+						damageOptions = {"critical": false, "event": {"shiftKey": true}};
+					}
+					await weaponData.rollDamage(damageOptions);
+				}
+			} else {
 				await new Promise(resolve => setTimeout(resolve, 300));
-				if (game.settings.get("mob-attack-tool", "showIndividualAttackRolls")) {
-					await successfulAttackRolls[i].toMessage(
-						{
-							flavor: `${weaponData.name} - ${game.i18n.localize("Attack Roll")}`,
-							speaker: {
-								actor: weaponData.actor.id,
-								alias: weaponData.actor.name
-							}
-						}
-					);
-					await new Promise(resolve => setTimeout(resolve, 200));
-				}
-				let damageOptions = {};
-				if (successfulAttackRolls[i].total - finalAttackBonus == 20 && numCrits > 0) {
-					damageOptions = {"critical": true, "event": {"altKey": true}};
-					numCrits--
-				} else {
-					damageOptions = {"critical": false, "event": {"shiftKey": true}};
-				}
-				await weaponData.rollDamage(damageOptions);
+				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
+				let diceFormula = diceFormulas.join(" + ");
+				let damageType = damageTypes.join(", ");
+				let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+				await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true});
+				damageRoll = await damageRoll.evaluate({async: true});
+				await damageRoll.toMessage(
+					{
+						flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})${(numCrits > 0) ? ` (${game.i18n.localize("MAT.critIncluded")})` : ``}`
+					});
 			}
 		}
 	}

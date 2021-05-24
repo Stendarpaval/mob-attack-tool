@@ -9,7 +9,19 @@
 	</tr>
 	{{#if this.showIndividualAttackRolls}}
 	<tr class="mat-midi-show-atk-lines">
-		<td><i class="fas fa-dice-d20" title="{{localize 'Attack Roll'}} (+{{this.finalAttackBonus}} {{localize 'MAT.toHit'}})"></i> <em>{{this.successfulAttackRollsString}}</em></td>
+		<td>
+			<div class="dice-tooltip" style="display: block;">
+			    <section class="tooltip-part">
+			        <div class="dice">
+			            <ol class="dice-rolls">
+			            	{{#each this.atkRollData}}
+			                <li class="roll die d20 {{this.color}}" title="{{localize 'Attack Roll'}} (+{{this.finalAttackBonus}} {{localize 'MAT.toHit'}})">{{this.roll}}</li>
+			                {{/each}}
+			            </ol>
+			        </div>
+			    </section>
+			</div>
+		</td>
 	</tr>
 	{{/if}}
 	{{/each}}

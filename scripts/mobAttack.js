@@ -15,6 +15,15 @@ Hooks.once("init", () => {
 		type: Boolean
 	});
 
+	game.settings.register(MODULE, "enableDiceSoNice", {
+		name: "SETTINGS.MAT.enableDiceSoNice",
+		hint: "SETTINGS.MAT.enableDiceSoNiceHint",
+		config: true,
+		scope: "world",
+		default: true,
+		type: Boolean
+	});
+
 	game.settings.register(MODULE, "mobRules", {
 		name: "SETTINGS.MAT.mobRulesOrIndividual",
 		hint: "SETTINGS.MAT.mobRulesOrIndividualHint",
@@ -31,6 +40,24 @@ Hooks.once("init", () => {
 	game.settings.register(MODULE, "showIndividualAttackRolls", {
 		name: "SETTINGS.MAT.showIndividualAttackRolls",
 		hint: "SETTINGS.MAT.showIndividualAttackRollsHint",
+		config: true,
+		scope: "client",
+		default: false,
+		type: Boolean
+	})
+
+	game.settings.register(MODULE, "showAllAttackRolls", {
+		name: "SETTINGS.MAT.showAllAttackRolls",
+		hint: "SETTINGS.MAT.showAllAttackRollsHint",
+		config: true,
+		scope: "client",
+		default: false,
+		type: Boolean
+	})
+
+	game.settings.register(MODULE, "showIndividualDamageRolls", {
+		name: "SETTINGS.MAT.showIndividualDamageRolls",
+		hint: "SETTINGS.MAT.showIndividualDamageRollsHint",
 		config: true,
 		scope: "client",
 		default: false,
