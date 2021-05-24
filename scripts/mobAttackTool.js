@@ -765,9 +765,11 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
 				let diceFormula = diceFormulas.join(" + ");
 				let damageType = damageTypes.join(", ");
-				let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+				let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod})
 				await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true});
 				damageRoll = await damageRoll.evaluate({async: true});
+				// Roll Dice so Nice dice
+				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
 				await damageRoll.toMessage(
 					{
 						flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})${(numCrits > 0) ? ` (${game.i18n.localize("MAT.critIncluded")})` : ``}`
