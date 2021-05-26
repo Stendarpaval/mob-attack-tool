@@ -24,6 +24,15 @@ Hooks.once("init", () => {
 		type: Boolean
 	});
 
+	game.settings.register(MODULE, "enableMidi", {
+		name: "SETTINGS.MAT.enableMidi",
+		hint: "SETTINGS.MAT.enableMidiHint",
+		config: true,
+		scope: "world",
+		default: true,
+		type: Boolean
+	});
+
 	game.settings.register(MODULE, "mobRules", {
 		name: "SETTINGS.MAT.mobRulesOrIndividual",
 		hint: "SETTINGS.MAT.mobRulesOrIndividualHint",

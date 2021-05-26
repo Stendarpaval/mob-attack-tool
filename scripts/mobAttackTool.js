@@ -557,7 +557,7 @@ async function rollMobAttackIndividually(data) {
 			}
 
 			if (game.settings.get("mob-attack-tool", "showIndividualAttackRolls")) {
-				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(attackRoll);
+				if (game.modules.get("dice-so-nice")?.active && game.settings.get("mob-attack-tool", "enableDiceSoNice")) game.dice3d.showForRoll(attackRoll);
 			}
 
 			// Always count 20's as hits and 1's as misses.
@@ -660,7 +660,7 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 	let betterrollsActive = false;
 	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
 	let midi_QOL_Active = false;
-	if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
+	if (game.modules.get("midi-qol")?.active && game.settings.get("mob-attack-tool", "enableMidi")) midi_QOL_Active = true;
 
 	// Determine crit threshold
 	let critThreshold = 20;
@@ -730,10 +730,10 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 			await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true}).roll();
 			
 			// Roll Dice so Nice dice
-			if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
+			if (game.modules.get("dice-so-nice")?.active && game.settings.get("mob-attack-tool", "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
 			
 			new MidiQOL.DamageOnlyWorkflow(
-				weaponData.options.actor, 
+				weaponData.actor, 
 				(data.targetToken) ? data.targetToken : undefined, 
 				damageRoll.total, 
 				damageTypeLabels[0], 
@@ -761,19 +761,26 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 					await weaponData.rollDamage(damageOptions);
 				}
 			} else {
-				await new Promise(resolve => setTimeout(resolve, 300));
+				// Condense the damage rolls.
+				// await new Promise(resolve => setTimeout(resolve, 300));
 				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
 				let diceFormula = diceFormulas.join(" + ");
 				let damageType = damageTypes.join(", ");
 				let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod})
 				await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true});
 				damageRoll = await damageRoll.evaluate({async: true});
-				// Roll Dice so Nice dice
-				if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
+				
+				// Temporarily disable Dice so Nice dice to prevent it triggering automatically
+				if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
+					await game.settings.set("dice-so-nice", "enabled", false);
+				}
 				await damageRoll.toMessage(
 					{
 						flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})${(numCrits > 0) ? ` (${game.i18n.localize("MAT.critIncluded")})` : ``}`
 					});
+				if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
+					await game.settings.set("dice-so-nice", "enabled", true);
+				}
 			}
 		}
 	}
@@ -877,7 +884,7 @@ async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVer
 	let betterrollsActive = false;
 	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
 	let midi_QOL_Active = false;
-	if (game.modules.get("midi-qol")?.active) midi_QOL_Active = true;
+	if (game.modules.get("midi-qol")?.active && game.settings.get("mob-attack-tool", "enableMidi")) midi_QOL_Active = true;
 
 	// betterrolls5e active
 	if (betterrollsActive) {
@@ -919,7 +926,14 @@ async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVer
 	} else if (!midi_QOL_Active) {
 		await new Promise(resolve => setTimeout(resolve, 100));	
 		for (let i = 0; i < numHitAttacks; i++) {
+			// Temporarily disable Dice so Nice dice to prevent it triggering automatically
+			if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
+				await game.settings.set("dice-so-nice", "enabled", false);
+			}
 			await weaponData.rollDamage({"critical": false, "event": {"shiftKey": true}});	
+			if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
+				await game.settings.set("dice-so-nice", "enabled", true);
+			}
 			await new Promise(resolve => setTimeout(resolve, 300));	
 		}
 
@@ -933,9 +947,9 @@ async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVer
 		let damageRoll = new Roll(diceFormula,{mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
 		await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
 
-		if (game.modules.get("dice-so-nice")?.active) game.dice3d.showForRoll(damageRoll);
+		if (game.modules.get("dice-so-nice")?.active && game.settings.get("mob-attack-tool", "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
 		let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(
-			weaponData.options.actor, 
+			weaponData.actor, 
 			data.targetToken, 
 			damageRoll.total, 
 			damageTypeLabels[0], 
