@@ -656,6 +656,12 @@ async function rollMobAttackIndividually(data) {
 
 
 async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, successfulAttackRolls, numHitAttacks, numCrits, isVersatile) {
+
+	// Temporarily disable Dice so Nice dice to prevent it triggering automatically
+	if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
+		await game.settings.set("dice-so-nice", "enabled", false);
+	}
+
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
 	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
@@ -770,19 +776,16 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 				await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true});
 				damageRoll = await damageRoll.evaluate({async: true});
 				
-				// Temporarily disable Dice so Nice dice to prevent it triggering automatically
-				if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
-					await game.settings.set("dice-so-nice", "enabled", false);
-				}
 				await damageRoll.toMessage(
 					{
 						flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})${(numCrits > 0) ? ` (${game.i18n.localize("MAT.critIncluded")})` : ``}`
-					});
-				if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
-					await game.settings.set("dice-so-nice", "enabled", true);
-				}
+					}
+				);
 			}
 		}
+	}
+	if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
+		await game.settings.set("dice-so-nice", "enabled", true);
 	}
 }
 
@@ -880,6 +883,11 @@ async function rollMobAttack(data) {
 async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVersatile) {
 	// Process hit attacks
 
+	// Temporarily disable Dice so Nice dice to prevent it triggering automatically
+	if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
+		await game.settings.set("dice-so-nice", "enabled", false);
+	}
+
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
 	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
@@ -926,14 +934,7 @@ async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVer
 	} else if (!midi_QOL_Active) {
 		await new Promise(resolve => setTimeout(resolve, 100));	
 		for (let i = 0; i < numHitAttacks; i++) {
-			// Temporarily disable Dice so Nice dice to prevent it triggering automatically
-			if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
-				await game.settings.set("dice-so-nice", "enabled", false);
-			}
 			await weaponData.rollDamage({"critical": false, "event": {"shiftKey": true}});	
-			if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
-				await game.settings.set("dice-so-nice", "enabled", true);
-			}
 			await new Promise(resolve => setTimeout(resolve, 300));	
 		}
 
@@ -960,6 +961,9 @@ async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVer
 				itemCardId: weaponData.itemCardId
 			}
 		);
+	}
+	if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
+		await game.settings.set("dice-so-nice", "enabled", true);
 	}
 }
 
