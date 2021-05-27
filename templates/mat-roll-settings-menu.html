@@ -1,0 +1,89 @@
+{{! This partial is based on the foundry settings partial}}
+{{#*inline "settingPartial"}}
+	<div class="form-group">
+		<label>{{this.name}}</label>
+		<div class="form-fields">
+			{{#if this.isCheckbox}}
+				<input type="checkbox" name="{{this.id}}" data-dtype="Boolean" {{checked this.value}} {{#if this.disabled}}disabled{{/if}}/>
+			{{else if this.isSelect}}
+				<select name="{{this.id}}">
+					{{#select this.value}}
+						{{#each this.choices as |name k|}}
+							<option value="{{k}}">{{localize name}}</option>
+						{{/each}}
+					{{/select}}
+				</select>
+			{{else if this.isRange}}
+				<input type="range" name="{{this.id}}" data-dtype="Number" value="{{ this.value }}"
+					min="{{ this.range.min }}" max="{{ this.range.max }}" step="{{ this.range.step }}" />
+				<span class="range-value">{{this.value}}</span>
+			{{else if this.isColor}}
+				<input type="color" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+			{{else if this.isNumber}}
+				<input type="number" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+			{{else}}
+				<input type="text" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+			{{/if}}
+		</div>
+		<p class="notes">{{this.hint}}</p>
+	</div>
+{{/inline}}
+
+<form class="flexcol" autocomplete="off">
+	<nav class="sheet-tabs tabs">
+		<a class="item active" data-tab="roll"><i class="fas fa-dice-d20"></i> {{localize 'SETTINGS.MAT.rollSettings'}}</a>
+		<a class="item" data-tab="multiattack"><i class="fas fa-fist-raised"></i> {{localize 'SETTINGS.MAT.multiattackSettings'}}</a>
+		{{#if isGM}}
+		<a class="item" data-tab="module"><i class="fas fa-cogs"></i> {{localize 'SETTINGS.MAT.moduleSpecificSettings'}}</a>
+		{{/if}}
+	</nav>
+	<section id="config-tabs" class="content">
+		<hr>
+		<div class="tab active" data-tab="roll">
+			<div class="settings-list">
+				{{#each this.settings.roll}}
+				<div class="form-group">
+					{{#with this}}
+					{{#if this.client}}
+						{{> settingPartial}}
+					{{/if}}
+					{{/with}}
+				</div>
+				{{/each}}
+			</div>
+		</div>
+		<div class="tab" data-tab="multiattack">
+			<div class="settings-list">
+				{{#each this.settings.multiattack}}
+				<div class="form-group">
+					{{#with this}}
+					{{#if this.client}}
+						{{> settingPartial}}
+					{{/if}}
+					{{/with}}
+				</div>
+				{{/each}}
+			</div>
+		</div>
+		{{#if isGM}}
+		<div class="tab" data-tab="module">
+			<div class="settings-list">
+				{{#each this.settings.module}}
+				<div class="form-group">
+					{{#with this}}
+					{{#if this.client}}
+						{{> settingPartial}}
+					{{/if}}
+					{{/with}}
+				</div>
+				{{/each}}
+			</div>
+		</div>
+		{{/if}}
+	</section>
+	<footer class="sheet-footer flexrow">
+		<button type="submit" name="submit">
+			<i class="far fa-save"></i> {{localize 'SETTINGS.Save'}}
+		</button>
+	</footer>
+</form>

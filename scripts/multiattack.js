@@ -1,16 +1,15 @@
+import { coreVersion08x } from "./mobAttack.js";
 import { getScalingFactor } from "./mobAttackTool.js";
+
 export function getMultiattackFromActor(weaponName, actorData, weapons, options) {
-
-	// Check if Core is 0.8.x or even newer
-	const coreVersion08x = parseInt(game.data.version.slice(2)) > 7;
-
+	
 	// If attacker has only one weapon and no multiattack, autoselect it
 	let multiattack = [1, Object.keys(weapons).length === 1];
 	let weaponData = actorData.items.getName(weaponName);
 
 	// Otherwise, find out details about multiattack
 	let dictStrNum = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10};
-	if (actorData.items[(coreVersion08x) ? "contents" : "entries"].filter(i => i.name.startsWith("Multiattack")).length > 0) {
+	if (actorData.items[(coreVersion08x()) ? "contents" : "entries"].filter(i => i.name.startsWith("Multiattack")).length > 0) {
 		// Check for eldritch blast
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
@@ -19,7 +18,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		}
 
 		// Remove paragraph end html tag from description text
-		let desc = actorData.items[(coreVersion08x) ? "contents" : "entries"].filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value;
+		let desc = actorData.items[(coreVersion08x()) ? "contents" : "entries"].filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value;
 		if (desc.endsWith(".</p>")) {
 			desc = desc.slice(0,-5);
 		}
@@ -139,7 +138,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		}
 
 	// for actors with the Extra Attack item
-	} else if (actorData.items.getName("Extra Attack") !== ((coreVersion08x) ? undefined : null)) {
+	} else if (actorData.items.getName("Extra Attack") !== ((coreVersion08x()) ? undefined : null)) {
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
 				multiattack = [getScalingFactor(weaponData), false];
@@ -149,7 +148,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		}
 
 	// for fighters
-	} else if (actorData.items.getName("Extra Attack (Fighter)") !== ((coreVersion08x) ? undefined : null)) {
+	} else if (actorData.items.getName("Extra Attack (Fighter)") !== ((coreVersion08x()) ? undefined : null)) {
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
 				multiattack = [getScalingFactor(weaponData), false];

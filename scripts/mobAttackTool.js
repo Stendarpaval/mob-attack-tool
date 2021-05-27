@@ -1,4 +1,6 @@
+import { moduleName, coreVersion08x } from "./mobAttack.js";
 import { getMultiattackFromActor } from "./multiattack.js";
+
 
 export function initMobAttackTool() {
 	Hooks.on("getSceneControlButtons", (controls) => {
@@ -18,13 +20,9 @@ export function initMobAttackTool() {
 
 
 async function mobAttackTool() {
-	const MODULE = "mob-attack-tool";
-
-	// Check if Core is 0.8.x or even newer
-	const coreVersion08x = parseInt(game.data.version.slice(2)) > 7;
 
 	// Check selected tokens
-	let mobList = game.settings.get(MODULE,"hiddenMobList");
+	let mobList = game.settings.get(moduleName,"hiddenMobList");
 	if (canvas.tokens.controlled.length === 0 && Object.keys(mobList).length === 0) {
 		ui.notifications.warn(game.i18n.localize("MAT.selectTokenWarning"));
 		return;
@@ -75,7 +73,7 @@ async function mobAttackTool() {
 	}
 
 	[content, monsters, weapons, availableAttacks] = await prepareMonstersAndWeapons(content, actorList, monsters, weapons, availableAttacks);
-	let dialogOptions = {selectRollType: game.settings.get(MODULE,"askRollType"), endMobTurn: game.settings.get(MODULE,"endMobTurn")};
+	let dialogOptions = {selectRollType: game.settings.get(moduleName,"askRollType"), endMobTurn: game.settings.get(moduleName,"endMobTurn")};
 	let dialogOptionsText = await renderTemplate('modules/mob-attack-tool/templates/mat-dialog-options.html', dialogOptions);
 	content += `</div><hr>` + dialogOptionsText + dialogContentEnd + `<hr>`;
 
@@ -84,10 +82,6 @@ async function mobAttackTool() {
 
 
 async function prepareMonstersAndWeapons(content, actors, monsters, weapons, availableAttacks) {
-	const MODULE = "mob-attack-tool";
-	// Check if Core is 0.8.x or even newer
-	const coreVersion08x = parseInt(game.data.version.slice(2)) > 7;
-
 	for (let actor of actors) {
 		if (monsters[actor.id]) {
 			if (monsters[actor.id].id == actor.id) {
@@ -103,10 +97,10 @@ async function prepareMonstersAndWeapons(content, actors, monsters, weapons, ava
 			if (!monsters[actor.id].optionVisible) {
 				content += `<hr>` + await formatMonsterLabel(monsters[actor.id]);
 				monsters[actor.id].optionVisible = true;
-				if (game.settings.get(MODULE, "showMultiattackDescription")) {
-					if (actor.items[(coreVersion08x) ? "contents" : "entries"].filter(i => i.name.startsWith("Multiattack")).length > 0) {
+				if (game.settings.get(moduleName, "showMultiattackDescription")) {
+					if (actor.items[(coreVersion08x()) ? "contents" : "entries"].filter(i => i.name.startsWith("Multiattack")).length > 0) {
 						content += `<div class="hint">${actor.items.filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value}</div>`;
-					} else if (actor.items[(coreVersion08x) ? "contents" : "entries"].filter(i => i.name.startsWith("Extra Attack")).length > 0) {
+					} else if (actor.items[(coreVersion08x()) ? "contents" : "entries"].filter(i => i.name.startsWith("Extra Attack")).length > 0) {
 						content += `<div class="hint">${actor.items.filter(i => i.name.startsWith("Extra Attack"))[0].data.data.description.value}</div>`;
 					}
 				}
@@ -114,7 +108,7 @@ async function prepareMonstersAndWeapons(content, actors, monsters, weapons, ava
 		}
 
 		let actorWeapons = {};
-		let items = (coreVersion08x) ? actor.items.contents : actor.items.entries;
+		let items = (coreVersion08x()) ? actor.items.contents : actor.items.entries;
 		for (let item of items) {
 			if (item.data.type == "weapon" || (item.data.type == "spell" && (item.data.data.level === 0 || item.data.data.preparation.mode === "atwill") && item.data.data.damage.parts.length > 0 && item.data.data.save.ability === "")) {
 				if (weapons[item.id]?.id === item.id) {
@@ -130,7 +124,7 @@ async function prepareMonstersAndWeapons(content, actors, monsters, weapons, ava
 		let numCheckedWeapons = 0;
 		let highestDamageFormula = 0, maxDamage, maxDamageWeapon;
 		let options = {};
-		let autoDetect = game.settings.get("mob-attack-tool","autoDetectMultiattacks");
+		let autoDetect = game.settings.get(moduleName,"autoDetectMultiattacks");
 		for (let [weaponID, weaponData] of Object.entries(actorWeapons)) {
 			if (autoDetect === 2) {
 				[numAttacksTotal, preChecked] = getMultiattackFromActor(weaponData.name, weaponData.actor, weapons, options);
@@ -157,7 +151,7 @@ async function prepareMonstersAndWeapons(content, actors, monsters, weapons, ava
 		}
 	}
 
-	await game.settings.set('mob-attack-tool','hiddenDialogContent',content);
+	await game.settings.set(moduleName,'hiddenDialogContent',content);
 
 	return [content, monsters, weapons, availableAttacks];
 }
@@ -178,7 +172,7 @@ class MobAttackDialog extends Dialog {
 		this.weapons = {...weapons};
 		this.monsterArray = monsterArray;
 		this.weaponArray = weaponArray;
-		game.settings.set("mob-attack-tool", "hiddenChangedMob", false);
+		game.settings.set(moduleName, "hiddenChangedMob", false);
 	}
 
 
@@ -199,12 +193,12 @@ class MobAttackDialog extends Dialog {
 		// save the current mob
 		async function saveMobList(mobList, mobName, monsterArray, numSelected) {
 			mobList[mobName] = {mobName: mobName, monsters: monsterArray, numSelected: numSelected, userId: game.user.id};
-			await game.settings.set("mob-attack-tool","hiddenMobList",mobList);	
+			await game.settings.set(moduleName,"hiddenMobList",mobList);	
 			ui.notifications.info(game.i18n.format("MAT.savedMobNotify",{mobName: mobName}));
 		}
 
 		html.on('click', '.saveMobButton', async (event) => {
-			let mobList = game.settings.get("mob-attack-tool","hiddenMobList");
+			let mobList = game.settings.get(moduleName,"hiddenMobList");
 			let mobName = html.find(`input[name="mobName"]`)[0].value;
 			if (!Object.keys(mobList).includes(mobName)) {
 				await saveMobList(mobList, mobName, this.monsterArray, canvas.tokens.controlled.length);
@@ -232,7 +226,7 @@ class MobAttackDialog extends Dialog {
 
 		// load a previously saved mob
 		html.on('click', '.loadMobButton', async (event) => {
-			let mobList = game.settings.get("mob-attack-tool","hiddenMobList");
+			let mobList = game.settings.get(moduleName,"hiddenMobList");
 			for (let [key,value] of Object.entries(mobList)) {
 				if (mobList[key].userId === game.user.id) {
 					mobList[key]["visible"] = true;
@@ -257,7 +251,7 @@ class MobAttackDialog extends Dialog {
 									await game.settings.set("mob-attack-tool","hiddenMobList",{});
 									ui.notifications.info(game.i18n.localize("MAT.resetMobsNotify"));
 									mobSelected = initialMobName;
-									await game.settings.set('mob-attack-tool','hiddenMobName',mobSelected);
+									await game.settings.set(moduleName,'hiddenMobName',mobSelected);
 								}
 								resolve(mobSelected);
 							}
@@ -266,10 +260,10 @@ class MobAttackDialog extends Dialog {
 					default: "select"
 				}).render(true);
 			});
-			if (selectedMob === initialMobName || selectedMob === "" || game.settings.get("mob-attack-tool","hiddenMobList") === {}) return;
-			await game.settings.set("mob-attack-tool", "hiddenChangedMob", true);
+			if (selectedMob === initialMobName || selectedMob === "" || game.settings.get(moduleName,"hiddenMobList") === {}) return;
+			await game.settings.set(moduleName, "hiddenChangedMob", true);
 			html.find(`input[name="mobName"]`)[0].value = selectedMob;
-			await game.settings.set('mob-attack-tool','hiddenMobName',selectedMob);
+			await game.settings.set(moduleName,'hiddenMobName',selectedMob);
 			
 			let mobData = mobList[selectedMob];
 			let weapons = {}, monsters = {}, availableAttacks = {};
@@ -283,7 +277,7 @@ class MobAttackDialog extends Dialog {
 			[newContent, monsters, weapons, availableAttacks] = await prepareMonstersAndWeapons(newContent, actorList, monsters, weapons, availableAttacks);
 			
 			mobList[selectedMob]["weapons"] = weapons;
-			await game.settings.set("mob-attack-tool","hiddenMobList",mobList);
+			await game.settings.set(moduleName,"hiddenMobList",mobList);
 
 			html.find(`div[name="mobListOptions"]`)[0].innerHTML = newContent;	
 		})
@@ -297,10 +291,10 @@ class MobAttackDialog extends Dialog {
 
 
 	static async executeMobAttack(html, weapons, availableAttacks, targetToken, targetAC, numSelected, monsters) {
-		let mobList = game.settings.get("mob-attack-tool","hiddenMobList");
+		let mobList = game.settings.get(moduleName,"hiddenMobList");
 		if (game.settings.get("mob-attack-tool", "hiddenChangedMob")) {
-			html.find(`div[name="mobListOptions"]`)[0].innerHTML = game.settings.get('mob-attack-tool','hiddenDialogContent');
-			let mobName = game.settings.get('mob-attack-tool','hiddenMobName');
+			html.find(`div[name="mobListOptions"]`)[0].innerHTML = game.settings.get(moduleName,'hiddenDialogContent');
+			let mobName = game.settings.get(moduleName,'hiddenMobName');
 			let mobData = mobList[mobName];
 			let actorList = [];
 			for (let monster of mobData.monsters) {
@@ -316,7 +310,6 @@ class MobAttackDialog extends Dialog {
 			[content, monsters, weapons, availableAttacks] = await prepareMonstersAndWeapons(content, actorList, monsters, weapons, availableAttacks);
 		}
 
-		let MODULE = "mob-attack-tool";
 		let attacks = {};
 		let weaponLocators = [];
 		let numAttacksMultiplier = 1;
@@ -346,8 +339,8 @@ class MobAttackDialog extends Dialog {
 		let withDisadvantage = false;
 		let rollTypeValue = 0;
 		let rollTypeMessage = ``;
-		if (game.settings.get(MODULE,"askRollType")) {
-			let rtValue = Math.floor(game.settings.get(MODULE,"rollTypeValue"));
+		if (game.settings.get(moduleName,"askRollType")) {
+			let rtValue = Math.floor(game.settings.get(moduleName,"rollTypeValue"));
 			if (html.find("[name=rollType]")[0].value === "advantage") {
 				rollTypeValue = rtValue;
 				withAdvantage = true;
@@ -373,7 +366,7 @@ class MobAttackDialog extends Dialog {
 				macroName = `${weapons[key].name} ${game.i18n.localize("MAT.macroNamePrefix")} ${mobList[Object.keys(mobList)[0]].numSelected} ${Object.keys(mobList)[0]}${game.i18n.localize("MAT.macroNamePostfix")}`;
 			}
 
-			if (game.settings.get("mob-attack-tool", "hiddenChangedMob")) {
+			if (game.settings.get(moduleName, "hiddenChangedMob")) {
 				numSelected = mobList[Object.keys(mobList)[0]].numSelected;
 			}
 			
@@ -401,7 +394,7 @@ class MobAttackDialog extends Dialog {
 			"monsters": monsters
 		};
 
-		if (game.settings.get(MODULE,"mobRules") === 0) {
+		if (game.settings.get(moduleName,"mobRules") === 0) {
 			rollMobAttack(mobAttackData);
 		} else {
 			rollMobAttackIndividually(mobAttackData);
@@ -472,7 +465,7 @@ export function MobAttacks() {
 		}
 
 		(async () => {
-			if (game.settings.get("mob-attack-tool","mobRules") === 0) {
+			if (game.settings.get(moduleName, "mobRules") === 0) {
 				return rollMobAttack(data);
 			} else {
 				return rollMobAttackIndividually(data);
@@ -493,7 +486,7 @@ function checkTarget() {
 	}
 
 	let targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
-	if (!targetToken && game.settings.get("mob-attack-tool","mobRules") === 0) {
+	if (!targetToken && game.settings.get(moduleName, "mobRules") === 0) {
 		ui.notifications.warn(game.i18n.localize("MAT.targetValidACWarning"));
 		return false;
 	}
@@ -547,16 +540,9 @@ async function rollMobAttackIndividually(data) {
 
 		for (let i = 0; i < availableAttacks; i++) {	
 			attackRoll = new Roll(attackFormula);
+			attackRollEvaluated[i] = (coreVersion08x()) ? await attackRoll.evaluate({async: true}) : attackRoll.evaluate();
 
-			// Check if Core is 0.8.x or even newer
-			let coreVersion08x = parseInt(game.data.version.slice(2)) > 7;
-			if (coreVersion08x) {
-				attackRollEvaluated[i] = await attackRoll.evaluate({async: true});
-			} else {
-				attackRollEvaluated[i] = attackRoll.evaluate();	
-			}
-
-			if (game.settings.get("mob-attack-tool", "showIndividualAttackRolls")) {
+			if (game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls")) {
 				if (game.modules.get("dice-so-nice")?.active && game.settings.get("mob-attack-tool", "enableDiceSoNice")) game.dice3d.showForRoll(attackRoll);
 			}
 
@@ -568,14 +554,14 @@ async function rollMobAttackIndividually(data) {
 				atkRollData.push({roll: attackRollEvaluated[i].total, color: "max", finalAttackBonus: finalAttackBonus});
 			} else if (attackRollEvaluated[i].total - finalAttackBonus == 1) {
 				numCritFails++;
-				if (game.settings.get("mob-attack-tool","showAllAttackRolls")) {
+				if (game.user.getFlag(moduleName,"showAllAttackRolls") ?? game.settings.get(moduleName,"showAllAttackRolls")) {
 					atkRollData.push({roll: attackRollEvaluated[i].total, color: "min", finalAttackBonus: finalAttackBonus});
 				}
 			} else if (attackRollEvaluated[i].total >= ((data.targetAC) ? data.targetAC : 0) && attackRollEvaluated[i].total - finalAttackBonus > 1) {
 				numHitAttacks += 1;
 				successfulAttackRolls.push(attackRollEvaluated[i]);
 				atkRollData.push({roll: attackRollEvaluated[i].total, color: "", finalAttackBonus: finalAttackBonus});
-			} else if (game.settings.get("mob-attack-tool","showAllAttackRolls")) {
+			} else if (game.user.getFlag(moduleName,"showAllAttackRolls") ?? game.settings.get(moduleName,"showAllAttackRolls")) {
 				atkRollData.push({roll: attackRollEvaluated[i].total, color: "discarded", finalAttackBonus: finalAttackBonus});
 			}
 		}
@@ -606,7 +592,7 @@ async function rollMobAttackIndividually(data) {
 			numHitAttacks: numHitAttacks,
 			pluralOrNot: pluralOrNot,
 			atkRollData: atkRollData,
-			showIndividualAttackRolls: (atkRollData.length === 0) ? false : game.settings.get("mob-attack-tool", "showIndividualAttackRolls")
+			showIndividualAttackRolls: (atkRollData.length === 0) ? false : game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls")
 		}
 
 		// Store message data for later
@@ -657,16 +643,11 @@ async function rollMobAttackIndividually(data) {
 
 async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, successfulAttackRolls, numHitAttacks, numCrits, isVersatile) {
 
-	// Temporarily disable Dice so Nice dice to prevent it triggering automatically
-	if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
-		await game.settings.set("dice-so-nice", "enabled", false);
-	}
-
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
 	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
 	let midi_QOL_Active = false;
-	if (game.modules.get("midi-qol")?.active && game.settings.get("mob-attack-tool", "enableMidi")) midi_QOL_Active = true;
+	if (game.modules.get("midi-qol")?.active && game.settings.get(moduleName, "enableMidi")) midi_QOL_Active = true;
 
 	// Determine crit threshold
 	let critThreshold = 20;
@@ -677,8 +658,8 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 	}
 	
 	// Process attack and damage rolls
-	let showAttackRolls = game.settings.get("mob-attack-tool", "showIndividualAttackRolls");
-	let showDamageRolls = game.settings.get("mob-attack-tool", "showIndividualDamageRolls");
+	let showAttackRolls = game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls");
+	let showDamageRolls = game.user.getFlag(moduleName,"showIndividualDamageRolls") ?? game.settings.get(moduleName,"showIndividualDamageRolls");
 	if (numHitAttacks != 0) {
 		// Better Rolls 5e active
 		if (betterrollsActive) {
@@ -709,7 +690,11 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
 				for (let diceFormula of diceFormulas) {
 					let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
-					await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true});
+					let numDice = 0;
+					for (let term of damageRoll.terms.filter(t => t.number > 0 && t.faces > 0)) {
+						numDice += term.number;
+					}
+					await damageRoll.alter(numHitAttacks, numDice * numCrits, {multiplyNumeric: true});
 					await mobAttackRoll.addField(["damage", {formula: damageRoll.formula, damageType: damageTypes[diceFormulas.indexOf(diceFormula)], title: `${game.i18n.localize("Damage")} - ${damageTypes[diceFormulas.indexOf(diceFormula)]}`, isCrit: false}]);
 				}
 			}
@@ -733,10 +718,15 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 			let diceFormula = diceFormulas.join(" + ");
 			let damageType = damageTypes.join(", ");
 			let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
-			await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true}).roll();
+			let numDice = 0;
+			for (let term of damageRoll.terms.filter(t => t.number > 0 && t.faces > 0)) {
+				numDice += term.number;
+			}
+			await damageRoll.alter(numHitAttacks, numDice * numCrits, {multiplyNumeric: true});
+			damageRoll = await damageRoll.evaluate({async: true});
 			
 			// Roll Dice so Nice dice
-			if (game.modules.get("dice-so-nice")?.active && game.settings.get("mob-attack-tool", "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
+			if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
 			
 			new MidiQOL.DamageOnlyWorkflow(
 				weaponData.actor, 
@@ -773,7 +763,11 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 				let diceFormula = diceFormulas.join(" + ");
 				let damageType = damageTypes.join(", ");
 				let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod})
-				await damageRoll.alter(numHitAttacks, numCrits, {multiplyNumeric: true});
+				let numDice = 0;
+				for (let term of damageRoll.terms.filter(t => t.number > 0 && t.faces > 0)) {
+					numDice += term.number;
+				}
+				await damageRoll.alter(numHitAttacks, numDice * numCrits, {multiplyNumeric: true});
 				damageRoll = await damageRoll.evaluate({async: true});
 				
 				await damageRoll.toMessage(
@@ -783,9 +777,6 @@ async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, 
 				);
 			}
 		}
-	}
-	if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
-		await game.settings.set("dice-so-nice", "enabled", true);
 	}
 }
 
@@ -881,18 +872,12 @@ async function rollMobAttack(data) {
 
 
 async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVersatile) {
-	// Process hit attacks
-
-	// Temporarily disable Dice so Nice dice to prevent it triggering automatically
-	if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
-		await game.settings.set("dice-so-nice", "enabled", false);
-	}
 
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
 	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
 	let midi_QOL_Active = false;
-	if (game.modules.get("midi-qol")?.active && game.settings.get("mob-attack-tool", "enableMidi")) midi_QOL_Active = true;
+	if (game.modules.get("midi-qol")?.active && game.settings.get(moduleName, "enableMidi")) midi_QOL_Active = true;
 
 	// betterrolls5e active
 	if (betterrollsActive) {
@@ -905,7 +890,7 @@ async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVer
 		if (midi_QOL_Active) await mobAttackRoll.addField(["attack", {formula: "0d0 + " + (data.targetAC).toString(), title: game.i18n.localize("MAT.midiDamageLabel")}]);
 		
 		// Add damage fields from each successful hit to the same card
-		let showAttackRolls = game.settings.get("mob-attack-tool", "showIndividualAttackRolls");
+		let showAttackRolls = game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls");
 		if (showAttackRolls) {
 			for (let i = 0; i < numHitAttacks; i++) {
 				await mobAttackRoll.addField(["damage",{index: "all"}]);
@@ -948,7 +933,7 @@ async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVer
 		let damageRoll = new Roll(diceFormula,{mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
 		await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
 
-		if (game.modules.get("dice-so-nice")?.active && game.settings.get("mob-attack-tool", "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
+		if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
 		let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(
 			weaponData.actor, 
 			data.targetToken, 
@@ -961,9 +946,6 @@ async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVer
 				itemCardId: weaponData.itemCardId
 			}
 		);
-	}
-	if (game.modules.get("dice-so-nice")?.active && !game.settings.get("mob-attack-tool", "enableDiceSoNice")) {
-		await game.settings.set("dice-so-nice", "enabled", true);
 	}
 }
 
@@ -1023,7 +1005,7 @@ async function formatWeaponLabel(itemData, weapons, options) {
 			((i > 0) ? weaponDamageText += `<br>${damageData[0][i]} ${damageData[1][i].capitalize()}` : weaponDamageText += `${damageData[0][i]} ${damageData[1][i].capitalize()}`);
 		}
 		let numAttacksTotal = 1, preChecked = false;
-		let autoDetect = game.settings.get("mob-attack-tool","autoDetectMultiattacks");
+		let autoDetect = game.settings.get(moduleName,"autoDetectMultiattacks");
 		if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(itemData.name, itemData.actor, weapons, options);
 		if (autoDetect === 1 || isVersatile) preChecked = false;
 		
@@ -1091,9 +1073,7 @@ function isTargeted(token) {
 
 
 async function sendChatMessage(text) {
-	// Check if Core version is 0.8 or newer:
-	let coreVersion08x = parseInt(game.data.version.slice(2)) > 7;
-	let whisperIDs = (coreVersion08x) ? game.users.contents.filter(u => u.isGM).map(u => u.id) : game.users.entities.filter(u => u.isGM).map(u => u.id);
+	let whisperIDs = (coreVersion08x()) ? game.users.contents.filter(u => u.isGM).map(u => u.id) : game.users.entities.filter(u => u.isGM).map(u => u.id);
 
 	let chatData = {
 		user: game.user.id,

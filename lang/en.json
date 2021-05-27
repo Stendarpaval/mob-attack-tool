@@ -64,6 +64,12 @@
 	"Select": "Select",
 	"Rolls": "Rolls",
 
+	"SETTINGS.MAT.advancedSettings": "Advanced Settings",
+	"SETTINGS.MAT.advancedSettingsHint": "This menu contains specific settings for the attack and damage rolls that Mob Attack Tool executes, as well as multiattack settings and specific settings for using Mob Attack Tool together with other modules.",
+	"SETTINGS.MAT.openSettings": "Open Settings",
+	"SETTINGS.MAT.rollSettings": "Rolls",
+	"SETTINGS.MAT.multiattackSettings": "Multiattack",
+	"SETTINGS.MAT.moduleSpecificSettings": "Modules",
 	"SETTINGS.MAT.playerAccess": "Allow players to use Mob Attack Tool",
 	"SETTINGS.MAT.playerAccessHint": "If enabled, players will be able to see and use the Mob Attack Tool button. However, they will not see target AC. If disabled, only the GM will be able to use Mob Attack Tool.",
 	"SETTINGS.MAT.enableDiceSoNice": "Enable Dice So Nice rolls",
