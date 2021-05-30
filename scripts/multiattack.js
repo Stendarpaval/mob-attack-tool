@@ -1,5 +1,5 @@
 import { coreVersion08x } from "./mobAttack.js";
-import { getScalingFactor } from "./mobAttackTool.js";
+import { getScalingFactor } from "./utils.js";
 
 export function getMultiattackFromActor(weaponName, actorData, weapons, options) {
 	

@@ -1,7 +1,7 @@
 {{! This partial is based on the foundry settings partial}}
 {{#*inline "settingPartial"}}
 	<div class="form-group">
-		<label>{{this.name}}</label>
+		<label>{{localize this.name}}</label>
 		<div class="form-fields">
 			{{#if this.isCheckbox}}
 				<input type="checkbox" name="{{this.id}}" data-dtype="Boolean" {{checked this.value}} {{#if this.disabled}}disabled{{/if}}/>
@@ -25,7 +25,7 @@
 				<input type="text" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
 			{{/if}}
 		</div>
-		<p class="notes">{{this.hint}}</p>
+		<p class="notes">{{localize this.hint}}</p>
 	</div>
 {{/inline}}
 
