@@ -232,22 +232,22 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 			let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
 			
 			// Add critical damage dice
-				let critDice = [], critDie;
-				let damageRollDiceTerms = damageRoll.terms.filter(t => t.number > 0 && t.faces > 0);
-				for (let term of damageRollDiceTerms) {
-					critDie = new Die({number: term.number, faces: term.faces});
-					critDice.push(critDie);
-				}
-				await damageRoll.alter(numHitAttacks, 0, {multiplyNumeric: true});
-				if (numCrits > 0) {
-					for (let i = 0; i < critDice.length; i++) {
-						await critDice[i].alter(numCrits, 0, {multiplyNumeric: false});
-						if (damageRollDiceTerms[i].faces === critDice[i].faces) {
-							damageRollDiceTerms[i].number += critDice[i].number;
-						}
-						damageRoll._formula = damageRoll.formula;
+			let critDice = [], critDie;
+			let damageRollDiceTerms = damageRoll.terms.filter(t => t.number > 0 && t.faces > 0);
+			for (let term of damageRollDiceTerms) {
+				critDie = new Die({number: term.number, faces: term.faces});
+				critDice.push(critDie);
+			}
+			await damageRoll.alter(numHitAttacks, 0, {multiplyNumeric: true});
+			if (numCrits > 0) {
+				for (let i = 0; i < critDice.length; i++) {
+					await critDice[i].alter(numCrits, 0, {multiplyNumeric: false});
+					if (damageRollDiceTerms[i].faces === critDice[i].faces) {
+						damageRollDiceTerms[i].number += critDice[i].number;
 					}
+					damageRoll._formula = damageRoll.formula;
 				}
+			}
 			damageRoll = await damageRoll.evaluate({async: true});
 			
 			// Roll Dice so Nice dice

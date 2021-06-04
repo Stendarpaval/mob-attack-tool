@@ -141,6 +141,28 @@ const matSettings = {
 		config: false,
 		default: false,
 		type: Boolean
+	},
+	"hiddenTableCheckBox": {
+		name: "SETTINGS.MAT.hiddenTableCheckBox",
+		hint: "SETTINGS.MAT.hiddenTableCheckBoxHint",
+		scope: "world",
+		config: false,
+		default: false,
+		type: Boolean
+	},
+	"hiddenTable": {
+		name: "hiddenTable",
+		scope: "world",
+		config: false,
+		default: {},
+		type: Object
+	},
+	"tempSetting": {
+		name: "tempSetting",
+		scope: "world",
+		config: false,
+		default: [1,5,1,6,12,2,13,14,3,15,16,4,17,18,5,19,19,10,20,20,20],
+		type: Array
 	}
 };
 
@@ -263,10 +285,31 @@ class RollSettingsMenu extends FormApplication {
 						id: "enableMidi",
 						isCheckbox: true,
 						client: game.user.isGM
+					}
+				},
+				mobTable: {
+					hiddenTableCheckBox: {
+						name: matSettings.hiddenTableCheckBox.name,
+						hint: matSettings.hiddenTableCheckBox.hint,
+						id: "hiddenTableCheckBox",
+						value: game.settings.get(moduleName,"hiddenTableCheckBox"),
 					},
+					hiddenTable: {
+						rows: {}
+					}
 				}
 			}
 		};
+		for (let i = 0; i < Math.floor(game.settings.get(moduleName,"tempSetting").length/3); i++) {
+			data.settings.mobTable.hiddenTable.rows[i] = {
+				d20RollMinId: "tempSetting",
+				d20RollMinValue: game.settings.get(moduleName,"tempSetting")[3 * i],
+				d20RollMaxId: "tempSetting",
+				d20RollMaxValue: game.settings.get(moduleName,"tempSetting")[3 * i + 1],
+				attackersNeededId: "tempSetting",
+				attackersNeededValue: game.settings.get(moduleName,"tempSetting")[3 * i + 2]
+			}
+		}
 		data.isGM = game.user.isGM;
 		return data
 	}
@@ -280,6 +323,25 @@ class RollSettingsMenu extends FormApplication {
 					await game.settings.set("dice-so-nice", "enabled", value);
 				}
 			} else {
+				if (settingKey === "tempSetting") {
+					let tableArray = {};
+					for (let i = 0; i < Math.floor(game.settings.get(moduleName,"tempSetting").length/3); i++) {
+						tableArray[i] = value.slice(3 * i, 3 * i + 3);
+						if (parseInt(tableArray[i][1]) < parseInt(tableArray[i][0])) {
+							ui.notifications.warn(game.i18n.format("MAT.warnCustomTableUpperLimit",{upperLimit: tableArray[i][1], lowerLimit: tableArray[i][0]}));
+							value[3 * i + 1] = value[3 * i];
+						}
+						if (i > 0) {
+							if (parseInt(tableArray[i][0]) <= parseInt(tableArray[i-1][1])) {
+								ui.notifications.warn(game.i18n.format("MAT.warnCustomTableLowerLimit",{lowerLimit: tableArray[i][0], prevUpperLimit: tableArray[i-1][1]}));
+								value[3 * i] = parseInt(value[3 * (i - 1) + 1]) + 1;
+							}
+							if (parseInt(tableArray[i][0]) - 1 >= parseInt(tableArray[i-1][1])) {
+								value[3 * i] = parseInt(value[3 * (i - 1) + 1]) + 1;
+							}
+						}
+					}
+				}
 				await game.user.setFlag(moduleName, settingKey, value);
 				await game.settings.set(moduleName, settingKey, value);
 			}

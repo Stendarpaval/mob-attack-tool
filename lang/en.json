@@ -52,6 +52,13 @@
 	"MAT.exportToMacro": "Export to macro",
 	"MAT.endMobTurnText": "Skip turns of next mob combatants",
 
+	"MAT.d20rollNeeded": "d20 Roll Needed",
+	"MAT.attackersNeededForOneHit": "Attackers Needed for One Hit",
+	"MAT.addRow": "Add Row",
+	"MAT.removeRow": "Remove Row",
+	"MAT.warnCustomTableLowerLimit": "The lower limit ({lowerLimit}) of a d20 roll can't be lower than the previous upper limit ({prevUpperLimit})!",
+	"MAT.warnCustomTableUpperLimit": "The upper limit ({upperLimit}) of a d20 roll can't be lower than the lower limit ({lowerLimit})!",
+
 	"Damage": "Damage",
 	"Versatile": "Versatile",
 	"Attack Roll": "Attack Roll",
@@ -100,5 +107,7 @@
 	"SETTINGS.MAT.askRollType": "Include Advantage / Disadvantage selection",
 	"SETTINGS.MAT.askRollTypeHint": "If enabled, then a drop-down list is added to the Mob Attack dialog where you can select to roll with advantage / disadvantage. (Client specific setting)",
 	"SETTINGS.MAT.rollTypeValue": "Advantage / Disadvantage value",
-	"SETTINGS.MAT.rollTypeValueHint": "Choose what bonus / penalty Mob Attacks have when they are rolled with advantage or disadvantage. (5 by default, floating numbers will be rounded down)"
+	"SETTINGS.MAT.rollTypeValueHint": "Choose what bonus / penalty Mob Attacks have when they are rolled with advantage or disadvantage. (5 by default, floating numbers will be rounded down)",
+	"SETTINGS.MAT.hiddenTableCheckBox": "Use custom Mob Table?",
+	"SETTINGS.MAT.hiddenTableCheckBoxHint": "This is for the Mob Rules option. Change the required d20 roll and the number of required attacks to hit once."
 }

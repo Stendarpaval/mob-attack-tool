@@ -16,9 +16,9 @@
 		}
 	],
 	"url": "https://github.com/Stendarpaval/mob-attack-tool",
-	"version": "0.2.4",
+	"version": "0.2.5",
 	"minimumCoreVersion": "0.7.9",
-	"compatibleCoreVersion": "0.8.5",
+	"compatibleCoreVersion": "0.8.6",
 	"system": ["dnd5e"],
 	"esmodules": [
 		"scripts/mobAttack.js"
@@ -27,5 +27,5 @@
 		"styles/mob-attack-tool.css"
 	],
 	"manifest": "https://raw.githubusercontent.com/Stendarpaval/mob-attack-tool/main/module.json",
-	"download": "https://github.com/Stendarpaval/mob-attack-tool/releases/download/v0.2.4/module.zip"
+	"download": "https://github.com/Stendarpaval/mob-attack-tool/releases/download/v0.2.5/module.zip"
 }

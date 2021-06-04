@@ -140,20 +140,31 @@ export function calcD20Needed(attackBonus, targetAC, rollTypeValue) {
 
 export function calcAttackersNeeded(d20Needed) {
 	let attackersNeeded = 0;
-	if (1 <= d20Needed && d20Needed <= 5) {
-		attackersNeeded = 1;
-	} else if (6 <= d20Needed && d20Needed <= 12) {
-		attackersNeeded = 2;
-	} else if (13 <= d20Needed && d20Needed <= 14) {
-		attackersNeeded = 3;
-	} else if (15 <= d20Needed && d20Needed <= 16) {
-		attackersNeeded = 4;
-	} else if (17 <= d20Needed && d20Needed <= 18) {
-		attackersNeeded = 5;
-	} else if (d20Needed == 19) {
-		attackersNeeded = 10;
-	} else if (d20Needed >= 20) {
-		attackersNeeded = 20;
+	if (game.settings.get(moduleName,"hiddenTableCheckBox")) {
+		let customTable = game.settings.get(moduleName,"tempSetting");
+		let tableArray = {};
+		for (let i = 0; i < Math.floor(customTable.length/3); i++) {
+			tableArray[i] = customTable.slice(3 * i, 3 * i + 3);
+			if (parseInt(tableArray[i][0]) <= d20Needed && d20Needed <= parseInt(tableArray[i][1])) {
+				attackersNeeded = Math.abs(parseInt(tableArray[i][2]));
+			}
+		}
+	} else {
+		if (1 <= d20Needed && d20Needed <= 5) {
+			attackersNeeded = 1;
+		} else if (6 <= d20Needed && d20Needed <= 12) {
+			attackersNeeded = 2;
+		} else if (13 <= d20Needed && d20Needed <= 14) {
+			attackersNeeded = 3;
+		} else if (15 <= d20Needed && d20Needed <= 16) {
+			attackersNeeded = 4;
+		} else if (17 <= d20Needed && d20Needed <= 18) {
+			attackersNeeded = 5;
+		} else if (d20Needed == 19) {
+			attackersNeeded = 10;
+		} else if (d20Needed >= 20) {
+			attackersNeeded = 20;
+		}
 	}
 	return attackersNeeded;
 }

@@ -101,6 +101,8 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 	let midi_QOL_Active = false;
 	if (game.modules.get("midi-qol")?.active && game.settings.get(moduleName, "enableMidi")) midi_QOL_Active = true;
 
+	let showDamageRolls = game.user.getFlag(moduleName,"showIndividualDamageRolls") ?? game.settings.get(moduleName,"showIndividualDamageRolls");
+
 	// betterrolls5e active
 	if (betterrollsActive) {
 		let mobAttackRoll = BetterRolls.rollItem(weaponData, {},
@@ -136,17 +138,9 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 		} else {
 			await mobAttackRoll.toMessage();
 		}
-		
-	// neither midi-qol or betterrolls5e active
-	} else if (!midi_QOL_Active) {
-		await new Promise(resolve => setTimeout(resolve, 100));	
-		for (let i = 0; i < numHitAttacks; i++) {
-			await weaponData.rollDamage({"critical": false, "event": {"shiftKey": true}});	
-			await new Promise(resolve => setTimeout(resolve, 300));	
-		}
 
 	// midi-qol is active,  betterrolls5e is not active
-	} else {
+	} else if (midi_QOL_Active) {
 		await new Promise(resolve => setTimeout(resolve, 100));
 
 		let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
@@ -168,5 +162,28 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 				itemCardId: weaponData.itemCardId
 			}
 		);
+
+	// neither midi-qol or betterrolls5e active
+	} else {
+		if (showDamageRolls) {
+			await new Promise(resolve => setTimeout(resolve, 100));	
+			for (let i = 0; i < numHitAttacks; i++) {
+				await weaponData.rollDamage({"critical": false, "event": {"shiftKey": true}});	
+				await new Promise(resolve => setTimeout(resolve, 300));	
+			}	
+		} else {
+			// Condense the damage rolls.
+			let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
+			let diceFormula = diceFormulas.join(" + ");
+			let damageType = damageTypes.join(", ");
+			let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod})
+			await damageRoll.alter(numHitAttacks, 0, {multiplyNumeric: true});
+			damageRoll = await damageRoll.evaluate({async: true});
+			await damageRoll.toMessage(
+				{
+					flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})`
+				}
+			);
+		}
 	}
 }
