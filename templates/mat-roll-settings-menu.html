@@ -118,14 +118,18 @@
 					</tbody>
 				</table>
 			</div>
-			<!-- <div style="display:grid; grid-template-columns: 50% 50%; column-gap:0px;">
-				<button type="button" name="addRow" disabled style="grid-column-start:1; grid-column-end:1; align-self:center">
+			<div style="display:grid; grid-template-columns: 33% 33% 33%; column-gap:2px;">
+				<button type="button" name="addRow" class="MATaddRow" style="grid-column-start:1; grid-column-end:1; align-self:center">
 					<i class="fas fa-plus"></i> {{localize 'MAT.addRow'}}
 				</button>
-				<button type="button" name="removeRow" disabled style="grid-column-start:2; grid-column-end:2; align-self:center">
+				<button type="button" name="removeRow" class="MATremoveRow" {{#if removeRowDisabled}} disabled {{/if}} style="grid-column-start:2; grid-column-end:2; align-self:center">
 					<i class="fas fa-minus"></i> {{localize 'MAT.removeRow'}}
 				</button>
-			</div> -->
+				<button type="button" name="resetTable" class="MATresetTable" style="grid-column-start:3; grid-column-end:3; align-self:center">
+					<i class="fas fa-undo"></i> {{localize 'MAT.resetTable'}}
+				</button>
+			</div>
+			<hr>
 		</div>
 		{{/if}}
 	</section>

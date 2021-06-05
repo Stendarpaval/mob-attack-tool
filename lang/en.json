@@ -56,6 +56,7 @@
 	"MAT.attackersNeededForOneHit": "Attackers Needed for One Hit",
 	"MAT.addRow": "Add Row",
 	"MAT.removeRow": "Remove Row",
+	"MAT.resetTable": "Reset",
 	"MAT.warnCustomTableLowerLimit": "The lower limit ({lowerLimit}) of a d20 roll can't be lower than the previous upper limit ({prevUpperLimit})!",
 	"MAT.warnCustomTableUpperLimit": "The upper limit ({upperLimit}) of a d20 roll can't be lower than the lower limit ({lowerLimit})!",
 

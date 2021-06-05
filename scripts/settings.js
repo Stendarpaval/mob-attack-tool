@@ -312,6 +312,7 @@ class RollSettingsMenu extends FormApplication {
 			}
 		}
 		data.isGM = game.user.isGM;
+		data.removeRowDisabled = (customTable.length < 6);
 		return data
 	}
 
@@ -327,19 +328,37 @@ class RollSettingsMenu extends FormApplication {
 				if (settingKey === "tempSetting") {
 					let customTable = coreVersion08x() ? game.settings.get(moduleName,"tempSetting") : game.settings.get(moduleName,"tempSetting")[0];
 					let tableArray = {};
-					for (let i = 0; i < Math.floor(customTable.length/3); i++) {
-						tableArray[i] = value.slice(3 * i, 3 * i + 3);
-						if (parseInt(tableArray[i][1]) < parseInt(tableArray[i][0])) {
-							ui.notifications.warn(game.i18n.format("MAT.warnCustomTableUpperLimit",{upperLimit: tableArray[i][1], lowerLimit: tableArray[i][0]}));
-							value[3 * i + 1] = value[3 * i];
-						}
-						if (i > 0) {
-							if (parseInt(tableArray[i][0]) <= parseInt(tableArray[i-1][1])) {
-								ui.notifications.warn(game.i18n.format("MAT.warnCustomTableLowerLimit",{lowerLimit: tableArray[i][0], prevUpperLimit: tableArray[i-1][1]}));
-								value[3 * i] = parseInt(value[3 * (i - 1) + 1]) + 1;
+					let correctionLoops = 2;
+					for (let j = 0; j < correctionLoops; j++) {
+						for (let i = 0; i < Math.floor(customTable.length/3); i++) {
+							tableArray[i] = value.slice(3 * i, 3 * i + 3);
+							if (parseInt(tableArray[i][1]) < parseInt(tableArray[i][0])) {
+								ui.notifications.warn(game.i18n.format("MAT.warnCustomTableUpperLimit",{upperLimit: tableArray[i][1], lowerLimit: tableArray[i][0]}));
+								value[3 * i + 1] = value[3 * i];
 							}
-							if (parseInt(tableArray[i][0]) - 1 >= parseInt(tableArray[i-1][1])) {
-								value[3 * i] = parseInt(value[3 * (i - 1) + 1]) + 1;
+							if (i > 0) {
+								if (parseInt(tableArray[i][0]) <= parseInt(tableArray[i-1][1])) {
+									// ui.notifications.warn(game.i18n.format("MAT.warnCustomTableLowerLimit",{lowerLimit: tableArray[i][0], prevUpperLimit: tableArray[i-1][1]}));
+									value[3 * i] = parseInt(value[3 * (i - 1) + 1]) + 1;
+									if (value[3 * i] > 20) {
+										value[3 * i] = 20;
+									}
+								}
+								if (parseInt(tableArray[i][0]) - 1 >= parseInt(tableArray[i-1][1])) {
+									value[3 * i] = parseInt(value[3 * (i - 1) + 1]) + 1;
+									if (value[3 * i] > 20) {
+										value[3 * i] = 20;
+									}
+									if (parseInt(tableArray[i][1]) < value[3 * i]) {
+										// ui.notifications.warn(game.i18n.format("MAT.warnCustomTableUpperLimit",{upperLimit: tableArray[i][1], lowerLimit: tableArray[i][0]}));
+										value[3 * i + 1] = value[3 * i];
+									}
+								}
+							}
+							if (i === Math.floor(customTable.length/3) - 1) {
+								if (parseInt(tableArray[i][1]) < 20) {
+									value[3 * i + 1] = 20;
+								}
 							}
 						}
 					}
@@ -352,5 +371,41 @@ class RollSettingsMenu extends FormApplication {
 
 	activateListeners(html) {
 		super.activateListeners(html);
+
+		html.on('click', '.MATaddRow', async (event) => {
+			let tableData = [];
+			let tableDataHtml = html.find(`input[name="tempSetting"]`);
+			for (let input of tableDataHtml) {
+				tableData.push(parseInt(input.value));
+			}
+			let customTable = tableData;
+			if (customTable[customTable.length - 2] >= 20) {
+				customTable[customTable.length - 2] = parseInt(customTable[customTable.length - 2]) - 1;
+			}
+			customTable = customTable.concat([parseInt(customTable[customTable.length - 2]) + 1, parseInt(customTable[customTable.length - 2]) + 1, parseInt(customTable[customTable.length - 1])]);
+			await game.settings.set(moduleName, "tempSetting", customTable);
+			// console.log(`Added a row. Current table length: ${customTable.length}.`);
+			this.render(true);
+		})
+
+		html.on('click', '.MATremoveRow', async (event) => {
+			let tableData = [];
+			let tableDataHtml = html.find(`input[name="tempSetting"]`);
+			for (let input of tableDataHtml) {
+				tableData.push(parseInt(input.value));
+			}
+			let customTable = tableData;
+			if (customTable.length >= 6) {
+				customTable = customTable.slice(0, customTable.length-3);
+				await game.settings.set(moduleName, "tempSetting", customTable);
+			}
+			// console.log(`Removed a row. Current table length: ${customTable.length}.`);
+			this.render(true);
+		})
+
+		html.on('click', '.MATresetTable', async (event) => {
+			await game.settings.set(moduleName, "tempSetting",matSettings.tempSetting.default);
+			this.render(true);
+		})
 	}
 }
