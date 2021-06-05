@@ -69,3 +69,4 @@ Mob Attack Tool currently supports these languages:
 ## Contributors
 * Juanfrank has kindly given feedback and helped me out with condensing damage formulas.
 * mike-marshall0164 has fixed various aspects of the individually rolled attacks. 
+* Many thanks to members of the League of Extraordinary Foundry VTT Developers for module development advice, including how to set-up GitHub Actions.
