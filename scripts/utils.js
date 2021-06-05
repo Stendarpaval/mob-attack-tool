@@ -141,7 +141,7 @@ export function calcD20Needed(attackBonus, targetAC, rollTypeValue) {
 export function calcAttackersNeeded(d20Needed) {
 	let attackersNeeded = 0;
 	if (game.settings.get(moduleName,"hiddenTableCheckBox")) {
-		let customTable = game.settings.get(moduleName,"tempSetting");
+		let customTable = coreVersion08x() ? game.settings.get(moduleName,"tempSetting") : game.settings.get(moduleName,"tempSetting")[0];
 		let tableArray = {};
 		for (let i = 0; i < Math.floor(customTable.length/3); i++) {
 			tableArray[i] = customTable.slice(3 * i, 3 * i + 3);

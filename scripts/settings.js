@@ -1,4 +1,4 @@
-import { moduleName } from "./mobAttack.js";
+import { moduleName, coreVersion08x } from "./mobAttack.js";
 
 
 const matSettings = {
@@ -300,14 +300,15 @@ class RollSettingsMenu extends FormApplication {
 				}
 			}
 		};
-		for (let i = 0; i < Math.floor(game.settings.get(moduleName,"tempSetting").length/3); i++) {
+		let customTable = coreVersion08x() ? game.settings.get(moduleName,"tempSetting") : game.settings.get(moduleName,"tempSetting")[0];
+		for (let i = 0; i < Math.floor(customTable.length/3); i++) {
 			data.settings.mobTable.hiddenTable.rows[i] = {
 				d20RollMinId: "tempSetting",
-				d20RollMinValue: game.settings.get(moduleName,"tempSetting")[3 * i],
+				d20RollMinValue: customTable[3 * i],
 				d20RollMaxId: "tempSetting",
-				d20RollMaxValue: game.settings.get(moduleName,"tempSetting")[3 * i + 1],
+				d20RollMaxValue: customTable[3 * i + 1],
 				attackersNeededId: "tempSetting",
-				attackersNeededValue: game.settings.get(moduleName,"tempSetting")[3 * i + 2]
+				attackersNeededValue: customTable[3 * i + 2]
 			}
 		}
 		data.isGM = game.user.isGM;
@@ -324,8 +325,9 @@ class RollSettingsMenu extends FormApplication {
 				}
 			} else {
 				if (settingKey === "tempSetting") {
+					let customTable = coreVersion08x() ? game.settings.get(moduleName,"tempSetting") : game.settings.get(moduleName,"tempSetting")[0];
 					let tableArray = {};
-					for (let i = 0; i < Math.floor(game.settings.get(moduleName,"tempSetting").length/3); i++) {
+					for (let i = 0; i < Math.floor(customTable.length/3); i++) {
 						tableArray[i] = value.slice(3 * i, 3 * i + 3);
 						if (parseInt(tableArray[i][1]) < parseInt(tableArray[i][0])) {
 							ui.notifications.warn(game.i18n.format("MAT.warnCustomTableUpperLimit",{upperLimit: tableArray[i][1], lowerLimit: tableArray[i][0]}));
