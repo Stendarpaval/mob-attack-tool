@@ -1,5 +1,7 @@
 # Examples
-Here follow some examples of how to use Mob Attack Tool, along with screenshots.
+Here follow some examples of how to use Mob Attack Tool, along with screenshots. 
+
+<strong>Note: The screenshots in this article are rather outdated, since they were made using Mob Attack Tool v0.1.18.</strong>
 
 ##### Table of Contents
 * [Basic use case](#basic-use-case)
