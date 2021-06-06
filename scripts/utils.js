@@ -191,7 +191,7 @@ export async function sendChatMessage(text) {
 		content: text,
 		whisper: whisperIDs
 	};
-	await ChatMessage.create(chatData,{});
+	await ChatMessage.create(chatData,{}); 
 }
 
 

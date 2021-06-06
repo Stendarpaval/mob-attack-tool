@@ -97,7 +97,7 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
-	if (game.modules.get("betterrolls5e")?.active) betterrollsActive = true;
+	if (game.modules.get("betterrolls5e")?.active && game.settings.get(moduleName, "enableBetterRolls")) betterrollsActive = true;
 	let midi_QOL_Active = false;
 	if (game.modules.get("midi-qol")?.active && game.settings.get(moduleName, "enableMidi")) midi_QOL_Active = true;
 
@@ -159,6 +159,7 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 			damageRoll, 
 			{
 				flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})`, 
+				itemData: weaponData.data,
 				itemCardId: weaponData.itemCardId
 			}
 		);

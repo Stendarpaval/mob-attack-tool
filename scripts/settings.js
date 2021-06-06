@@ -34,6 +34,14 @@ const matSettings = {
 		default: true,
 		type: Boolean
 	},
+	"enableBetterRolls": {
+		name: "SETTINGS.MAT.enableBetterRolls",
+		hint: "SETTINGS.MAT.enableBetterRollsHint",
+		config: false,
+		scope: "world",
+		default: true,
+		type: Boolean
+	},
 	"mobRules": {
 		name: "SETTINGS.MAT.mobRulesOrIndividual",
 		hint: "SETTINGS.MAT.mobRulesOrIndividualHint",
@@ -283,6 +291,14 @@ class RollSettingsMenu extends FormApplication {
 						hint: matSettings.enableMidi.hint,
 						value: game.settings.get(moduleName,"enableMidi"),
 						id: "enableMidi",
+						isCheckbox: true,
+						client: game.user.isGM
+					},
+					enableBetterRolls: {
+						name: matSettings.enableBetterRolls.name,
+						hint: matSettings.enableBetterRolls.hint,
+						value: game.settings.get(moduleName,"enableBetterRolls"),
+						id: "enableBetterRolls",
 						isCheckbox: true,
 						client: game.user.isGM
 					}

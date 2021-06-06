@@ -105,13 +105,13 @@
 						{{#each this.settings.mobTable.hiddenTable.rows}}
 						<tr>
 							<td>
-								<input type="number" name="{{this.d20RollMinId}}" value="{{this.d20RollMinValue}}" min="0"/>
+								<input type="number" name="{{this.d20RollMinId}}" value="{{this.d20RollMinValue}}" min="1" max="20"/>
 							</td>
 							<td>
-								<input type="number" name="{{this.d20RollMaxId}}" value="{{this.d20RollMaxValue}}" max="20"/>
+								<input type="number" name="{{this.d20RollMaxId}}" value="{{this.d20RollMaxValue}}" min="1" max="20"/>
 							</td>
 							<td>
-								<input type="number" name="{{this.attackersNeededId}}" value="{{this.attackersNeededValue}}" min="0"/>
+								<input type="number" name="{{this.attackersNeededId}}" value="{{this.attackersNeededValue}}" min="1"/>
 							</td>
 						</tr>
 						{{/each}}
