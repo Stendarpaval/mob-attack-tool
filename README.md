@@ -55,7 +55,7 @@ For more elaborate examples and screenshots, please head over to [EXAMPLES.md](E
 ## Planned improvements
 * Further (optional) automation of the initial selection of tokens -> _In Progress_
 * Some documentation and better structuring of the repo -> _In Progress_
-* Custom Mob Attack tables
+* Multiple target selection
 
 # Translations
 Mob Attack Tool currently supports these languages:
