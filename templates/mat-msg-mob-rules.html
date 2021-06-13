@@ -1,18 +1,22 @@
 {{#each messages}}
 <table class="mat-table">
-	<tr>
-		<th colspan="2">{{this.[0].actorAmount}}x {{@key}}</th>
-	</tr>
-	{{#each this}}
-	<tr>
-		<td>{{this.weaponName}} (+{{this.finalAttackBonus}}{{this.rollTypeMessage}} to hit)</td> 
-		<td><em>{{this.targetACtext}}</em></td>
-	</tr>
-	<tr class="mat-mob-rules-line">
-		<td>{{this.availableAttacks}} Attack{{this.sOrNot}} vs {{this.attackersNeeded}} Needed:</td>
-		<td>{{numHitAttacks}}{{pluralOrNot}}</td>
-	</tr>
-	{{/each}}
+	<thead>
+		<tr>
+			<td colspan="2">{{this.[0].actorAmount}}x {{@key}}</td>
+		</tr>
+	</thead>
+	<tbody>
+		{{#each this}}
+		<tr>
+			<td>{{this.weaponName}} (+{{this.finalAttackBonus}}{{this.rollTypeMessage}} to hit)</td> 
+			<td><em>{{this.targetACtext}}</em></td>
+		</tr>
+		<tr class="mat-mob-rules-line">
+			<td>{{this.availableAttacks}} Attack{{this.sOrNot}} vs {{this.attackersNeeded}} Needed:</td>
+			<td>{{numHitAttacks}}{{pluralOrNot}}</td>
+		</tr>
+		{{/each}}
+	</tbody>
 </table>
 {{/each}}
 <hr>

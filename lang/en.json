@@ -18,9 +18,11 @@
 	"MAT.useWeaponTitle": "Use Weapon",
 
 	"MAT.selectMob": "Select mob",
+	"MAT.selectAMob": "select a mob",
 	"MAT.savedMobNotify": "{mobName} saved!",
 	"MAT.overwriteMobDialog": "There already exists a mob with the name \"{mobName}\". Do you want to overwrite it?",
 	"MAT.resetMobsNotify": "List of saved mobs was reset!",
+	"MAT.resetAllMobsNotify": "List of mobs of current user was reset!",
 	"MAT.resetMobsDialog": "Reset all Mobs",
 	"MAT.mobNameDialog": "Mob name",
 	"MAT.saveMobButtonTitle": "Save Mob",
@@ -52,6 +54,9 @@
 	"MAT.exportToMacro": "Export to macro",
 	"MAT.endMobTurnText": "Skip turns of next mob combatants",
 
+	"MAT.acMod": "AC modifier",
+	"MAT.acModNotes": "Increase this for situational bonuses such as half or three-quarters cover or spell effects like Shield or Shield of Faith.",
+
 	"MAT.d20rollNeeded": "d20 Roll Needed",
 	"MAT.attackersNeededForOneHit": "Attackers Needed for One Hit",
 	"MAT.addRow": "Add Row",
@@ -71,6 +76,8 @@
 	"of": "of",
 	"Select": "Select",
 	"Rolls": "Rolls",
+	"Weapon Options": "Weapon Options",
+	"Targets": "Targets",
 
 	"SETTINGS.MAT.advancedSettings": "Advanced Settings",
 	"SETTINGS.MAT.advancedSettingsHint": "This menu contains specific settings for the attack and damage rolls that Mob Attack Tool executes, as well as multiattack settings and specific settings for using Mob Attack Tool together with other modules.",
@@ -112,5 +119,10 @@
 	"SETTINGS.MAT.rollTypeValue": "Advantage / Disadvantage value",
 	"SETTINGS.MAT.rollTypeValueHint": "Choose what bonus / penalty Mob Attacks have when they are rolled with advantage or disadvantage. (5 by default, floating numbers will be rounded down)",
 	"SETTINGS.MAT.hiddenTableCheckBox": "Use custom Mob Table?",
-	"SETTINGS.MAT.hiddenTableCheckBoxHint": "This is for the Mob Rules option. Change the required d20 roll and the number of required attacks to hit once."
+	"SETTINGS.MAT.hiddenTableCheckBoxHint": "This is for the Mob Rules option. Change the required d20 roll and the number of required attacks to hit once.",
+	"SETTINGS.MAT.persistACmod": "Persist AC modifier",
+ 	"SETTINGS.MAT.persistACmodHint": "Enable this to make the AC modifier value persists across new instancs of Mob Attack Tool.",
+ 	"SETTINGS.MAT.showMobAttackResultsToPlayers": "Stop whispering Mob Attack results",
+ 	"SETTINGS.MAT.showMobAttackResultsToPlayersHint": "Enable this to make the Mob Attack Results message visible to players (if your roll mode is set to Public Rolls). Disable it to whisper the results to the GM. (Client specific setting)"
+
 }

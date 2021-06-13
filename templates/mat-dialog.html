@@ -1,0 +1,172 @@
+{{! This partial is based on the foundry settings partial}}
+{{#*inline "settingPartial"}}
+	<div class="form-group">
+		<label>{{localize this.name}}</label>
+		<div class="form-fields">
+			{{#if this.isCheckbox}}
+				<input type="checkbox" name="{{this.id}}" data-dtype="Boolean" {{checked this.value}} {{#if this.disabled}}disabled{{/if}}/>
+			{{else if this.isSelect}}
+				<select name="{{this.id}}">
+					{{#select this.value}}
+						{{#each this.choices as |name k|}}
+							<option value="{{k}}">{{localize name}}</option>
+						{{/each}}
+					{{/select}}
+				</select>
+			{{else if this.isRange}}
+				<input type="range" name="{{this.id}}" data-dtype="Number" value="{{ this.value }}"
+					min="{{ this.range.min }}" max="{{ this.range.max }}" step="{{ this.range.step }}" />
+				<span class="range-value">{{this.value}}</span>
+			{{else if this.isColor}}
+				<input type="color" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+			{{else if this.isNumber}}
+				<input type="number" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+			{{else}}
+				<input type="text" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+			{{/if}}
+		</div>
+		<p class="notes">{{localize this.hint}}</p>
+	</div>
+{{/inline}}
+
+{{#*inline "formatMonster"}}
+	<div class="mat-monster-label">
+		<label class="mat-label mat-col1">{{this.actorAmount}}</label>
+		<label class="mat-label mat-col2">
+			<img class="mat-monster-icon" src="{{actorImg}}" title="Open {{this.actorNameImg}} sheet" width="36" height="36" data-item-id="{{this.actorId}}">
+		</label>
+		<label class="mat-label mat-col3 mat-monster-name">{{this.actorName}}</label>
+	</div>
+	{{#if this.multiattackDesc}}
+		<div class="hint">
+			<p>{{this.multiattackDesc}}</p>
+		</div>
+	{{/if}}
+{{/inline}}
+
+{{#*inline "formatWeapon"}}
+	<div class="mat-weapon-label">
+		<label class="mat-label mat-col1">
+			<input type="number" title="{{localize 'MAT.numAttacksTitle'}}" name="{{this.numAttacksName}}" width="20" min="1" value="{{this.numAttack}}"/>
+		</label>
+		<label class="mat-label mat-col2">
+			<img class="mat-weapon-icon" src="{{this.weaponImg}}" title="Open {{this.weaponNameImg}} sheet" width="30" height="30" data-item-id="{{this.weaponId}}">
+		</label>
+		<label class="mat-label mat-col3 mat-weapon-name">{{this.weaponName}}</label>
+		<label class="hint mat-label mat-col4">+{{this.weaponAttackBonus}} {{localize 'MAT.toHit'}}</label>
+		<label class="hint mat-label mat-col5 mat-damage-text">{{{this.weaponDamageText}}}</label>
+		<input class="mat-label mat-col6" title="{{localize 'MAT.useWeaponTitle'}}" type="checkbox" name="{{this.useButtonName}}" {{{this.useButtonValue}}}/>
+	</div>
+{{/inline}}
+
+
+<form id="mobattack-tool-test" class="mat-dialog-content" autocomplete="off">
+	<nav class="sheet-tabs tabs">
+		<a class="item active" data-tab="weapons"><i class="fas fa-fist-raised"></i> {{localize 'Weapon Options'}}</a>
+		<a class="item" data-tab="targets"><i class="fas fa-crosshairs"></i> {{localize 'Targets'}}</a>
+	</nav>
+	<hr>
+	<section class="content">
+		<div class="form-group">
+			<label>
+				<!-- <a class="previousMob">
+					<i class="fas fa-arrow-left"></i>
+				</a> -->
+				 {{localize 'MAT.mobNameDialog'}}:
+			</label>
+			<div class="form-fields">
+				<input type="text" name="mobName" value="{{mobName}}"/>
+				<button type="button" title="{{localize 'MAT.saveMobButtonTitle'}}" name="saveMob" class="saveMobButton">
+					<i class="far fa-save"></i>
+				</button>
+				<button type="button" title="{{localize 'MAT.loadMobButtonTitle'}}" name="loadMob" class="loadMobButton">
+					<i class="fas fa-file-import fa-fw"></i>
+				</button>
+				<!-- <label>
+					 <a class="nextMob">
+						<i class="fas fa-arrow-right"></i>
+					</a>
+				</label> -->
+			</div>
+		</div>
+	</section>
+	<hr>
+	<section id="mobDialog-tabs" class="content">
+		<div class="tab active" data-tab="weapons">
+			<p>{{localize 'MAT.dialogChooseWeaponOption'}}:</p><p class="hint">{{localize 'MAT.dialogNumSelected'}} {{numSelected}} token{{pluralTokensOrNot}}.</p>
+			<!-- <div class="dice-tooltip" style="display: block;">
+			    <section class="tooltip-part">
+			        <div class="dice">
+			            <ol class="dice-rolls">
+			                <li class="roll die d20" style="background-image: url(../icons/svg/shield.svg);">{{targetAC}}</li>
+			            </ol>
+			        </div>
+			    </section>
+			</div> -->
+			<p class="hint">{{localize 'MAT.dialogClickIconText'}}</p>
+			<div name="mobListOptions">
+				{{#each this.monsters}}
+					<hr>
+					{{#with this}}
+						{{> formatMonster}}
+					{{/with}}
+					{{#each this.weapons}}
+						{{#with this}}
+							{{> formatWeapon}}
+						{{/with}}
+					{{/each}}
+				{{/each}}
+			</div>
+			<hr>
+			{{#if selectRollType}}
+			<div class="mat-rolltype">
+				<label class="mat-label.mat-col1">{{localize 'MAT.selectRollType'}}: </label>
+				<select class="mat-label.mat-col2" name="rollType">
+					<option value="advantage">{{localize 'Advantage'}}</option>
+					<option value="normal" selected>{{localize 'Normal'}}</option>
+					<option value="disadvantage">{{localize 'Disadvantage'}}</option>
+				</select>
+			</div>
+			{{/if}}
+			{{#if endMobTurn}}
+			<div class="mat-end-turn">
+				<label class="mat-label.mat-col1">{{localize 'MAT.endMobTurnText'}}: </label>
+				<input class="mat-label.mat-col2" type="checkbox" name="endMobTurn" value="false"/>
+			</div>
+			{{/if}}
+			<div class="mat-macro-export">
+				<label class="mat-label.mat-col1">{{localize 'MAT.exportToMacro'}}: </label>
+				<input class="mat-label.mat-col2" type="checkbox" name="exportMobAttack" value="false"/>
+			</div>
+		</div>
+		<div class="tab" data-tab="targets">
+			<!-- <div class="form-group">
+				<img class="mat-monster-icon" src="{{targetImg}}" title="Open {{targetImgName}} sheet" width="36" height="36" data-item-id="{{targetId}}">
+				<div class="form-fields">
+					<p>{{targetACtext}}</p>
+				</div>
+			</div> -->
+			<p class="hint">{{targetACtext}}</p>
+			<div class="form-group">
+				<label>{{localize 'MAT.acMod'}}:</label>
+				<div class="form-fields">
+					<input type="number" name="armorClassMod" value="{{armorClassMod}}"/>
+					<button type="button" name="increaseACmod" class="increaseACmod">
+						<i class="fas fa-plus"></i>
+					<button type="button" name="decreaseACmod" class="decreaseACmod">
+						<i class="fas fa-minus"></i>
+					</button>
+					</button>
+				</div>
+				<p class="notes">{{localize 'MAT.acModNotes'}}</p>
+			</div>
+		</div>
+	</section>
+	<hr>
+	<footer class="sheet-footer flexrow">
+		<button type="submit" class= "executeMobAttack" name="executeMobAttack" autofocus>
+			<i class="fas fa-fist-raised"></i> {{localize 'MAT.mobAttack'}}
+		</button>
+	</footer>
+</form>
+

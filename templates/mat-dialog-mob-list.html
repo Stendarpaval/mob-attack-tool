@@ -4,7 +4,8 @@
 			<label>{{localize 'MAT.selectMob'}}:</label>
 			<div class="form-fields">
 				<select name="selectMob">
-					{{#each this}}
+					<option hidden disabled selected value> - {{localize 'MAT.selectAMob'}} - </option>
+					{{#each this.mobList}}
 						{{#if this.visible}}
 						<option value="{{this.mobName}}">{{this.mobName}}</option>
 						{{/if}}
@@ -13,10 +14,18 @@
 			</div>
 		</div>
 		<div class="form-group">
-			<label>{{localize 'MAT.resetMobsDialog'}}:</label>
+			<label>Reset Mobs of this user:</label>
 			<div class="form-fields">
-				<input type="checkbox" title="{{localize 'MAT.resetMobsDialog'}}" name="resetMobs"/>
+				<input type="checkbox" title="{{localize 'MAT.resetMobsDialog'}}" name="resetUserMobs"/>
 			</div>
 		</div>
+		{{#if this.isGM}}
+		<div class="form-group">
+			<label>{{localize 'MAT.resetMobsDialog'}}:</label>
+			<div class="form-fields">
+				<input type="checkbox" title="{{localize 'MAT.resetMobsDialog'}}" name="resetAllMobs"/>
+			</div>
+		</div>
+		{{/if}}
 	</section>
 </form>

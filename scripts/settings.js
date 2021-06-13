@@ -171,6 +171,29 @@ const matSettings = {
 		config: false,
 		default: [1,5,1,6,12,2,13,14,3,15,16,4,17,18,5,19,19,10,20,20,20],
 		type: Array
+	},
+	"savedArmorClassMod": {
+		name: "savedArmorClassMod",
+		scope: "client",
+		config: false,
+		default: 0,
+		type: Number
+	},
+	"persistACmod": {
+		name: "SETTINGS.MAT.persistACmod",
+		hint: "SETTINGS.MAT.persistACmodHint",
+		scope: "client",
+		config: false,
+		default: false,
+		type: Boolean 
+	},
+	"showMobAttackResultsToPlayers": {
+		name: "SETTINGS.MAT.showMobAttackResultsToPlayers",
+		hint: "SETTINGS.MAT.showMobAttackResultsToPlayersHint",
+		scope: "client",
+		config: false,
+		default: false,
+		type: Boolean 
 	}
 };
 
@@ -232,6 +255,14 @@ class RollSettingsMenu extends FormApplication {
 						isCheckbox: true,
 						client: true,
 					},
+					showMobAttackResultsToPlayers: {
+						name: matSettings.showMobAttackResultsToPlayers.name,
+						hint: matSettings.showMobAttackResultsToPlayers.hint,
+						value: game.user.getFlag(moduleName,"showMobAttackResultsToPlayers") ?? game.settings.get(moduleName,"showMobAttackResultsToPlayers"),
+						id: "showMobAttackResultsToPlayers",
+						isCheckbox: true,
+						client: true
+					},
 					askRollType: {
 						name: matSettings.askRollType.name,
 						hint: matSettings.askRollType.hint,
@@ -266,6 +297,16 @@ class RollSettingsMenu extends FormApplication {
 						id: "autoDetectMultiattacks",
 						isSelect: true,
 						choices: matSettings.autoDetectMultiattacks.choices,
+						client: true
+					}
+				},
+				targets: {
+					persistACmod: {
+						name: matSettings.persistACmod.name,
+						hint: matSettings.persistACmod.hint,
+						value: game.user.getFlag(moduleName,"persistACmod") ?? game.settings.get(moduleName,"persistACmod"),
+						id: "persistACmod",
+						isCheckbox: true,
 						client: true
 					}
 				},

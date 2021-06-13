@@ -189,8 +189,9 @@ export async function sendChatMessage(text) {
 		user: game.user.id,
 		speaker: {alias: game.i18n.localize("MAT.mobAttackResults")},
 		content: text,
-		whisper: whisperIDs
+		whisper: (game.settings.get(moduleName,"showMobAttackResultsToPlayers")) ? [] : whisperIDs,
 	};
+	if(game.settings.get(moduleName,"showMobAttackResultsToPlayers")) chatData = ChatMessage.applyRollMode(chatData, game.settings.get("core", "rollMode"));
 	await ChatMessage.create(chatData,{}); 
 }
 

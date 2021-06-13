@@ -1,30 +1,34 @@
 {{#each messages}}
 <table class="mat-table">
-	<tr>
-		<th colspan="1">{{this.[0].actorAmount}}x {{@key}}</th>
-	</tr>
-	{{#each this}}
-	<tr>
-		<td>{{this.numHitAttacks}} {{localize 'of'}} {{this.availableAttacks}} {{this.weaponName}}{{this.pluralOrNot}}</td>
-	</tr>
-	{{#if this.showIndividualAttackRolls}}
-	<tr class="mat-midi-show-atk-lines">
-		<td>
-			<div class="dice-tooltip" style="display: block;">
-			    <section class="tooltip-part">
-			        <div class="dice">
-			            <ol class="dice-rolls">
-			            	{{#each this.atkRollData}}
-			                <li class="roll die d20 {{this.color}}" title="{{localize 'Attack Roll'}} (+{{this.finalAttackBonus}} {{localize 'MAT.toHit'}})">{{this.roll}}</li>
-			                {{/each}}
-			            </ol>
-			        </div>
-			    </section>
-			</div>
-		</td>
-	</tr>
-	{{/if}}
-	{{/each}}
+	<thead>
+		<tr>
+			<td colspan="1">{{this.[0].actorAmount}}x {{@key}}</td>
+		</tr>
+	</thead>
+	<tbody>
+		{{#each this}}
+		<tr>
+			<td>{{this.numHitAttacks}} {{localize 'of'}} {{this.availableAttacks}} {{this.weaponName}}{{this.pluralOrNot}}</td>
+		</tr>
+		{{#if this.showIndividualAttackRolls}}
+		<tr class="mat-midi-show-atk-lines">
+			<td>
+				<div class="dice-tooltip" style="display: block;">
+				    <section class="tooltip-part">
+				        <div class="dice">
+				            <ol class="dice-rolls">
+				            	{{#each this.atkRollData}}
+				                <li class="roll die d20 {{this.color}}" title="{{localize 'Attack Roll'}} (+{{this.finalAttackBonus}} {{localize 'MAT.toHit'}})">{{this.roll}}</li>
+				                {{/each}}
+				            </ol>
+				        </div>
+				    </section>
+				</div>
+			</td>
+		</tr>
+		{{/if}}
+		{{/each}}
+	</tbody>
 </table>
 {{/each}}
 <hr>
