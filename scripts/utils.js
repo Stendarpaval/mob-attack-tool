@@ -88,7 +88,8 @@ export async function prepareMonsters(actorList, monsters, weapons, availableAtt
 			maxDamage = new Roll(damageData).alter(((numAttacksTotal > 1) ? numAttacksTotal : 1),0,{multiplyNumeric: true});
 			maxDamage = maxDamage.evaluate({maximize: true, async: true});
 			maxDamage = maxDamage.total;
-			averageDamageRoll = new Roll(damageData);
+			damageData = getDamageFormulaAndType(weaponData, false);
+			averageDamageRoll = new Roll(damageData[0].join(" + "));
 			let averageDamageValue = 0;
 			for (let dTerm of averageDamageRoll.terms.filter(t => t.number > 0 && t.faces > 0)) {
 				averageDamageValue += ((dTerm.faces + 1) / 2) * dTerm.number;
