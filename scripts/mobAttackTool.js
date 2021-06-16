@@ -207,11 +207,10 @@ class MobAttackDialog extends FormApplication {
 
 		// update application if weapon checbox is changed
 		html.on("change", ".useWeapon", async (event) => {
-			let weaponId = event.currentTarget.previousElementSibling.previousElementSibling.previousElementSibling.getAttribute("data-item-id");
-
+			let weaponId = event.currentTarget.getAttribute("name").slice(3);
 			for (let [monsterKey, monsterData] of Object.entries(this.monsters)) {
 				for (let [weaponKey, weaponData] of Object.entries(monsterData.weapons)) {
-					if (weaponData.weaponId === weaponId) {
+					if (weaponKey.replace(" ","-") === weaponId) {
 						if (this.monsters[monsterKey].weapons[weaponKey].useButtonValue === `checked`) {
 							this.monsters[monsterKey].weapons[weaponKey].useButtonValue = ``;
 						} else {
@@ -229,7 +228,7 @@ class MobAttackDialog extends FormApplication {
 		// update application if number of weapon attacks input is changed
 		html.on("change", ".numAttack", async (event) => {
 			let weaponId = event.currentTarget.parentElement.nextElementSibling.firstElementChild.getAttribute("data-item-id");
-			let updatedNumAttack = html.find(`input[name=numAttacks${weaponId}]`)[0]?.value ?? html.find(`input[name=numAttacks${weaponId} (${game.i18n.localize("Versatile").replace(" ","-")})]`)[0]?.value;
+			let updatedNumAttack = html.find(`input[name=numAttacks${weaponId}]`)[0]?.value ?? html.find(`input[name=numAttacks${weaponId}-(${game.i18n.localize("Versatile").replace(" ","-")})]`)[0]?.value;
 
 			for (let [monsterKey, monsterData] of Object.entries(this.monsters)) {
 				for (let [weaponKey, weaponData] of Object.entries(monsterData.weapons)) {
