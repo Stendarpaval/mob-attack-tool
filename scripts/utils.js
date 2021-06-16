@@ -22,6 +22,226 @@ export function checkTarget() {
 }
 
 
+export async function prepareMonsters(actorList, monsters, weapons, availableAttacks) {
+	for (let actor of actorList) {
+		if (monsters[actor.id]) {
+			if (monsters[actor.id].id === actor.id) {
+				monsters[actor.id].amount += 1;
+			}
+		} else {
+			monsters[actor.id] = {id: actor.id, amount: 1, optionVisible: false, img: actor.img, name: actor.name};
+		}
+	}
+
+	for (let actor of actorList) {
+		if (monsters[actor.id]) {
+			if (!monsters[actor.id].optionVisible) {
+				let monsterData = {
+					id: monsters[actor.id].id,
+					amount: monsters[actor.id].amount,
+					actorId: monsters[actor.id].id,
+					actorAmount: `${monsters[actor.id].amount}x`,
+					actorImg: monsters[actor.id].img,
+					actorNameImg: monsters[actor.id].name.replace(" ","-"),
+					actorName: monsters[actor.id].name,
+					weapons: {}
+				};
+				monsters[actor.id] = {...monsterData};
+				monsters[actor.id].optionVisible = true;
+				if (game.settings.get(moduleName, "showMultiattackDescription")) {
+					if (actor.items[(coreVersion08x()) ? "contents" : "entries"].filter(i => i.name.startsWith("Multiattack")).length > 0) {
+						monsters[actor.id]["multiattackDesc"] = $(actor.items.filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value)[0].textContent;
+					} else if (actor.items[(coreVersion08x()) ? "contents" : "entries"].filter(i => i.name.startsWith("Extra Attack")).length > 0) {
+						monsters[actor.id]["multiattackDesc"] = $(actor.items.filter(i => i.name.startsWith("Extra Attack"))[0].data.data.description.value)[0].textContent;
+					}
+				}
+			}
+		}
+
+		let actorWeapons = {};
+		let items = (coreVersion08x()) ? actor.items.contents : actor.items.entries;
+		for (let item of items) {
+			if (item.data.type == "weapon" || (item.data.type == "spell" && (item.data.data.level === 0 || item.data.data.preparation.mode === "atwill") && item.data.data.damage.parts.length > 0 && item.data.data.save.ability === "")) {
+				if (weapons[item.id]?.id === item.id) {
+					availableAttacks[item.id] += 1;
+				} else {
+					weapons[item.id] = item;
+					availableAttacks[item.id] = 1;
+					actorWeapons[item.id] = item;
+				}
+			}
+		}
+		let numAttacksTotal, preChecked;
+		let numCheckedWeapons = 0;
+		let highestDamageFormula = 0, maxDamage, maxDamageWeapon;
+		let averageDamageRoll;
+		let averageDamage = {};
+		let options = {};
+		let autoDetect = game.settings.get(moduleName,"autoDetectMultiattacks");
+		for (let [weaponID, weaponData] of Object.entries(actorWeapons)) {
+			if (autoDetect === 2) {
+				[numAttacksTotal, preChecked] = getMultiattackFromActor(weaponData.name, weaponData.actor, weapons, options);
+				if (preChecked) numCheckedWeapons++;
+			}
+			let damageData = getDamageFormulaAndType(weaponData, false);
+			damageData = (typeof damageData[0][0] === "undefined") ? "0" : damageData[0][0];
+			maxDamage = new Roll(damageData).alter(((numAttacksTotal > 1) ? numAttacksTotal : 1),0,{multiplyNumeric: true});
+			maxDamage = maxDamage.evaluate({maximize: true, async: true});
+			maxDamage = maxDamage.total;
+			averageDamageRoll = new Roll(damageData);
+			let averageDamageValue = 0;
+			for (let dTerm of averageDamageRoll.terms.filter(t => t.number > 0 && t.faces > 0)) {
+				averageDamageValue += ((dTerm.faces + 1) / 2) * dTerm.number;
+			}
+			if (coreVersion08x()) {
+				for (let nTerm of averageDamageRoll.terms.filter(t => t.number > 0 && !t.faces)) {
+					averageDamageValue += nTerm.number;
+				}
+			} else {
+				for (let nTerm of averageDamageRoll.terms.filter(t => !t.formula && parseInt(t))) {
+					averageDamageValue += nTerm;
+				}
+			}
+			averageDamage[weaponID] = Math.ceil(averageDamageValue);
+			if (highestDamageFormula < maxDamage) {
+				highestDamageFormula = maxDamage;
+				maxDamageWeapon = weaponData;
+			}
+		}
+		
+		if (numCheckedWeapons === 0) {
+			options["checkMaxDamageWeapon"] = true;
+			options["maxDamageWeapon"] = maxDamageWeapon;
+		}
+		
+		for (let [weaponID, weaponData] of Object.entries(actorWeapons)) {
+			let checkVersatile = weaponData.data.data.damage.versatile != "";
+			for (let j = 0; j < 1 + ((checkVersatile) ? 1 : 0); j++) {
+				let isVersatile = (j < 1) ? false : weaponData.data.data.damage.versatile != "";
+				let damageData = getDamageFormulaAndType(weaponData, isVersatile);
+				let weaponDamageText = ``;
+				for (let i = 0; i < damageData[0].length; i++) {
+					((i > 0) ? weaponDamageText += `<br>${damageData[0][i]} ${damageData[1][i].capitalize()}` : weaponDamageText += `${damageData[0][i]} ${damageData[1][i].capitalize()}`);
+				}
+				let numAttacksTotal = 1, preChecked = false;
+				let autoDetect = game.settings.get(moduleName,"autoDetectMultiattacks");
+				if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(weaponData.name, weaponData.actor, weapons, options);
+				if (autoDetect === 1 || isVersatile) preChecked = false;
+				
+				let labelData = {
+					numAttacksName: `numAttacks${(weaponData.id + ((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)).replace(" ","-")}`,
+					numAttack: numAttacksTotal,
+					weaponId: weaponData.id,
+					weaponImg: weaponData.img,
+					weaponNameImg: weaponData.name.replace(" ","-"),
+					weaponName: `${weaponData.name}${((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)}`,
+					weaponAttackBonus: getAttackBonus(weaponData),
+					weaponDamageText: weaponDamageText,
+					useButtonName: `use${(weaponData.id + ((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)).replace(" ","-")}`,
+					useButtonValue: (preChecked) ? `checked` : ``,
+					averageDamage: averageDamage[weaponID]
+				};
+				if (j === 0) {
+					monsters[actor.id]["weapons"][weaponID] = {...labelData};
+				} else if (j === 1) {
+					monsters[actor.id]["weapons"][weaponID + ` (${game.i18n.localize("Versatile")})`] = {...labelData};
+				}
+			}
+		}
+	}
+	return [monsters, weapons, availableAttacks];
+}
+
+
+export async function prepareMobAttack(html, weapons, availableAttacks, targetToken, targetAC, numSelected, monsters) {
+	let mobList = game.settings.get(moduleName,"hiddenMobList");
+	if (game.settings.get("mob-attack-tool", "hiddenChangedMob")) {
+		let mobName = game.settings.get(moduleName,'hiddenMobName');
+		let mobData = mobList[mobName];
+		// let actorList = this.actorList;
+		let actorList = [];
+		for (let monster of mobData.monsters) {
+			for (let i = 0; i < monster.amount; i++) {
+				actorList.push(game.actors.get(monster.id));	
+			}
+		}
+		let content = ``;
+		monsters = {}; 
+		weapons = {};
+		availableAttacks = {};
+		numSelected = mobData.numSelected;
+		[monsters, weapons, availableAttacks] = await prepareMonsters(actorList, monsters, weapons, availableAttacks);
+	}
+
+	let attacks = {};
+	let weaponLocators = [];
+	let numAttacksMultiplier = 1;
+	let isVersatile = false;
+	for (let [weaponID, weaponData] of Object.entries(weapons)) {
+		isVersatile = weaponData.data.data.damage.versatile != "";
+		weaponID += ((isVersatile) ?  ` (${game.i18n.localize("Versatile")})` : ``);
+
+		if (html.find(`input[name="use` + weaponData.id.replace(" ","-") + `"]`)[0].checked) {
+			numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponData.id.replace(" ","-")}"]`)[0].value);
+			if (numAttacksMultiplier === NaN) {
+				numAttacksMultiplier = 0;
+			}
+			attacks[weaponData.id] = availableAttacks[weaponData.id] * numAttacksMultiplier;
+			weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name, "weaponID": weaponData.id});
+		}
+		if (html.find(`input[name="use` + weaponID.replace(" ","-") + `"]`)[0].checked) {
+			numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponID.replace(" ","-")}"]`)[0].value);
+			if (numAttacksMultiplier === NaN) {
+				numAttacksMultiplier = 0;
+			}
+			attacks[weaponID] = availableAttacks[weaponData.id] * numAttacksMultiplier;
+			weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name, "weaponID": weaponID});
+		}
+	}
+	let withAdvantage = false;
+	let withDisadvantage = false;
+	let rollTypeValue = 0;
+	let rollTypeMessage = ``;
+	if (game.settings.get(moduleName,"askRollType")) {
+		let rtValue = Math.floor(game.settings.get(moduleName,"rollTypeValue"));
+		if (html.find("[name=rollType]")[0].value === "advantage") {
+			rollTypeValue = rtValue;
+			withAdvantage = true;
+			rollTypeMessage = ` + ${rtValue} [adv]`; 
+		} else if (html.find("[name=rollType]")[0].value === "disadvantage") {
+			rollTypeValue = -1 * rtValue;
+			withDisadvantage = true;
+			rollTypeMessage = ` - ${rtValue} [disadv]`;
+		}
+	}
+
+	// End the turn of mob attackers grouped together in initiative
+	let endMobTurn = html.find(`input[name="endMobTurn"]`)[0].checked;
+
+	// Remember what user chose last time
+	await game.user.setFlag(moduleName,"endMobTurnValue",endMobTurn);
+
+
+	// Bundle data together
+	let mobAttackData = {
+		"targetToken": targetToken,
+		"targetAC": targetAC,
+		"numSelected": numSelected,
+		"weapons": weapons,
+		"attacks": attacks,
+		"withAdvantage": withAdvantage,
+		"withDisadvantage": withDisadvantage,
+		"rollTypeValue": rollTypeValue,
+		"rollTypeMessage": rollTypeMessage,
+		"endMobTurn": endMobTurn,
+		"monsters": monsters,
+		"weaponLocators": weaponLocators
+	};
+
+	return mobAttackData;
+}
+
+
 export async function endGroupedMobTurn(data) {
 	if (game.combat != null) {
 		let mobActors = [];

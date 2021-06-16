@@ -306,13 +306,16 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 						damageRoll._formula = damageRoll.formula;
 					}
 				}
-				damageRoll = await damageRoll.evaluate({async: true});
-				
-				await damageRoll.toMessage(
-					{
-						flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})${(numCrits > 0) ? ` (${game.i18n.localize("MAT.critIncluded")})` : ``}`
-					}
-				);
+				if (damageRoll._formula === "") {
+					ui.notifications.error(game.i18n.format("MAT.invalidDamageFormula",{weaponDataName: weaponData.name}));
+				} else {
+					damageRoll = await damageRoll.evaluate({async: true});
+					await damageRoll.toMessage(
+						{
+							flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})${(numCrits > 0) ? ` (${game.i18n.localize("MAT.critIncluded")})` : ``}`
+						}
+					);
+				}
 			}
 		}
 	}

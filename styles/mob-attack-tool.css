@@ -17,18 +17,21 @@
 .mat-rolltype {
 	display:grid; 
 	grid-template-columns:285px 120px; 
+	margin:0px 0px 3px 0px;
 	column-gap:5px;
 }
 
 .mat-macro-export {
 	display:grid; 
-	grid-template-columns:380px 30px; 
+	grid-template-columns:285px 120px; 
+	margin:0px 0px 3px 0px;
 	column-gap:5px;
 }
 
 .mat-end-turn {
 	display:grid; 
-	grid-template-columns:380px 30px; 
+	grid-template-columns:380px 30px;
+	margin:0px 0px 3px 0px;
 	column-gap:5px;
 }
 
@@ -94,17 +97,33 @@
 	text-overflow:ellipsis; 
 	white-space:nowrap; 
 	overflow:hidden;
-	cursor: default;
+	cursor: pointer;
 }
 
 .mat-label.mat-col3.mat-weapon-name {
 	text-overflow:ellipsis; 
 	white-space:nowrap; 
 	overflow:hidden;
-	cursor: default;
+	cursor: pointer;
 }
 
 .mat-label.mat-col5.mat-damage-text {
 	white-space: pre-wrap; 
 	text-align:center;
+}
+
+.mat-collapsible {
+	cursor: pointer;
+	width: 100%;
+	/*border-bottom:1px solid gray;
+	display: block;*/
+	margin:0px 0px 3px 0px;
+}
+
+.mat-collapsible-content-closed {
+	display: none;
+}
+
+.mat-collapsible-content-open {
+	display: block;
 }

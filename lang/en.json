@@ -9,6 +9,7 @@
 	"MAT.noTargetAllAttacksHitText": "No tokens are targeted, so all attacks will hit.",
 	"MAT.lowAttackBonusOrSmallMob": "Attack bonus too low or not enough mob attackers to hit the target!",
 	"MAT.ammoError": "There was an error while trying to add an ammo field to this {weaponName} attack.",
+	"MAT.invalidDamageFormula": "{weaponDataName} does not have a valid damage formula and could not be rolled.",
 	
 	"MAT.dialogTargetArmorClassMessage": "Your target has an AC of",
 	"MAT.dialogChooseWeaponOption": "Choose weapon option",
@@ -52,6 +53,7 @@
 	"MAT.toHit": "to hit",
 	"MAT.selectRollType": "Select roll type",
 	"MAT.exportToMacro": "Export to macro",
+	"MAT.macroNameNote": "Choose what to name the macro for this Mob Attack.",
 	"MAT.endMobTurnText": "Skip turns of next mob combatants",
 
 	"MAT.acMod": "AC modifier",
@@ -78,6 +80,9 @@
 	"Rolls": "Rolls",
 	"Weapon Options": "Weapon Options",
 	"Targets": "Targets",
+	"Show options": "Show options",
+	"Hide options": "Hide options",
+	"Macro Name": "Macro Name",
 
 	"SETTINGS.MAT.advancedSettings": "Advanced Settings",
 	"SETTINGS.MAT.advancedSettingsHint": "This menu contains specific settings for the attack and damage rolls that Mob Attack Tool executes, as well as multiattack settings and specific settings for using Mob Attack Tool together with other modules.",
@@ -121,7 +126,7 @@
 	"SETTINGS.MAT.hiddenTableCheckBox": "Use custom Mob Table?",
 	"SETTINGS.MAT.hiddenTableCheckBoxHint": "This is for the Mob Rules option. Change the required d20 roll and the number of required attacks to hit once.",
 	"SETTINGS.MAT.persistACmod": "Persist AC modifier",
- 	"SETTINGS.MAT.persistACmodHint": "Enable this to make the AC modifier value persists across new instancs of Mob Attack Tool.",
+ 	"SETTINGS.MAT.persistACmodHint": "Enable this to make the AC modifier value persist across new instances of Mob Attack Tool.",
  	"SETTINGS.MAT.showMobAttackResultsToPlayers": "Stop whispering Mob Attack results",
  	"SETTINGS.MAT.showMobAttackResultsToPlayersHint": "Enable this to make the Mob Attack Results message visible to players (if your roll mode is set to Public Rolls). Disable it to whisper the results to the GM. (Client specific setting)"
 
