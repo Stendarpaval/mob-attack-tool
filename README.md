@@ -4,37 +4,27 @@
 [![Foundry Hub Endorsements](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fmob-attack-tool%2Fshield%2Fendorsements)](https://www.foundryvtt-hub.com/package/mob-attack-tool/) [![Foundry Hub Comments](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fmob-attack-tool%2Fshield%2Fcomments)](https://www.foundryvtt-hub.com/package/mob-attack-tool/)
 
 # Mob Attack Tool
-A module for Foundry VTT that offers a tool for handling mob attacks in the dnd5e system. 
+This is a module for Foundry VTT that offers a tool for handling mob attacks in the dnd5e system. The focus lies on offering GMs and players accessible and flexible tools to speed up large combat encounters. This module supports use of the [Dice so Nice!](https://gitlab.com/riccisi/foundryvtt-dice-so-nice/-/tree/master), [Better Rolls for 5e](https://github.com/RedReign/FoundryVTT-BetterRolls5e), [Midi-QOL](https://gitlab.com/tposney/midi-qol/-/tree/master), and [Grouped Initiative](https://github.com/tonifisler/foundry-group-initiative) modules. 
 
 ## How to install
 You can install this module by searching Foundry's package browser or by pasting this url in the corresponding text field of Foundry's package installer: `https://raw.githubusercontent.com/Stendarpaval/mob-attack-tool/main/module.json`
 
 ## How to use
-After activating this module, a new button appears in the token controls bar. By default this button is only visible to users with the GM role, but this can be changed in settings. To use the Mob Attack tool, make sure you have at least one token selected and exactly one token targeted. 
+After activating this module, a new button appears in the token controls bar. By default this button is only visible to users with the GM role, but this can be changed in settings. To begin using Mob Attack Tool, make sure you have at least one token selected and exactly one token targeted before you click the button.
 
-A dialog window will appear, populated with the weapon options of the selected tokens along with their respective attack bonuses and a checkbox. Tick the checkbox of the weapon(s) you want to use for the mob attack. 
+A dialog window will appear, populated with the weapon options of the selected tokens and a checkbox. Tick the checkbox of the weapon(s) you want to use for the mob attack. Mob Attack Tool can also automatically select weapons what are part of a multiattack ability, or just the weapon option that deals most damage.
 
-Clicking on the Mob Attack button in the dialog window will then whisper a message to the GM with the mob attack results. Furthermore, the weapon item is rolled the number of times that an attack would hit.
+Clicking on the Mob Attack button in the dialog window will then whisper a message (by default to the GM) with the mob attack results. Furthermore, the weapon item is rolled the number of times that an attack would hit.
 
 ## New
 
-* You can choose to either use the official Mob Rules, or you can let each creature in the mob attack individually. Go to Mob Attack Tool's settings to set your preference.
-* Also, you can now allow players to use Mob Attack Tool. Perfect for necromancers or druids!
-* Don't want to click "Next Turn" all the time? Now Mob Attack Tool can skip the turns of mob attackers that participated in a mob attack!
-* Added examples and screenshots in [EXAMPLES.md](EXAMPLES.md)!
-* You can now specify how often each mob attacker can use a weapon as part of a multiattack action. 
-* Mob Attack Tool can now automatically detect and select multiattack options! 
-* There is now support for versatile weapon damage. No need to create duplicate weapons anymore!
-* For ease of use, Mob Attack Tool now shows the multiattack description for creatures that have it. Can be turned off in settings if so desired.
-* You can now click on icons to open actor or item sheets!
-* Mob Attack Tool has been translated to Korean by KLO!
-* Now you can name and save Mobs for later reuse. If you have saved mobs, then you don't need to select any tokens to begin using Mob Attack Tool. 
+Make sure to read through the [latest release notes](https://github.com/Stendarpaval/mob-attack-tool/releases) to see what the newest features are.
 
 ## Examples
 
-This is what the Mob Attack dialog looks like (as of v0.2.14) with multiattack autodetect + autoselect enabled:
+This is what the Mob Attack dialog looks like (as of v0.2.16) with multiattack autodetect + autoselect enabled:
 
-<img width="438" alt="MAT-v0 2 13-dialog2-better" src="https://user-images.githubusercontent.com/17188192/122144331-8db52b00-ce53-11eb-9b99-24e5b28b1cc9.png">
+<img width="438" alt="MAT-v0 2 16" src="https://user-images.githubusercontent.com/17188192/122316483-4181ed80-cf1c-11eb-923d-e729e798d147.png">
 
 Below are some (older) GIFs that give a brief idea of how you can use Mob Attack Tool.
 
@@ -50,14 +40,14 @@ Below are some (older) GIFs that give a brief idea of how you can use Mob Attack
   ![MAT-video-midi-qol-v0 0 3](https://user-images.githubusercontent.com/17188192/110196624-0fa1bb00-7e46-11eb-9ec1-ade1ef8dff96.gif)
 </details>
 
-For more elaborate examples and screenshots, please head over to [EXAMPLES.md](EXAMPLES.md). 
+For more elaborate examples and screenshots, please head over to [EXAMPLES.md](EXAMPLES.md). (Note: the examples are currently quite outdated, but they should still give a general overview. Mob Attack Tool can do much nowadays than what is shown in the examples. Browse the [latest release notes](https://github.com/Stendarpaval/mob-attack-tool/releases) to find out what exactly.
 
 ## Planned improvements
 * Further (optional) automation of the initial selection of tokens -> _In Progress_
 * Some documentation and better structuring of the repo -> _In Progress_
 * Multiple target selection
 
-# Translations
+## Translations
 Mob Attack Tool currently supports these languages:
 * English
 * Korean (translation provided by KLO (discord : KLO#1490). Thanks, KLO!)
