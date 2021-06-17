@@ -16,35 +16,59 @@
 
 .mat-rolltype {
 	display:grid; 
-	grid-template-columns:285px 120px; 
+	grid-template-columns:360px 120px; 
 	margin:0px 0px 3px 0px;
 	column-gap:5px;
 }
 
 .mat-macro-export {
 	display:grid; 
-	grid-template-columns:285px 120px; 
+	grid-template-columns:360px 120px; 
 	margin:0px 0px 3px 0px;
 	column-gap:5px;
 }
 
 .mat-end-turn {
 	display:grid; 
-	grid-template-columns:380px 30px;
+	grid-template-columns:455px 30px;
 	margin:0px 0px 3px 0px;
 	column-gap:5px;
 }
 
 .mat-monster-label {
 	display:grid; 
-	grid-template-columns: 20px 36px 240px 50px; 
+	grid-template-columns: 20px 36px 240px; 
 	column-gap:5px;
 }
 
 .mat-weapon-label {
 	display:grid; 
-	grid-template-columns:30px 30px 120px 50px 130px 30px; 
+	grid-template-columns:45px 30px 370px 125px;
+	/*grid-template-columns:30px 30px 120px 50px 60px 125px 30px; */
 	column-gap:5px;
+}
+
+.mat-weapon-name-label {
+	display:grid; 
+	grid-template-columns:120px 50px 60px 125px; 
+	column-gap:5px;	
+}
+
+.mat-num-attack-group {
+	display:grid; 
+	grid-template-columns:30px 14px; 
+	column-gap:1px;
+	/*margin:0px 5px 0px 0px;*/
+}
+
+.mat-num-attack-buttons {
+	/*white-space: pre-wrap; */
+	text-align:center;
+	cursor: pointer;
+}
+
+.decreaseNumAttack, .increaseNumAttack {
+	cursor: pointer;	
 }
 
 .mat-label {
@@ -81,6 +105,11 @@
 	grid-column-end:6;
 }
 
+.mat-label.mat-col7 {
+	grid-column-start:7;
+	grid-column-end:7;
+}
+
 .mat-monster-icon {
 	margin:0px 5px 0px 0px; 
 	border:none;
@@ -93,23 +122,42 @@
 	cursor: pointer;
 }
 
-.mat-label.mat-col3.mat-monster-name {
+.mat-monster-name {
+	text-overflow:ellipsis; 
+	white-space:nowrap; 
+	overflow:hidden;
+}
+
+.mat-monster {
+	cursor: pointer;
+}
+
+.mat-weapon {
+	cursor: pointer;
+}
+
+.mat-weapon-name {
 	text-overflow:ellipsis; 
 	white-space:nowrap; 
 	overflow:hidden;
 	cursor: pointer;
 }
 
-.mat-label.mat-col3.mat-weapon-name {
-	text-overflow:ellipsis; 
-	white-space:nowrap; 
-	overflow:hidden;
+.mat-attack-bonus {
+	text-align:center;
 	cursor: pointer;
 }
 
-.mat-label.mat-col5.mat-damage-text {
+.mat-weapon-range {
 	white-space: pre-wrap; 
 	text-align:center;
+	cursor: pointer;
+}
+
+.mat-damage-text {
+	white-space: pre-wrap; 
+	text-align:center;
+	cursor: pointer;
 }
 
 .mat-collapsible {

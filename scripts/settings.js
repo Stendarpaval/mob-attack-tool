@@ -42,18 +42,6 @@ const matSettings = {
 		default: true,
 		type: Boolean
 	},
-	"mobRules": {
-		name: "SETTINGS.MAT.mobRulesOrIndividual",
-		hint: "SETTINGS.MAT.mobRulesOrIndividualHint",
-		config: true,
-		scope: "client",
-		type: Number,
-		default: 0,
-		choices: {
-			0: "SETTINGS.MAT.mobRules",
-			1: "SETTINGS.MAT.individualAttackRolls"
-		}
-	},
 	"showIndividualAttackRolls": {
 		name: "SETTINGS.MAT.showIndividualAttackRolls",
 		hint: "SETTINGS.MAT.showIndividualAttackRollsHint",
@@ -194,11 +182,31 @@ const matSettings = {
 		config: false,
 		default: false,
 		type: Boolean 
-	}
+	},
+	"currentDialogId": {
+		name: "currentDialogId",
+		scope: "client",
+		config: false,
+		default: 0,
+		type: Number
+	},
 };
 
 
 export function initSettings() {
+	game.settings.register(moduleName, "mobRules", {
+		name: "SETTINGS.MAT.mobRulesOrIndividual",
+		hint: "SETTINGS.MAT.mobRulesOrIndividualHint",
+		config: true,
+		scope: "client",
+		type: Number,
+		default: 0,
+		choices: {
+			0: "SETTINGS.MAT.mobRules",
+			1: "SETTINGS.MAT.individualAttackRolls"
+		}
+	});
+
 	game.settings.registerMenu(moduleName, "rollSettingsMenu", {
         name: "SETTINGS.MAT.advancedSettings",
         label: "SETTINGS.MAT.openSettings",

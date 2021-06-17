@@ -1,5 +1,5 @@
 import { moduleName, coreVersion08x } from "./mobAttack.js";
-import { checkTarget, endGroupedMobTurn, formatMonsterLabel, formatWeaponLabel, getDamageFormulaAndType, calcD20Needed, calcAttackersNeeded, isTargeted, sendChatMessage, getAttackBonus, getScalingFactor } from "./utils.js";
+import { checkTarget, endGroupedMobTurn, getDamageFormulaAndType, calcD20Needed, calcAttackersNeeded, isTargeted, sendChatMessage, getAttackBonus, getScalingFactor } from "./utils.js";
 import { getMultiattackFromActor } from "./multiattack.js";
 
 

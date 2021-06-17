@@ -35,7 +35,7 @@
 		<label class="mat-label mat-col2">
 			<img class="mat-monster-icon mat-monster" src="{{actorImg}}" title="Open {{this.actorNameImg}} sheet" width="36" height="36" data-item-id="{{this.actorId}}">
 		</label>
-		<a class="mat-label mat-col3 mat-monster-name mat-monster" title="Open {{this.actorName}} sheet" data-item-id="{{this.actorId}}">{{this.actorName}}</a>
+		<label class="mat-label mat-col3 mat-monster-name"><a class="mat-monster" data-item-id="{{this.actorId}}" title="Open {{this.actorName}} sheet">{{this.actorName}}</a></label>
 	</div>
 	{{#if this.multiattackDesc}}
 		<div class="hint">
@@ -46,16 +46,27 @@
 
 {{#*inline "formatWeapon"}}
 	<div class="mat-weapon-label">
-		<label class="mat-label mat-col1">
-			<input type="number" class="numAttack" title="{{localize 'MAT.numAttacksTitle'}}" name="{{this.numAttacksName}}" width="20" min="1" value="{{this.numAttack}}" onClick="this.select();"/>
-		</label>
+		<div class="mat-label mat-col1">
+			<label class="mat-label mat-num-attack-group">
+				<input type="number" class="mat-label mat-col1 numAttack" title="{{localize 'MAT.numAttacksTitle'}}" name="{{this.numAttacksName}}" width="20" min="1" value="{{this.numAttack}}" onClick="this.select();"/>
+				<label class="hint mat-label mat-col2 mat-num-attack-buttons">
+					<a name="decreaseNumAttack" class="increaseNumAttack"><i class="fas fa-chevron-up"></i></a><br>
+					<a name="increaseNumAttack" class="decreaseNumAttack"><i class="fas fa-chevron-down"></i></a>
+				</label>
+			</label>
+		</div>
 		<label class="mat-label mat-col2">
 			<img class="mat-weapon-icon mat-weapon" src="{{this.weaponImg}}" title="Open {{this.weaponNameImg}} sheet" width="30" height="30" data-item-id="{{this.weaponId}}">
 		</label>
-		<a class="mat-label mat-col3 mat-weapon-name mat-weapon" title="Open {{this.weaponName}} sheet" data-item-id="{{this.weaponId}}">{{this.weaponName}}</a>
-		<label class="hint mat-label mat-col4">+{{this.weaponAttackBonus}} {{localize 'MAT.toHit'}}</label>
-		<label class="hint mat-label mat-col5 mat-damage-text">{{{this.weaponDamageText}}}</label>
-		<input class="mat-label mat-col6 useWeapon" title="{{localize 'MAT.useWeaponTitle'}}" type="checkbox" name="{{this.useButtonName}}" {{{this.useButtonValue}}}/>
+		<div class="mat-label mat-col3 mat-weapon" title="Open {{this.weaponName}} sheet" data-item-id="{{this.weaponId}}">
+			<a class="mat-weapon-name-label">
+				<label class="mat-label mat-col1 mat-weapon-name" title="Open {{this.weaponName}} sheet">{{this.weaponName}}</label>
+				<label class="hint mat-label mat-col2 mat-attack-bonus" title="Open {{this.weaponName}} sheet">+{{this.weaponAttackBonus}} {{localize 'MAT.toHit'}}</label>
+				<label class="hint mat-label mat-col3 mat-weapon-range" title="Open {{this.weaponName}} sheet">{{this.weaponRange}}</label>
+				<label class="hint mat-label mat-col4 mat-damage-text" title="Open {{this.weaponName}} sheet">{{{this.weaponDamageText}}}</label>
+			</a>
+		</div>
+		<input class="mat-label mat-col4 useWeapon" title="{{localize 'MAT.useWeaponTitle'}}" type="checkbox" name="{{this.useButtonName}}" {{{this.useButtonValue}}}/>
 	</div>
 {{/inline}}
 
@@ -63,7 +74,7 @@
 <form id="mobattack-tool-test" class="mat-dialog-content" autocomplete="off">
 	<nav class="sheet-tabs tabs">
 		<a class="item active" data-tab="weapons"><i class="fas fa-fist-raised"></i> {{localize 'Weapon Options'}}</a>
-		<a class="item" data-tab="targets"><i class="fas fa-crosshairs"></i> {{localize 'Targets'}}</a>
+		<a class="item" data-tab="targets"><i class="fas fa-crosshairs"></i> {{localize 'Targets'}} ({{this.numTargets}})</a>
 	</nav>
 	<hr>
 	<section class="content">
@@ -93,7 +104,8 @@
 	<hr>
 	<section id="mobDialog-tabs" class="content">
 		<div class="tab active" data-tab="weapons">
-			<p>{{localize 'MAT.dialogChooseWeaponOption'}}:</p><p class="hint">{{localize 'MAT.dialogNumSelected'}} {{numSelected}} token{{pluralTokensOrNot}}. Total number of attacks: {{this.numTotalAttacks}}. Average amount of damage (if all attacks hit): {{this.totalAverageDamage}} points of damage.</p>
+			<p class="hint">{{localize 'MAT.dialogNumSelected'}} <strong>{{numSelected}}</strong> token{{pluralTokensOrNot}}. Total number of attacks: <strong>{{this.numTotalAttacks}}</strong>.</p>
+			<p class="hint">Average amount of damage (if all attacks hit): <strong>{{this.totalAverageDamage}}</strong> points of damage.</p>
 			<div name="mobListOptions">
 				{{#each this.monsters}}
 					<hr>
@@ -114,9 +126,9 @@
 				<div class="mat-rolltype">
 					<label class="mat-label mat-col1">{{localize 'MAT.selectRollType'}}: </label>
 					<select class="mat-label mat-col2" name="rollType">
-						<option value="advantage">{{localize 'Advantage'}}</option>
-						<option value="normal" selected>{{localize 'Normal'}}</option>
-						<option value="disadvantage">{{localize 'Disadvantage'}}</option>
+						<option value="advantage" {{this.rollTypeSelection.advantage}}>{{localize 'Advantage'}}</option>
+						<option value="normal" {{this.rollTypeSelection.normal}}>{{localize 'Normal'}}</option>
+						<option value="disadvantage" {{this.rollTypeSelection.disadvantage}}>{{localize 'Disadvantage'}}</option>
 					</select>
 				</div>
 				
@@ -150,9 +162,9 @@
 					<input type="number" name="armorClassMod" value="{{armorClassMod}}"/>
 					<button type="button" name="increaseACmod" class="increaseACmod">
 						<i class="fas fa-plus"></i>
+					</button>
 					<button type="button" name="decreaseACmod" class="decreaseACmod">
 						<i class="fas fa-minus"></i>
-					</button>
 					</button>
 				</div>
 				<p class="notes">{{localize 'MAT.acModNotes'}}</p>

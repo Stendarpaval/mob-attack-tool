@@ -128,6 +128,18 @@ export async function prepareMonsters(actorList, monsters, weapons, availableAtt
 				let autoDetect = game.settings.get(moduleName,"autoDetectMultiattacks");
 				if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(weaponData.name, weaponData.actor, weapons, options);
 				if (autoDetect === 1 || isVersatile) preChecked = false;
+				let weaponRangeText = ``;
+				if (weaponData.data.data.range.long > 0) {
+					weaponRangeText = `${weaponData.data.data.range.value}/${weaponData.data.data.range.long} ${weaponData.data.data.range.units}.`;
+				} else if (weaponData.data.data.range.value > 0) {
+					weaponRangeText = `${weaponData.data.data.range.value} ${weaponData.data.data.range.units}.`;
+				} else if (weaponData.data.data.range.units === "touch") {
+					weaponRangeText = "Touch";
+				} else if (weaponData.data.data.range.units === "self") {
+					weaponRangeText = "Self";
+				} else {
+					weaponRangeText = '-';
+				}
 				
 				let labelData = {
 					numAttacksName: `numAttacks${(weaponData.id + ((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)).replace(" ","-")}`,
@@ -137,6 +149,7 @@ export async function prepareMonsters(actorList, monsters, weapons, availableAtt
 					weaponNameImg: weaponData.name.replace(" ","-"),
 					weaponName: `${weaponData.name}${((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)}`,
 					weaponAttackBonus: getAttackBonus(weaponData),
+					weaponRange: weaponRangeText,
 					weaponDamageText: weaponDamageText,
 					useButtonName: `use${(weaponData.id + ((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)).replace(" ","-")}`,
 					useButtonValue: (preChecked) ? `checked` : ``,
@@ -271,52 +284,6 @@ export async function endGroupedMobTurn(data) {
 			console.log("Mob Attack Tool | Mob turn could not be ended because the mob attack was used during another combatant's turn.");
 		}
 	}
-}
-
-
-export async function formatMonsterLabel(monsterData) {
-	let labelData = {
-		actorId: monsterData.id,
-		actorAmount: `${monsterData.amount}x`,
-		actorImg: monsterData.img,
-		actorNameImg: monsterData.name.replace(" ","-"),
-		actorName: monsterData.name
-	};
-	let monsterLabel = await renderTemplate('modules/mob-attack-tool/templates/mat-format-monster-label.html',labelData);
-	return monsterLabel;
-}
-
-
-export async function formatWeaponLabel(itemData, weapons, options) {
-	let weaponLabel = ``;
-	let checkVersatile = itemData.data.data.damage.versatile != "";
-	for (let j = 0; j < 1 + ((checkVersatile) ? 1 : 0); j++) {
-		let isVersatile = (j < 1) ? false : itemData.data.data.damage.versatile != "";
-		let damageData = getDamageFormulaAndType(itemData, isVersatile);
-		let weaponDamageText = ``;
-		for (let i = 0; i < damageData[0].length; i++) {
-			((i > 0) ? weaponDamageText += `<br>${damageData[0][i]} ${damageData[1][i].capitalize()}` : weaponDamageText += `${damageData[0][i]} ${damageData[1][i].capitalize()}`);
-		}
-		let numAttacksTotal = 1, preChecked = false;
-		let autoDetect = game.settings.get(moduleName,"autoDetectMultiattacks");
-		if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(itemData.name, itemData.actor, weapons, options);
-		if (autoDetect === 1 || isVersatile) preChecked = false;
-		
-		let labelData = {
-			numAttacksName: `numAttacks${(itemData.id + ((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)).replace(" ","-")}`,
-			numAttack: numAttacksTotal,
-			weaponId: itemData.id,
-			weaponImg: itemData.img,
-			weaponNameImg: itemData.name.replace(" ","-"),
-			weaponName: `${itemData.name}${((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)}`,
-			weaponAttackBonus: getAttackBonus(itemData),
-			weaponDamageText: weaponDamageText,
-			useButtonName: `use${(itemData.id + ((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)).replace(" ","-")}`,
-			useButtonValue: (preChecked) ? `checked` : ``
-		};
-		weaponLabel += await renderTemplate('modules/mob-attack-tool/templates/mat-format-weapon-label.html', labelData);
-	}
-	return weaponLabel;
 }
 
 

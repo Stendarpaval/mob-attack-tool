@@ -1,5 +1,5 @@
 import { moduleName, coreVersion08x } from "./mobAttack.js";
-import { checkTarget, prepareMonsters, prepareMobAttack, formatMonsterLabel, formatWeaponLabel, getDamageFormulaAndType, calcD20Needed, calcAttackersNeeded, isTargeted, sendChatMessage, getAttackBonus, getScalingFactor } from "./utils.js";
+import { checkTarget, prepareMonsters, prepareMobAttack, getDamageFormulaAndType, calcD20Needed, calcAttackersNeeded, isTargeted, sendChatMessage, getAttackBonus, getScalingFactor } from "./utils.js";
 import { rollMobAttackIndividually, processIndividualDamageRolls } from "./individualRolls.js";
 import { rollMobAttack, processMobRulesDamageRolls } from "./mobRules.js";
 import { getMultiattackFromActor } from "./multiattack.js";
@@ -30,39 +30,20 @@ async function mobAttackTool() {
 		return;
 	}
 
-	// Check targeted token
-	if (!checkTarget()) return;
-	let targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
-	let targetAC;
-	if (targetToken) {
-		targetAC = targetToken.actor.data.data.attributes.ac.value;
-	}
 
-	let selectedTokens = canvas.tokens.controlled;
-	let numSelected = selectedTokens.length;
-	let pluralTokensOrNot = ((numSelected === 1) ? `` : `s`);
-
-	if (canvas.tokens.controlled.length > 0 || Object.keys(mobList).length === 0) {
-		await game.settings.set(moduleName,'hiddenMobName',`Mob of ${canvas.tokens.controlled[0].name}`);
-	} else {
-		await game.settings.set(moduleName,'hiddenMobName',`${Object.keys(mobList)[0]}`);
-	}
-
-	const mobDialog = new MobAttackDialog(targetToken, targetAC, selectedTokens, numSelected).render(true);
-
+	const mobDialog = new MobAttackDialog();
+	mobDialog.render(true);
+	game.mobAttackTool.dialogs.set(mobDialog.appId,mobDialog);
+	await game.settings.set(moduleName, "currentDialogId", mobDialog.appId);
 }
 
 
 
-class MobAttackDialog extends FormApplication {
-	constructor(targetToken, targetAC, selectedTokens, numSelected, dialogData={}, options={}) {
+export class MobAttackDialog extends FormApplication {
+	constructor(dialogData={}, options={}) {
 		super(dialogData, options);
 		this.data = dialogData;
 		this.options.classes = ["mat-monster-icon", "mat-weapon-icon"];
-		this.selectedTokens = selectedTokens;
-		this.numSelected = numSelected;
-		this.targetToken = targetToken;
-		this.targetAC = targetAC;
 		this.actorList = [];
 		this.mobListIndex = 0;
 		this.armorClassMod = (game.user.getFlag(moduleName,"persistACmod") ?? game.settings.get(moduleName,"persistACmod")) ? game.settings.get(moduleName,"savedArmorClassMod") : 0;
@@ -71,6 +52,8 @@ class MobAttackDialog extends FormApplication {
 		this.collapsibleName = game.i18n.localize("Show options");
 		this.collapsibleCSS = "mat-collapsible-content-closed";
 		this.collapsiblePlusMinus = "plus";
+
+		this.rollTypeSelection = {advantage: "", normal: "selected", disadvantage: ""};
 
 		this.numTotalAttacks = 0;
 		this.totalAverageDamage = 0;
@@ -83,7 +66,7 @@ class MobAttackDialog extends FormApplication {
 			title: "Mob Attack Tool",
 			id: "mob-attack-tool-dialog",
 			template: "modules/mob-attack-tool/templates/mat-dialog.html",
-			width: "430",
+			width: "505",
 			height: "auto",
 			closeOnSubmit: true,
 			tabs: [{navSelector: ".tabs", contentSelector: "form", initial: "weapons"}]
@@ -94,6 +77,22 @@ class MobAttackDialog extends FormApplication {
 	async getData(options={}) {
 		// Show weapon options per selected token type
 		let mobList = game.settings.get(moduleName,"hiddenMobList");
+		this.targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
+		this.numTargets = 0;
+		if (this.targetToken) {
+			this.targetAC = this.targetToken.actor.data.data.attributes.ac.value;
+			this.numTargets = canvas.tokens.objects.children.filter(isTargeted).length;
+		}
+
+		this.numSelected = canvas.tokens.controlled.length;
+		this.pluralTokensOrNot = ((this.numSelected === 1) ? `` : `s`);
+		
+		if ((this.numSelected > 0 || Object.keys(mobList).length === 0) && !game.settings.get(moduleName, "hiddenChangedMob")) {
+			await game.settings.set(moduleName,'hiddenMobName',`Mob of ${canvas.tokens.controlled[0].name}`);
+		} else {
+			await game.settings.set(moduleName,'hiddenMobName',`${Object.keys(mobList)[this.mobListIndex]}`);
+		}
+
 		let monsters = {};
 		let weapons = {};
 		let availableAttacks = {};
@@ -109,7 +108,7 @@ class MobAttackDialog extends FormApplication {
 				}
 			}
 		} else {
-			if (canvas.tokens.controlled.length > 0 || Object.keys(mobList).length === 0) {
+			if (this.numSelected > 0 || Object.keys(mobList).length === 0) {
 				for (let token of canvas.tokens.controlled) {
 					actorList.push(token.actor);
 				}
@@ -161,16 +160,21 @@ class MobAttackDialog extends FormApplication {
 			}
 		}
 
+		let targetACtext = ((game.user.isGM && this.targetToken) ? ` ${game.i18n.localize("MAT.dialogTargetArmorClassMessage")} ${newTargetAC}.` : (!this.targetToken) ? ` ${game.i18n.localize("MAT.noTargetAllAttacksHitText")}` : ``);
+		if (this.numTargets > 1) {
+			targetACtext = `Note: support for handling multiple targets will arrive later. Please make sure only one token is targeted when executing a Mob Attack.`
+		}
 
 		let data = {
 			mobName: game.settings.get('mob-attack-tool','hiddenMobName'),
 			numSelected: this.numSelected,
+			numTargets: this.numTargets,
 			pluralTokensOrNot: ((this.numSelected === 1) ? `` : `s`),
 			targetImg: this.targetToken?.data?.img ?? "icons/svg/mystery-man.svg",
 			targetImgName: this.targetToken?.name ?? "Unknown target",
 			targetId: this.targetToken?.id,
 			targetAC: newTargetAC,
-			targetACtext: ((game.user.isGM && this.targetToken) ? ` ${game.i18n.localize("MAT.dialogTargetArmorClassMessage")} ${newTargetAC}.` : (!this.targetToken) ? ` ${game.i18n.localize("MAT.noTargetAllAttacksHitText")}` : ``),
+			targetACtext: targetACtext,
 			armorClassMod: (game.user.getFlag(moduleName,"persistACmod") ?? game.settings.get(moduleName,"persistACmod")) ? game.settings.get(moduleName,"savedArmorClassMod") : this.armorClassMod,
 			monsters: this.monsters,
 			selectRollType: game.settings.get(moduleName,"askRollType"),
@@ -180,7 +184,8 @@ class MobAttackDialog extends FormApplication {
 			hiddenCollapsibleCSS: this.collapsibleCSS,
 			collapsiblePlusMinus: this.collapsiblePlusMinus,
 			numTotalAttacks: this.numTotalAttacks,
-			totalAverageDamage: this.totalAverageDamage
+			totalAverageDamage: this.totalAverageDamage,
+			rollTypeSelection: this.rollTypeSelection
 		};
 		data.isGM = game.user.isGM;
 
@@ -197,6 +202,8 @@ class MobAttackDialog extends FormApplication {
 		this.weaponArray = weaponArray;
 		// this.monsters = monsters;
 		this.availableAttacks = availableAttacks;
+
+		this.data = data;
 		
 		return data
 	}
@@ -241,6 +248,47 @@ class MobAttackDialog extends FormApplication {
 			}
 			this.localUpdate = true;
 			this.render(true);
+		})
+
+		// increase numAttack of a weapon
+		html.on("click", ".increaseNumAttack", async (event) => {
+			let numAttack = parseInt(event.currentTarget.parentNode.previousElementSibling.value);
+			if (numAttack == NaN || numAttack == null || numAttack == undefined) {
+				numAttack = 1;
+			}
+			let updatedNumAttack = numAttack + 1;
+			let weaponId = event.currentTarget.parentNode.previousElementSibling.getAttribute("name").slice(10);
+			for (let [monsterKey, monsterData] of Object.entries(this.monsters)) {
+				for (let [weaponKey, weaponData] of Object.entries(monsterData.weapons)) {
+					if (weaponKey.replace(" ","-") === weaponId) {
+						this.monsters[monsterKey].weapons[weaponKey].numAttack = updatedNumAttack;
+						break;
+					}
+				}
+			}
+			this.localUpdate = true;
+			this.render(true);
+		})
+
+		// decrease numAttack of a weapon
+		html.on("click", ".decreaseNumAttack", async (event) => {
+			let numAttack = parseInt(event.currentTarget.parentNode.previousElementSibling.value);
+			if (numAttack == NaN || numAttack == null || numAttack == undefined) {
+				numAttack = 1;
+			}
+			let updatedNumAttack = (numAttack - 1 > 1) ? numAttack - 1 : 1;
+			let weaponId = event.currentTarget.parentNode.previousElementSibling.getAttribute("name").slice(10);
+			for (let [monsterKey, monsterData] of Object.entries(this.monsters)) {
+				for (let [weaponKey, weaponData] of Object.entries(monsterData.weapons)) {
+					if (weaponKey.replace(" ","-") === weaponId) {
+						this.monsters[monsterKey].weapons[weaponKey].numAttack = updatedNumAttack;
+						break;
+					}
+				}
+			}
+			this.localUpdate = true;
+			this.render(true);
+			// console.log(numAttack);
 		})
 
 		// render the item's sheet if its image is clicked
@@ -400,13 +448,15 @@ class MobAttackDialog extends FormApplication {
 
 		// execute mob attack
 		html.on("click", ".executeMobAttack", async (event) => {
-			let mobAttackData = await prepareMobAttack(html, this.weapons, this.availableAttacks, this.targetToken, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
-			if (game.settings.get(moduleName,"mobRules") === 0) {
-				rollMobAttack(mobAttackData);
-			} else {
-				rollMobAttackIndividually(mobAttackData);
+			if (checkTarget()) {
+				let mobAttackData = await prepareMobAttack(html, this.weapons, this.availableAttacks, this.targetToken, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
+				if (game.settings.get(moduleName,"mobRules") === 0) {
+					rollMobAttack(mobAttackData);
+				} else {
+					rollMobAttackIndividually(mobAttackData);
+				}
+				this.close();
 			}
-			this.close();
 		})
 
 		// export Mob Attack
@@ -484,6 +534,10 @@ class MobAttackDialog extends FormApplication {
 				this.collapsiblePlusMinus = "plus";
 				this.collapsibleCSS = "mat-collapsible-content-closed";
 			}
+			await game.user.setFlag(moduleName,"endMobTurnValue", html.find(`input[name="endMobTurn"]`)[0].checked)
+			let rollTypeOptions = {advantage: "", normal: "", disadvantage: ""};
+			rollTypeOptions[html.find("[name=rollType]")[0].value] = "selected";
+			this.rollTypeSelection = rollTypeOptions;
 			this.localUpdate = true;
 		    this.render(true);
 		})

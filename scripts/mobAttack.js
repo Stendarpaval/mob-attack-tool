@@ -1,6 +1,7 @@
 import { initSettings } from "./settings.js";
-import { initMobAttackTool } from "./mobAttackTool.js";
+import { initMobAttackTool, MobAttackDialog } from "./mobAttackTool.js";
 import { MobAttacks } from "./mobAttackTool.js";
+import { checkTarget, isTargeted } from "./utils.js";
 
 export const moduleName = "mob-attack-tool";
 
@@ -15,9 +16,43 @@ Hooks.once("init", () => {
 
 	initSettings();
 	initMobAttackTool();
+
+	const dialogs = new Map();
+	game.mobAttackTool = {
+		applications: {
+			MobAttackDialog
+		},
+		dialogs
+	}
 })
 
 
 Hooks.on("ready", async () => {
 	window.MobAttacks = MobAttacks();
+})
+
+// update dialog windows if new tokens are selected
+Hooks.on("controlToken", async (token, controlState) => {
+	if (!controlState) return;
+	let dialogId = game.settings.get(moduleName, "currentDialogId");
+	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
+	if (mobDialog) {
+		if (mobDialog.rendered) {
+			await game.settings.set(moduleName, "hiddenChangedMob", false);
+			mobDialog.render(true);
+		}
+	}
+});
+
+// update dialog if targeted token changes
+Hooks.on("targetToken", async (token, targetState) => {
+	let dialogId = game.settings.get(moduleName, "currentDialogId");
+	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
+	if (mobDialog) {
+		if (mobDialog.rendered) {
+			await game.settings.set(moduleName, "hiddenChangedMob", false);
+			mobDialog.render(true);
+		}
+	}
+	
 })
