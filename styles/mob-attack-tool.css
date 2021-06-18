@@ -37,14 +37,40 @@
 
 .mat-monster-label {
 	display:grid; 
-	grid-template-columns: 20px 36px 240px; 
+	grid-template-columns: 40px 36px 240px; 
 	column-gap:5px;
+}
+
+.mat-mob-name-label-group {
+	display:grid; 
+	grid-template-columns: 36% 3% 40% 5% 7% 7%; 
+	column-gap:3px;
+}
+
+.mat-mob-name-label {
+	align-self: center;
+	white-space: pre-wrap;
+	text-align: center;
+}
+
+input[type="number"].numMonster {
+	text-align:center;
+	/*background: rgba(0, 0, 0, 0.1);*/
+	/*border-radius: 6px;*/
+}
+
+input[type="number"].numAttack {
+	text-align:center;
+}
+
+input[type="number"].numTable {
+	/*width: calc(25%);*/
+	text-align:center;
 }
 
 .mat-weapon-label {
 	display:grid; 
-	grid-template-columns:45px 30px 370px 125px;
-	/*grid-template-columns:30px 30px 120px 50px 60px 125px 30px; */
+	grid-template-columns:9% 6% 76% 9%;
 	column-gap:5px;
 }
 
@@ -54,15 +80,19 @@
 	column-gap:5px;	
 }
 
-.mat-num-attack-group {
+.mat-num-group {
 	display:grid; 
 	grid-template-columns:30px 14px; 
 	column-gap:1px;
-	/*margin:0px 5px 0px 0px;*/
 }
 
-.mat-num-attack-buttons {
-	/*white-space: pre-wrap; */
+.mat-num-group-monster {
+	display:grid; 
+	grid-template-columns:25px 14px; 
+	column-gap:1px;
+}
+
+.mat-num-buttons {
 	text-align:center;
 	cursor: pointer;
 }
@@ -163,8 +193,6 @@
 .mat-collapsible {
 	cursor: pointer;
 	width: 100%;
-	/*border-bottom:1px solid gray;
-	display: block;*/
 	margin:0px 0px 3px 0px;
 }
 

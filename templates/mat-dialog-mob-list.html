@@ -4,27 +4,54 @@
 			<label>{{localize 'MAT.selectMob'}}:</label>
 			<div class="form-fields">
 				<select name="selectMob">
+					{{#if this.noSelectMob}}
 					<option hidden disabled selected value> - {{localize 'MAT.selectAMob'}} - </option>
+					{{/if}}
 					{{#each this.mobList}}
 						{{#if this.visible}}
-						<option value="{{this.mobName}}">{{this.mobName}}</option>
+						<option value="{{this.mobName}}"{{#if this.selected}}selected{{/if}}>{{this.mobName}}</option>
 						{{/if}}
 					{{/each}}
 				</select>
 			</div>
 		</div>
-		<div class="form-group">
-			<label>Reset Mobs of this user:</label>
+		<!-- <div class="form-group">
+			<label>{{localize 'Choose option'}}:</label>
 			<div class="form-fields">
-				<input type="checkbox" title="{{localize 'MAT.resetMobsDialog'}}" name="resetUserMobs"/>
+				<input type="radio" id="deleteSelectedMob" name="savedMobOptions" value="deleteSelectedMob">
+				<label for="deleteSelectedMob" title="{{localize 'MAT.deleteMobDialog'}}">{{localize 'MAT.deleteMobDialog'}}</label>
+				<br>
+			    <input type="radio" id="resetUserMobs" name="savedMobOptions" value="deleteSelectedMob">
+			    <label for="resetUserMobs" title="{{localize 'MAT.resetUserMobsDialog'}}">{{localize 'MAT.resetUserMobsDialog'}}</label>
+
+			    {{#if this.isGM}}
+			    	<br>
+				    <input type="radio" id="resetAllMobs" name="savedMobOptions" value="deleteSelectedMob">
+				    <label for="resetAllMobs" title="{{localize 'MAT.resetAllMobsDialog'}}">{{localize 'MAT.resetAllMobsDialog'}}</label>
+			    {{/if}}
 			</div>
+		</div> -->
+		<div class="form-group">
+			<label>{{localize 'MAT.deleteMobDialog'}}:</label>
+			<div class="form-fields">
+				<input type="checkbox" title="{{localize 'MAT.deleteMobDialog'}}"name="deleteSavedMob"/>
+			</div>
+			<p class="notes">{{localize 'MAT.deleteMobHint'}}</p>
+		</div>
+		<div class="form-group">
+			<label>{{localize 'MAT.resetUserMobsDialog'}}:</label>
+			<div class="form-fields">
+				<input type="checkbox" title="{{localize 'MAT.resetUserMobsDialog'}}" name="resetUserMobs"/>
+			</div>
+			<p class="notes">{{localize 'MAT.resetUserMobsHint'}}</p>
 		</div>
 		{{#if this.isGM}}
 		<div class="form-group">
-			<label>{{localize 'MAT.resetMobsDialog'}}:</label>
+			<label>{{localize 'MAT.resetAllMobsDialog'}}:</label>
 			<div class="form-fields">
-				<input type="checkbox" title="{{localize 'MAT.resetMobsDialog'}}" name="resetAllMobs"/>
+				<input type="checkbox" title="{{localize 'MAT.resetAllMobsDialog'}}" name="resetAllMobs"/>
 			</div>
+			<p class="notes">{{localize 'MAT.resetAllMobsHint'}}</p>
 		</div>
 		{{/if}}
 	</section>

@@ -31,7 +31,16 @@
 
 {{#*inline "formatMonster"}}
 	<div class="mat-monster-label">
-		<label class="mat-label mat-col1">{{this.actorAmount}}</label>
+		<div class="mat-label mat-col1">
+			<label class="mat-label mat-num-group-monster">
+				<input type="number" class="mat-label mat-col1 numMonster" title="Number of {{this.actorName}}" name="{{this.actorId}}" width="20" min="1" value="{{this.amount}}" onClick="this.select();"/>
+				<label class="hint mat-label mat-col2 mat-num-buttons">
+					<a name="decreaseNumMonster" class="increaseNumMonster"><i class="fas fa-chevron-up"></i></a><br>
+					<a name="increaseNumMonster" class="decreaseNumMonster"><i class="fas fa-chevron-down"></i></a>
+				</label>
+			</label>
+		</div>
+		<!-- <label class="mat-label mat-col1">{{this.actorAmount}}</label> -->
 		<label class="mat-label mat-col2">
 			<img class="mat-monster-icon mat-monster" src="{{actorImg}}" title="Open {{this.actorNameImg}} sheet" width="36" height="36" data-item-id="{{this.actorId}}">
 		</label>
@@ -47,9 +56,9 @@
 {{#*inline "formatWeapon"}}
 	<div class="mat-weapon-label">
 		<div class="mat-label mat-col1">
-			<label class="mat-label mat-num-attack-group">
+			<label class="mat-label mat-num-group">
 				<input type="number" class="mat-label mat-col1 numAttack" title="{{localize 'MAT.numAttacksTitle'}}" name="{{this.numAttacksName}}" width="20" min="1" value="{{this.numAttack}}" onClick="this.select();"/>
-				<label class="hint mat-label mat-col2 mat-num-attack-buttons">
+				<label class="hint mat-label mat-col2 mat-num-buttons">
 					<a name="decreaseNumAttack" class="increaseNumAttack"><i class="fas fa-chevron-up"></i></a><br>
 					<a name="increaseNumAttack" class="decreaseNumAttack"><i class="fas fa-chevron-down"></i></a>
 				</label>
@@ -80,24 +89,26 @@
 	<section class="content">
 		<div class="form-group">
 			<label>
-				<!-- <a class="previousMob">
-					<i class="fas fa-arrow-left"></i>
-				</a> -->
 				 {{localize 'MAT.mobNameDialog'}}:
 			</label>
 			<div class="form-fields">
+				<label>
+					<a class="previousMob" title="{{localize 'Switch to previous saved mob'}}">
+						<i class="fas fa-arrow-left"></i>
+					</a>
+				</label>
 				<input type="text" name="mobName" value="{{mobName}}" onClick="this.select();"/>
+				<label>
+					 <a class="nextMob" title="{{localize 'Switch to next saved mob'}}">
+						<i class="fas fa-arrow-right"></i>
+					</a>
+				</label>
 				<button type="button" title="{{localize 'MAT.saveMobButtonTitle'}}" name="saveMob" class="saveMobButton">
 					<i class="far fa-save"></i>
 				</button>
-				<button type="button" title="{{localize 'MAT.loadMobButtonTitle'}}" name="loadMob" class="loadMobButton">
+				<button type="button" title="{{localize 'MAT.selectMobButtonTitle'}}" name="selectMob" class="selectMobButton">
 					<i class="fas fa-file-import fa-fw"></i>
 				</button>
-				<!-- <label>
-					 <a class="nextMob">
-						<i class="fas fa-arrow-right"></i>
-					</a>
-				</label> -->
 			</div>
 		</div>
 	</section>
@@ -107,16 +118,18 @@
 			<p class="hint">{{localize 'MAT.dialogNumSelected'}} <strong>{{numSelected}}</strong> token{{pluralTokensOrNot}}. Total number of attacks: <strong>{{this.numTotalAttacks}}</strong>.</p>
 			<p class="hint">Average amount of damage (if all attacks hit): <strong>{{this.totalAverageDamage}}</strong> points of damage.</p>
 			<div name="mobListOptions">
+				<hr>
 				{{#each this.monsters}}
-					<hr>
 					{{#with this}}
 						{{> formatMonster}}
 					{{/with}}
+					<div style="border:2px groove #eeede0; padding: 3px; margin-bottom: 0.5em;">
 					{{#each this.weapons}}
 						{{#with this}}
 							{{> formatWeapon}}
 						{{/with}}
 					{{/each}}
+					</div>
 				{{/each}}
 			</div>
 			<hr>

@@ -33,11 +33,11 @@ Hooks.on("ready", async () => {
 
 // update dialog windows if new tokens are selected
 Hooks.on("controlToken", async (token, controlState) => {
-	if (!controlState) return;
+	// if (!controlState) return;
 	let dialogId = game.settings.get(moduleName, "currentDialogId");
 	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
 	if (mobDialog) {
-		if (mobDialog.rendered) {
+		if (mobDialog.rendered && !mobDialog.currentlySelectingTokens) {
 			await game.settings.set(moduleName, "hiddenChangedMob", false);
 			mobDialog.render(true);
 		}
@@ -50,7 +50,7 @@ Hooks.on("targetToken", async (token, targetState) => {
 	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
 	if (mobDialog) {
 		if (mobDialog.rendered) {
-			await game.settings.set(moduleName, "hiddenChangedMob", false);
+			// await game.settings.set(moduleName, "hiddenChangedMob", false);
 			mobDialog.render(true);
 		}
 	}

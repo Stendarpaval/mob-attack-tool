@@ -190,6 +190,30 @@ const matSettings = {
 		default: 0,
 		type: Number
 	},
+	"keepDialogOpen": {
+		name: "SETTINGS.MAT.keepDialogOpen",
+		hint: "SETTINGS.MAT.keepDialogOpenHint",
+		scope: "client",
+		config: true,
+		default: false,
+		type: Boolean
+	},
+	"defaultMobPrefix": {
+		name: "SETTINGS.MAT.defaultMobPrefix",
+		hint: "SETTINGS.MAT.defaultMobPrefixHint",
+		scope: "client",
+		config: true,
+		default: "Mob of",
+		type: String
+	},
+	"defaultMobSuffix": {
+		name: "SETTINGS.MAT.defaultMobSuffix",
+		hint: "SETTINGS.MAT.defaultMobSuffixHint",
+		scope: "client",
+		config: true,
+		default: "(s)",
+		type: String
+	},
 };
 
 

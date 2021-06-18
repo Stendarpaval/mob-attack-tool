@@ -23,11 +23,17 @@
 	"MAT.savedMobNotify": "{mobName} saved!",
 	"MAT.overwriteMobDialog": "There already exists a mob with the name \"{mobName}\". Do you want to overwrite it?",
 	"MAT.resetMobsNotify": "List of saved mobs was reset!",
+	"MAT.deleteMobDialog": "Delete selected mob",
+	"MAT.deleteMobHint": "Removes the selected mob from the list of saved mobs.",
+	"MAT.deleteMobNotify": "\"{mobName}\" was deleted!",
+	"MAT.resetUserMobsDialog": "Reset user mobs",
+	"MAT.resetUserMobsHint": "Resets the list of saved mobs for the user.",
 	"MAT.resetAllMobsNotify": "List of mobs of current user was reset!",
-	"MAT.resetMobsDialog": "Reset all Mobs",
+	"MAT.resetAllMobsDialog": "Reset all mobs",
+	"MAT.resetAllMobsHint": "Resets the list of saved mobs for ALL users.",
 	"MAT.mobNameDialog": "Mob name",
-	"MAT.saveMobButtonTitle": "Save Mob",
-	"MAT.loadMobButtonTitle": "Load Mob",
+	"MAT.saveMobButtonTitle": "Save mob",
+	"MAT.selectMobButtonTitle": "Select mob",
 
 	"MAT.macroNamePrefix": "Mob Attack of",
 	"MAT.macroNamePostfix": "(s)",
@@ -128,6 +134,12 @@
 	"SETTINGS.MAT.persistACmod": "Persist AC modifier",
  	"SETTINGS.MAT.persistACmodHint": "Enable this to make the AC modifier value persist across new instances of Mob Attack Tool.",
  	"SETTINGS.MAT.showMobAttackResultsToPlayers": "Stop whispering Mob Attack results",
- 	"SETTINGS.MAT.showMobAttackResultsToPlayersHint": "Enable this to make the Mob Attack Results message visible to players (if your roll mode is set to Public Rolls). Disable it to whisper the results to the GM. (Client specific setting)"
+ 	"SETTINGS.MAT.showMobAttackResultsToPlayersHint": "Enable this to make the Mob Attack Results message visible to players (if your roll mode is set to Public Rolls). Disable it to whisper the results to the GM. (Client specific setting)",
+ 	"SETTINGS.MAT.keepDialogOpen": "Keep dialog open",
+ 	"SETTINGS.MAT.keepDialogOpenHint": "Enable this to prevent the Mob Attack dialog from closing after executing a Mob Attack. This can be useful if you need to make multiple Mob Attacks in a short amount of time, or you could minimize the dialog and maximize it when you need it. (Client specific setting)",
 
+ 	"SETTINGS.MAT.defaultMobPrefix": "Default mob name prefix",
+ 	"SETTINGS.MAT.defaultMobPrefixHint": "Choose what default text will appear before the name of the first creature of a mob.",
+ 	"SETTINGS.MAT.defaultMobSuffix": "Default mob name suffix",
+ 	"SETTINGS.MAT.defaultMobSuffixHint": "Choose what default text will appear after the namme of the first creature of a mob."
 }

@@ -7,6 +7,16 @@ String.prototype.capitalize = function() {
 }
 
 
+export function checkSelectedTokens() {
+	let mobList = game.settings.get(moduleName,"hiddenMobList");
+	if (canvas.tokens.controlled.length === 0 && Object.keys(mobList).length === 0) {
+		ui.notifications.warn(game.i18n.localize("MAT.selectTokenWarning"));
+		return false;
+	}
+	return true;
+}
+
+
 export function checkTarget() {
 	if (canvas.tokens.objects.children.filter(isTargeted).length > 1) {
 		ui.notifications.warn(game.i18n.localize("MAT.singleTargetWarning"));
@@ -22,7 +32,8 @@ export function checkTarget() {
 }
 
 
-export async function prepareMonsters(actorList, monsters, weapons, availableAttacks) {
+export async function prepareMonsters(actorList, keepCheckboxes=false, oldMonsters={}, weapons={}, availableAttacks={}) {
+	let monsters = {};
 	for (let actor of actorList) {
 		if (monsters[actor.id]) {
 			if (monsters[actor.id].id === actor.id) {
@@ -152,7 +163,7 @@ export async function prepareMonsters(actorList, monsters, weapons, availableAtt
 					weaponRange: weaponRangeText,
 					weaponDamageText: weaponDamageText,
 					useButtonName: `use${(weaponData.id + ((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)).replace(" ","-")}`,
-					useButtonValue: (preChecked) ? `checked` : ``,
+					useButtonValue: (keepCheckboxes) ? oldMonsters[actor.id]["weapons"][weaponID].useButtonValue : (preChecked) ? `checked` : ``,
 					averageDamage: averageDamage[weaponID]
 				};
 				if (j === 0) {
@@ -172,19 +183,16 @@ export async function prepareMobAttack(html, weapons, availableAttacks, targetTo
 	if (game.settings.get("mob-attack-tool", "hiddenChangedMob")) {
 		let mobName = game.settings.get(moduleName,'hiddenMobName');
 		let mobData = mobList[mobName];
-		// let actorList = this.actorList;
-		let actorList = [];
-		for (let monster of mobData.monsters) {
-			for (let i = 0; i < monster.amount; i++) {
-				actorList.push(game.actors.get(monster.id));	
-			}
-		}
-		let content = ``;
+
+		let dialogId = game.settings.get(moduleName, "currentDialogId");
+		let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
+		let actorList = mobDialog.actorList;
+
 		monsters = {}; 
 		weapons = {};
 		availableAttacks = {};
 		numSelected = mobData.numSelected;
-		[monsters, weapons, availableAttacks] = await prepareMonsters(actorList, monsters, weapons, availableAttacks);
+		[monsters, weapons, availableAttacks] = await prepareMonsters(actorList);
 	}
 
 	let attacks = {};
@@ -253,6 +261,41 @@ export async function prepareMobAttack(html, weapons, availableAttacks, targetTo
 	};
 
 	return mobAttackData;
+}
+
+
+export async function loadMob(event, selectedMob) {
+	let dialogId = game.settings.get(moduleName, "currentDialogId");
+	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
+
+	let mobList = game.settings.get(moduleName,"hiddenMobList");
+	
+	await game.settings.set(moduleName, "hiddenChangedMob", true);
+	await game.settings.set(moduleName,'hiddenMobName',selectedMob);
+	
+	let mobData = mobList[selectedMob];
+	if (mobData === undefined || mobData === null) return;
+	let weapons = {}, monsters = {}, availableAttacks = {};
+	let actorList = [];
+	for (let monster of mobData.monsters) {
+		for (let i = 0; i < monster.amount; i++) {
+			actorList.push(game.actors.get(monster.id));	
+		}
+	}
+	[monsters, weapons, availableAttacks] = await prepareMonsters(actorList);
+	
+	mobList[selectedMob]["weapons"] = weapons;
+	mobDialog.actorList = actorList;
+	await game.settings.set(moduleName,"hiddenMobList",mobList);
+
+	let mobIndex = mobDialog.mobListIndex;
+	for (let i = 0; i < Object.keys(mobList).length; i++) {
+		if (Object.keys(mobList)[i] === selectedMob) {
+			mobDialog.mobListIndex = i;
+			break;
+		}
+	}
+	mobDialog.render(true);
 }
 
 

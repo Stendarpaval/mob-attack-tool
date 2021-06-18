@@ -283,7 +283,6 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 				}
 			} else {
 				// Condense the damage rolls.
-				// await new Promise(resolve => setTimeout(resolve, 300));
 				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
 				let diceFormula = diceFormulas.join(" + ");
 				let damageType = damageTypes.join(", ");

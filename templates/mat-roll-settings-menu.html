@@ -22,7 +22,7 @@
 			{{else if this.isNumber}}
 				<input type="number" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
 			{{else}}
-				<input type="text" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+				<input type="text" name="{{this.id}}" value="{{localize this.value}}" data-dtype="{{this.type}}" />
 			{{/if}}
 		</div>
 		<p class="notes">{{localize this.hint}}</p>
@@ -118,14 +118,14 @@
 					<tbody>
 						{{#each this.settings.mobTable.hiddenTable.rows}}
 						<tr>
-							<td>
-								<input type="number" name="{{this.d20RollMinId}}" value="{{this.d20RollMinValue}}" min="1" max="20"/>
+							<td style="text-align:center;">
+								<input type="number" class="numTable" name="{{this.d20RollMinId}}" value="{{this.d20RollMinValue}}" min="1" max="20"/>
 							</td>
-							<td>
-								<input type="number" name="{{this.d20RollMaxId}}" value="{{this.d20RollMaxValue}}" min="1" max="20"/>
+							<td style="text-align:center;">
+								<input type="number" class="numTable" name="{{this.d20RollMaxId}}" value="{{this.d20RollMaxValue}}" min="1" max="20"/>
 							</td>
-							<td>
-								<input type="number" name="{{this.attackersNeededId}}" value="{{this.attackersNeededValue}}" min="1"/>
+							<td style="text-align:center; width: calc(50%);">
+								<input type="number" class="numTable" name="{{this.attackersNeededId}}" value="{{this.attackersNeededValue}}" min="1"/>
 							</td>
 						</tr>
 						{{/each}}
