@@ -22,9 +22,9 @@ Make sure to read through the [latest release notes](https://github.com/Stendarp
 
 ## Examples
 
-This is what the Mob Attack dialog looks like (as of v0.2.16) with multiattack autodetect + autoselect enabled:
+This is what the Mob Attack dialog looks like (as of v0.2.17) with multiattack autodetect + autoselect enabled:
 
-<img width="438" alt="MAT-v0 2 16" src="https://user-images.githubusercontent.com/17188192/122316483-4181ed80-cf1c-11eb-923d-e729e798d147.png">
+<img width="438" alt="MAT-v0 2 17" src="https://user-images.githubusercontent.com/17188192/122503602-07d2e480-cff9-11eb-91bc-e7c11529e5e4.png">
 
 Below are some (older) GIFs that give a brief idea of how you can use Mob Attack Tool.
 
