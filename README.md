@@ -22,9 +22,9 @@ Make sure to read through the [latest release notes](https://github.com/Stendarp
 
 ## Examples
 
-This is what the Mob Attack dialog looks like (as of v0.2.17) with multiattack autodetect + autoselect enabled:
+This is what the Mob Attack dialog looks like (as of v0.2.18) with multiattack autodetect + autoselect enabled. (Also shown are [JB2A Animated Assets](https://foundryvtt.com/packages/JB2A_DnD5e) triggered by a macro that makes use of Midi-QOL's On Use Macro field). 
 
-<img width="438" alt="MAT-v0 2 17" src="https://user-images.githubusercontent.com/17188192/122503602-07d2e480-cff9-11eb-91bc-e7c11529e5e4.png">
+<img width="979" alt="MAT-v0 2 18-on-use-macro-JB2a" src="https://user-images.githubusercontent.com/17188192/122660094-a3da2880-d17e-11eb-8332-44f684868bff.png">
 
 Below are some (older) GIFs that give a brief idea of how you can use Mob Attack Tool.
 
@@ -45,7 +45,7 @@ For more elaborate examples and screenshots, please head over to [EXAMPLES.md](E
 ## Planned improvements
 * Further (optional) automation of the initial selection of tokens -> _In Progress_
 * Some documentation and better structuring of the repo -> _In Progress_
-* Multiple target selection
+* Multiple target selection --> _In Progress_
 
 ## Translations
 Mob Attack Tool currently supports these languages:
