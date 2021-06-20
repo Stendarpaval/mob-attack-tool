@@ -729,11 +729,16 @@ export function MobAttacks() {
 		
 		// Collect necessary data for mob attack
 		if (!checkTarget()) return;
+		let selectedTokenIds = [];
+		for (let token of canvas.tokens.controlled) {
+			selectedTokenIds.push({tokenId: token.id, tokenUuid: ((coreVersion08x()) ? token.document.uuid : token.uuid), actorId: token.actor.id});
+		}
 		let targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
 		let targetAC;
 		if (targetToken) {
 			targetAC = targetToken.actor.data.data.attributes.ac.value;
 		}
+		data["selectedTokenIds"] = selectedTokenIds;
 		data["targetToken"] = targetToken;
 		data["targetAC"] = targetAC;
 

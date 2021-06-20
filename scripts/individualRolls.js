@@ -47,6 +47,7 @@ export async function rollMobAttackIndividually(data) {
 			critThreshold = weaponData.actor.getFlag("dnd5e","spellCriticalThreshold");
 		}
 
+		let tokenAttackList = [];
 		for (let i = 0; i < availableAttacks; i++) {	
 			attackRoll = new Roll(attackFormula);
 			attackRollEvaluated[i] = (coreVersion08x()) ? await attackRoll.evaluate({async: true}) : attackRoll.evaluate();
@@ -59,11 +60,14 @@ export async function rollMobAttackIndividually(data) {
 			}
 
 			// Determine crits and natural 1s
+			let attackToken;
+			let availableTokens = data.selectedTokenIds.filter(t => !tokenAttackList.includes(t));
 			if (attackRollEvaluated[i].total - finalAttackBonus >= critThreshold) {
 				numCrits++;
 				numHitAttacks += 1;
 				successfulAttackRolls.push(attackRollEvaluated[i]);
 				atkRollData.push({roll: attackRollEvaluated[i].total, color: "max", finalAttackBonus: finalAttackBonus});
+				attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
 			} else if (attackRollEvaluated[i].total - finalAttackBonus === 1) {
 				numCritFails++;
 				if (game.user.getFlag(moduleName,"showAllAttackRolls") ?? game.settings.get(moduleName,"showAllAttackRolls")) {
@@ -73,9 +77,11 @@ export async function rollMobAttackIndividually(data) {
 				numHitAttacks += 1;
 				successfulAttackRolls.push(attackRollEvaluated[i]);
 				atkRollData.push({roll: attackRollEvaluated[i].total, color: "", finalAttackBonus: finalAttackBonus});
+				attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
 			} else if (game.user.getFlag(moduleName,"showAllAttackRolls") ?? game.settings.get(moduleName,"showAllAttackRolls")) {
 				atkRollData.push({roll: attackRollEvaluated[i].total, color: "discarded", finalAttackBonus: finalAttackBonus});
 			}
+			if (attackToken) tokenAttackList.push(attackToken);
 		}
 		
 		const hitTarget = numHitAttacks > 0;
@@ -122,13 +128,14 @@ export async function rollMobAttackIndividually(data) {
 
 
 		attackData.push({
-			data: data,
-			weaponData: weaponData,
-			finalAttackBonus: finalAttackBonus,
-			successfulAttackRolls: successfulAttackRolls,
-			numHitAttacks: numHitAttacks,
-			numCrits: numCrits,
-			isVersatile: isVersatile
+			data,
+			weaponData,
+			finalAttackBonus,
+			successfulAttackRolls,
+			numHitAttacks,
+			numCrits,
+			isVersatile,
+			tokenAttackList
 		})
 
 		await new Promise(resolve => setTimeout(resolve, 250));	
@@ -144,7 +151,7 @@ export async function rollMobAttackIndividually(data) {
 
 	// Process damage rolls
 	for (let attack of attackData) {
-		await processIndividualDamageRolls(attack.data, attack.weaponData, attack.finalAttackBonus, attack.successfulAttackRolls, attack.numHitAttacks, attack.numCrits, attack.isVersatile);
+		await processIndividualDamageRolls(attack.data, attack.weaponData, attack.finalAttackBonus, attack.successfulAttackRolls, attack.numHitAttacks, attack.numCrits, attack.isVersatile, attack.tokenAttackList);
 		await new Promise(resolve => setTimeout(resolve, 500));
 	}
 
@@ -154,7 +161,7 @@ export async function rollMobAttackIndividually(data) {
 }
 
 
-export async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, successfulAttackRolls, numHitAttacks, numCrits, isVersatile) {
+export async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, successfulAttackRolls, numHitAttacks, numCrits, isVersatile, tokenAttackList) {
 
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
@@ -269,7 +276,7 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 			);
 			
 			// prepare data for Midi's On Use Macro feature
-			if (game.settings.get(moduleName, "enableMidiOnUseMacro")) {
+			if (game.settings.get(moduleName, "enableMidiOnUseMacro") && getProperty(weaponData, "data.flags.midi-qol.onUseMacroName")) {
 				await new Promise(resolve => setTimeout(resolve, 300));
 				const macroData = {
 					actor: weaponData.actor.data,
@@ -304,7 +311,15 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 					templateId: workflow.templateId, 
 					templateUuid: workflow.templateUuid
 				}
+				let j = 0;
 				for (let i = 0; i < numHitAttacks; i++) {
+					if (j < tokenAttackList.length) {
+						j = i;
+					} else {
+						j = tokenAttackList.length - 1;
+					}
+					macroData.tokenId = tokenAttackList[j].tokenId;
+					macroData.tokenUuid = tokenAttackList[j].tokenUuid;
 					await callMidiMacro(weaponData, macroData);	
 				}
 			}

@@ -35,6 +35,14 @@ export async function rollMobAttack(data) {
 				actorAmount = data.monsters[weaponData.actor.id]["amount"];
 			}
 
+			let tokenAttackList = [];
+			let attackToken;
+			let availableTokens = data.selectedTokenIds.filter(t => !tokenAttackList.includes(t));
+			for (let i = 0; i < numHitAttacks; i++) {
+				attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
+				if (attackToken) tokenAttackList.push(attackToken);
+			}
+
 			// Mob attack results message
 			let msgData = {
 				actorAmount: actorAmount,
@@ -67,7 +75,8 @@ export async function rollMobAttack(data) {
 				data: data,
 				weaponData: weaponData,
 				numHitAttacks: numHitAttacks,
-				isVersatile: isVersatile
+				isVersatile: isVersatile,
+				tokenAttackList
 			})
 
 			await new Promise(resolve => setTimeout(resolve, 250));
@@ -84,7 +93,7 @@ export async function rollMobAttack(data) {
 		await sendChatMessage(messageText);
 
 		for (let attack of attackData) {
-			await processMobRulesDamageRolls(attack.data, attack.weaponData, attack.numHitAttacks, attack.isVersatile);
+			await processMobRulesDamageRolls(attack.data, attack.weaponData, attack.numHitAttacks, attack.isVersatile, attack.tokenAttackList);
 			await new Promise(resolve => setTimeout(resolve, 500));
 		}
 
@@ -95,7 +104,7 @@ export async function rollMobAttack(data) {
 }
 
 
-export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVersatile) {
+export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVersatile, tokenAttackList) {
 
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
@@ -168,7 +177,7 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 		);
 
 		// prepare data for Midi's On Use Macro feature
-		if (game.settings.get(moduleName, "enableMidiOnUseMacro")) {
+		if (game.settings.get(moduleName, "enableMidiOnUseMacro") && getProperty(weaponData, "data.flags.midi-qol.onUseMacroName")) {
 			await new Promise(resolve => setTimeout(resolve, 300));
 			const macroData = {
 				actor: weaponData.actor.data,
@@ -203,9 +212,17 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 				templateId: workflow.templateId, 
 				templateUuid: workflow.templateUuid
 			}
-			for (let i = 0; i < numHitAttacks; i++) {
-				await callMidiMacro(weaponData, macroData);	
-			}
+			let j = 0;
+				for (let i = 0; i < numHitAttacks; i++) {
+					if (j < tokenAttackList.length) {
+						j = i;
+					} else {
+						j = tokenAttackList.length - 1;
+					}
+					macroData.tokenId = tokenAttackList[j].tokenId;
+					macroData.tokenUuid = tokenAttackList[j].tokenUuid;
+					await callMidiMacro(weaponData, macroData);	
+				}
 		}
 		Hooks.call("midi-qol.DamageRollComplete", workflow);
 
