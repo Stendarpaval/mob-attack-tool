@@ -610,7 +610,11 @@ export class MobAttackDialog extends FormApplication {
 		// execute mob attack
 		html.on("click", ".executeMobAttack", async (event) => {
 			if (checkTarget()) {
-				let mobAttackData = await prepareMobAttack(html, this.weapons, this.availableAttacks, this.targetToken, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
+				let selectedTokenIds = [];
+				for (let token of canvas.tokens.controlled) {
+					selectedTokenIds.push({tokenId: token.id, tokenUuid: ((coreVersion08x()) ? token.document.uuid : token.uuid), actorId: token.actor.id});
+				}
+				let mobAttackData = await prepareMobAttack(html, selectedTokenIds, this.weapons, this.availableAttacks, this.targetToken, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
 				if (game.settings.get(moduleName,"mobRules") === 0) {
 					rollMobAttack(mobAttackData);
 				} else {
@@ -626,7 +630,11 @@ export class MobAttackDialog extends FormApplication {
 		html.on('click', '.exportMobAttack', async (event) => {
 			
 			// prepare data
-			let mobAttackData = await prepareMobAttack(html, this.weapons, this.availableAttacks, this.targetToken, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
+			let selectedTokenIds = [];
+			for (let token of canvas.tokens.controlled) {
+				selectedTokenIds.push({tokenId: token.id, tokenUuid: ((coreVersion08x()) ? token.document.uuid : token.uuid), actorId: token.actor.id});
+			}
+			let mobAttackData = await prepareMobAttack(html, selectedTokenIds, this.weapons, this.availableAttacks, this.targetToken, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
 			let mobList = game.settings.get(moduleName,"hiddenMobList");
 
 			// Create macro
@@ -718,7 +726,6 @@ export class MobAttackDialog extends FormApplication {
 
 export function MobAttacks() {
 	function quickRoll(data) {
-		if (!checkTarget()) return; 
 		
 		// Collect necessary data for mob attack
 		if (!checkTarget()) return;

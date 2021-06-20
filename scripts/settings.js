@@ -214,6 +214,22 @@ const matSettings = {
 		default: "(s)",
 		type: String
 	},
+	"enableMidiOnUseMacro": {
+		name: "SETTINGS.MAT.enableMidiOnUseMacro",
+		hint: "SETTINGS.MAT.enableMidiOnUseMacroHint",
+		scope: "world",
+		config: false,
+		default: true,
+		type: Boolean
+	},
+	"dontSendItemCardId": {
+		name: "SETTINGS.MAT.dontSendItemCardId",
+		hint: "SETTINGS.MAT.dontSendItemCardIdHint",
+		scope: "world",
+		config: false,
+		default: true,
+		type: Boolean
+	},
 };
 
 
@@ -364,6 +380,22 @@ class RollSettingsMenu extends FormApplication {
 						hint: matSettings.enableMidi.hint,
 						value: game.settings.get(moduleName,"enableMidi"),
 						id: "enableMidi",
+						isCheckbox: true,
+						client: game.user.isGM
+					},
+					enableMidiOnUseMacro: {
+						name: matSettings.enableMidiOnUseMacro.name,
+						hint: matSettings.enableMidiOnUseMacro.hint,
+						value: game.settings.get(moduleName,"enableMidiOnUseMacro"),
+						id: "enableMidiOnUseMacro",
+						isCheckbox: true,
+						client: game.user.isGM
+					},
+					dontSendItemCardId: {
+						name: matSettings.dontSendItemCardId.name,
+						hint: matSettings.dontSendItemCardId.hint,
+						value: game.settings.get(moduleName,"dontSendItemCardId"),
+						id: "dontSendItemCardId",
 						isCheckbox: true,
 						client: game.user.isGM
 					},

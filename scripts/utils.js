@@ -3,17 +3,76 @@ import { getMultiattackFromActor } from "./multiattack.js";
 
 
 String.prototype.capitalize = function() {
-    return this.charAt(0).toUpperCase() + this.slice(1);
+	return this.charAt(0).toUpperCase() + this.slice(1);
 }
 
 
-export function checkSelectedTokens() {
-	let mobList = game.settings.get(moduleName,"hiddenMobList");
-	if (canvas.tokens.controlled.length === 0 && Object.keys(mobList).length === 0) {
-		ui.notifications.warn(game.i18n.localize("MAT.selectTokenWarning"));
-		return false;
+export function makeId(length) {
+	var result = '';
+	var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	var charactersLength = characters.length;
+	for ( var i = 0; i < length; i++ ) {
+		result += characters.charAt(Math.floor(Math.random() * charactersLength));
 	}
-	return true;
+   return result;
+}
+
+// This is based in large part on midi-qol's callMacro method
+export async function callMidiMacro(item, midiMacroData) {
+	const macroName = getProperty(item, "data.flags.midi-qol.onUseMacroName");
+	if (!macroName) {
+		console.log(`No On Use Macro found at ${item.name}.`);
+		return;
+	}
+	const macroData = {
+		...midiMacroData,
+		itemUuid: item?.uuid,
+		item: (coreVersion08x()) ? item?.data.toObject(false) : duplicate(item?.data),
+		saves: [],
+		superSavers: [],
+		failedSaves: [],
+		id: item.id
+	}
+	try {
+		if (macroName.startsWith("ItemMacro")) {
+			var itemMacro;
+			if (macroName === "ItemMacro") {
+				itemMacro = getProperty(item.data.flags, "itemacro.macro");
+				macroData.sourceItemUuid = item?.uuid;
+			} else {
+				const parts = macroName.split(".");
+				const itemName = parts.slice(1).join(".");
+				item = macroData.actor.items.find(i => i.name === itemName && getProperty(i.data.flags, "itemacro.macro"))
+				if (item) {
+					itemMacro = getProperty(item.data.flags, "itemacro.macro");
+					macroData.sourceItemUuid = item?.uuid;
+				} else return {};
+			}
+			const speaker = {alias: macroData.actor.name};
+			const actor = macroData.actor;
+			const token = canvas.tokens.get(macroData.tokenId);
+			const character = game.user.character;
+			const args = [macroData];
+
+			if (!itemMacro?.data?.command) {
+				console.log(`Mob Attack Tool - Could not find item macro ${macroName}`);
+				return {};
+			}
+			return (new Function(`"use strict";
+				return (async function ({speaker, actor, token, character, item, args}={}) {
+					${itemMacro.data.command}
+					});`))().call(this, {speaker, actor, token, character, item, args});
+		} else {
+			const macroCommand = game.macros.getName(macroName);
+			if (macroCommand) {
+				return macroCommand.execute(macroData) || {};
+			}
+		}
+	} catch (err) {
+		ui.notifications.error(`There was an error while executing an "On Use" macro. See the console (F12) for details.`);
+		console.error(err);
+	}
+	return {};
 }
 
 
@@ -178,7 +237,7 @@ export async function prepareMonsters(actorList, keepCheckboxes=false, oldMonste
 }
 
 
-export async function prepareMobAttack(html, weapons, availableAttacks, targetToken, targetAC, numSelected, monsters) {
+export async function prepareMobAttack(html, selectedTokenIds, weapons, availableAttacks, targetToken, targetAC, numSelected, monsters) {
 	let mobList = game.settings.get(moduleName,"hiddenMobList");
 	if (game.settings.get("mob-attack-tool", "hiddenChangedMob")) {
 		let mobName = game.settings.get(moduleName,'hiddenMobName');
@@ -246,18 +305,19 @@ export async function prepareMobAttack(html, weapons, availableAttacks, targetTo
 
 	// Bundle data together
 	let mobAttackData = {
-		"targetToken": targetToken,
-		"targetAC": targetAC,
-		"numSelected": numSelected,
-		"weapons": weapons,
-		"attacks": attacks,
-		"withAdvantage": withAdvantage,
-		"withDisadvantage": withDisadvantage,
-		"rollTypeValue": rollTypeValue,
-		"rollTypeMessage": rollTypeMessage,
-		"endMobTurn": endMobTurn,
-		"monsters": monsters,
-		"weaponLocators": weaponLocators
+		targetToken,
+		targetAC,
+		numSelected,
+		selectedTokenIds,
+		weapons,
+		attacks,
+		withAdvantage,
+		withDisadvantage,
+		rollTypeValue,
+		rollTypeMessage,
+		endMobTurn,
+		monsters,
+		weaponLocators
 	};
 
 	return mobAttackData;

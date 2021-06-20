@@ -1,5 +1,5 @@
 import { moduleName, coreVersion08x } from "./mobAttack.js";
-import { checkTarget, endGroupedMobTurn, getDamageFormulaAndType, calcD20Needed, calcAttackersNeeded, isTargeted, sendChatMessage, getAttackBonus, getScalingFactor } from "./utils.js";
+import { checkTarget, endGroupedMobTurn, getDamageFormulaAndType, calcD20Needed, calcAttackersNeeded, isTargeted, sendChatMessage, getAttackBonus, getScalingFactor, callMidiMacro } from "./utils.js";
 import { getMultiattackFromActor } from "./multiattack.js";
 
 
@@ -72,23 +72,25 @@ export async function rollMobAttack(data) {
 
 			await new Promise(resolve => setTimeout(resolve, 250));
 		} else {
-			ui.notifications.warn(game.i18n.localize("MAT.lowAttackBonusOrSmallMob"));
+			ui.notifications.warn(game.i18n.format("MAT.lowAttackBonusOrSmallMob",{weaponName: weaponData.name}));
 		}
 	}
-	if (attackData === []) return;
+	if (attackData.length === 0) {
+		return;
+	} else {
+		let totalPluralOrNot = ` ${game.i18n.localize((messageData.totalHitAttacks === 1) ? "MAT.numTotalHitsSingular" : "MAT.numTotalHitsPlural")}`;
+		messageData["totalPluralOrNot"] = totalPluralOrNot;
+		let messageText = await renderTemplate('modules/mob-attack-tool/templates/mat-msg-mob-rules.html', messageData);
+		await sendChatMessage(messageText);
 
-	let totalPluralOrNot = ` ${game.i18n.localize((messageData.totalHitAttacks === 1) ? "MAT.numTotalHitsSingular" : "MAT.numTotalHitsPlural")}`;
-	messageData["totalPluralOrNot"] = totalPluralOrNot;
-	let messageText = await renderTemplate('modules/mob-attack-tool/templates/mat-msg-mob-rules.html', messageData);
-	await sendChatMessage(messageText);
+		for (let attack of attackData) {
+			await processMobRulesDamageRolls(attack.data, attack.weaponData, attack.numHitAttacks, attack.isVersatile);
+			await new Promise(resolve => setTimeout(resolve, 500));
+		}
 
-	for (let attack of attackData) {
-		await processMobRulesDamageRolls(attack.data, attack.weaponData, attack.numHitAttacks, attack.isVersatile);
-		await new Promise(resolve => setTimeout(resolve, 500));
-	}
-
-	if (data.endMobTurn) {
-		await endGroupedMobTurn(data);
+		if (data.endMobTurn) {
+			await endGroupedMobTurn(data);
+		}
 	}
 }
 
@@ -150,7 +152,8 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 		await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
 
 		if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
-		let dmgWorkflow = new MidiQOL.DamageOnlyWorkflow(
+		
+		let workflow = new MidiQOL.DamageOnlyWorkflow(
 			weaponData.actor, 
 			data.targetToken, 
 			damageRoll.total, 
@@ -160,9 +163,51 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 			{
 				flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})`, 
 				itemData: weaponData.data,
-				itemCardId: weaponData.itemCardId
+				itemCardId: `new`
 			}
 		);
+
+		// prepare data for Midi's On Use Macro feature
+		if (game.settings.get(moduleName, "enableMidiOnUseMacro")) {
+			await new Promise(resolve => setTimeout(resolve, 300));
+			const macroData = {
+				actor: weaponData.actor.data,
+				actorUuid: weaponData.actor.uuid,
+				tokenId: workflow.tokenId,
+				tokenUuid: workflow.tokenUuid,
+				targets: (data.targetToken) ? [data.targetToken] : [],
+				hitTargets: (data.targetToken) ? [data.targetToken] : [],
+				damageRoll: damageRoll,
+				damageRollHTML: workflow.damageRollHTML,
+				attackRoll: workflow?.attackRoll,
+				attackTotal: workflow.attackTotal,
+				itemCardId: (game.settings.get(moduleName, "dontSendItemCardId")) ? null : workflow.itemCardId,
+				isCritical: false,
+				isFumble: false,
+				spellLevel: 0,
+				powerLevel: 0,
+				damageTotal: damageRoll.total,
+				damageDetail: workflow.damageDetail,
+				damageList: workflow.damageList,
+				otherDamageTotal: 0,
+				otherDamageDetail: workflow.otherDamageDetail,
+				otherDamageList: [{damage: damageRoll.total, type: damageTypes[0]}],
+				rollOptions: {advantage: data.withAdvantage, disadvantage: data.withDisadvantage, versatile: isVersatile, fastForward: true},
+				advantage: data.withAdvantage,
+				disadvantage: data.withDisadvantage,
+				event: null,
+				uuid: workflow.uuid,
+				rollData: weaponData.actor.getRollData(),
+				tag: "OnUse",
+				concentrationData: getProperty(weaponData.actor.data.flags, "midi-qol.concentration-data"),
+				templateId: workflow.templateId, 
+				templateUuid: workflow.templateUuid
+			}
+			for (let i = 0; i < numHitAttacks; i++) {
+				await callMidiMacro(weaponData, macroData);	
+			}
+		}
+		Hooks.call("midi-qol.DamageRollComplete", workflow);
 
 	// neither midi-qol or betterrolls5e active
 	} else {
