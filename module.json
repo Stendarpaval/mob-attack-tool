@@ -18,7 +18,7 @@
 	"url": "https://github.com/Stendarpaval/mob-attack-tool",
 	"version": "0.2.20",
 	"minimumCoreVersion": "0.7.9",
-	"compatibleCoreVersion": "0.8.6",
+	"compatibleCoreVersion": "0.8.8",
 	"system": ["dnd5e"],
 	"esmodules": [
 		"scripts/mobAttack.js"
