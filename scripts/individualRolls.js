@@ -65,7 +65,7 @@ export async function rollMobAttackIndividually(data) {
 				// Determine crits and natural 1s
 				// Also, make a list of tokens that successfully attacked for (animation) macro purposes
 				let attackToken;
-				let availableTokens = data.selectedTokenIds.filter(t => (!tokenAttackList.includes(t) || (canvas.tokens.get(t.tokenId).actor.id === weaponData.actor.id && tokenAttackList.filter(attackToken => attackToken.tokenId === t.tokenId).length < Math.floor(availableAttacks / data.selectedTokenIds.length))) );
+				let availableTokens = data.selectedTokenIds.filter(t => (!tokenAttackList.includes(t) || (canvas.tokens.get(t.tokenId).actor.id === weaponData.actor.id && tokenAttackList.filter(attackToken => attackToken.tokenId === t.tokenId).length < Math.floor(availableAttacks / data.numSelected))) );
 				if (attackRollEvaluated[i].total - finalAttackBonus >= critThreshold) {
 					numCrits++;
 					numHitAttacks += 1;
@@ -401,7 +401,9 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 					} else {
 						j = tokenAttackList.length - 1;
 					}
-					AutoAnimations.playAnimation(canvas.tokens.get(tokenAttackList[j].tokenId), [canvas.tokens.get(targetId)], weaponData);
+					if (tokenAttackList.length > 0) {
+						AutoAnimations.playAnimation(canvas.tokens.get(tokenAttackList[j].tokenId), [canvas.tokens.get(targetId)], weaponData);	
+					}
 				}
 			}	
 		}
