@@ -230,6 +230,14 @@ const matSettings = {
 		default: true,
 		type: Boolean
 	},
+	"enableAutoAnimations": {
+		name: "SETTINGS.MAT.enableAutoAnimations",
+		hint: "SETTINGS.MAT.enableAutoAnimationsHint",
+		scope: "world",
+		config: false,
+		default: true,
+		type: Boolean
+	}
 };
 
 
@@ -240,7 +248,7 @@ export function initSettings() {
 		config: true,
 		scope: "client",
 		type: Number,
-		default: 0,
+		default: 1,
 		choices: {
 			0: "SETTINGS.MAT.mobRules",
 			1: "SETTINGS.MAT.individualAttackRolls"
@@ -359,6 +367,22 @@ class RollSettingsMenu extends FormApplication {
 					}
 				},
 				module: {
+					enableAutoAnimations: {
+						name: matSettings.enableAutoAnimations.name,
+						hint: matSettings.enableAutoAnimations.hint,
+						value: game.settings.get(moduleName,"enableAutoAnimations"),
+						id: "enableAutoAnimations",
+						isCheckbox: true,
+						client: game.user.isGM
+					},
+					enableBetterRolls: {
+						name: matSettings.enableBetterRolls.name,
+						hint: matSettings.enableBetterRolls.hint,
+						value: game.settings.get(moduleName,"enableBetterRolls"),
+						id: "enableBetterRolls",
+						isCheckbox: true,
+						client: game.user.isGM
+					},
 					enableDiceSoNice: {
 						name: matSettings.enableDiceSoNice.name,
 						hint: matSettings.enableDiceSoNice.hint,
@@ -396,14 +420,6 @@ class RollSettingsMenu extends FormApplication {
 						hint: matSettings.dontSendItemCardId.hint,
 						value: game.settings.get(moduleName,"dontSendItemCardId"),
 						id: "dontSendItemCardId",
-						isCheckbox: true,
-						client: game.user.isGM
-					},
-					enableBetterRolls: {
-						name: matSettings.enableBetterRolls.name,
-						hint: matSettings.enableBetterRolls.hint,
-						value: game.settings.get(moduleName,"enableBetterRolls"),
-						id: "enableBetterRolls",
 						isCheckbox: true,
 						client: game.user.isGM
 					}

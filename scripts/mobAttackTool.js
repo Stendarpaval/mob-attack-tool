@@ -66,8 +66,10 @@ export class MobAttackDialog extends FormApplication {
 		this.numTotalAttacks = 0;
 		this.totalAverageDamage = 0;
 		this.localUpdate = false;
+		this.targetUpdate = false;
 
 		this.currentlySelectingTokens = false;
+		this.targets = [];
 	}
 
 
@@ -79,7 +81,8 @@ export class MobAttackDialog extends FormApplication {
 			width: "505",
 			height: "auto",
 			closeOnSubmit: false,
-			tabs: [{navSelector: ".tabs", contentSelector: "form", initial: "weapons"}]
+			tabs: [{navSelector: ".tabs", contentSelector: "form", initial: "weapons"}],
+			dragDrop: [{dragSelector: ".target-attack-box", dropSelector: ".mat-attacks-on-target-box"}]
 		})
 	}
 
@@ -88,6 +91,8 @@ export class MobAttackDialog extends FormApplication {
 
 		// Show weapon options per selected token type
 		let mobList = game.settings.get(moduleName,"hiddenMobList");
+
+		this.targetTokens = canvas.tokens.objects.children.filter(isTargeted); 
 		this.targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
 		this.numTargets = 0;
 		if (this.targetToken) {
@@ -163,9 +168,6 @@ export class MobAttackDialog extends FormApplication {
 			}
 		}
 		
-		let newTargetAC = this.targetAC + this.armorClassMod;
-		let endMobTurnValue = (game.user.getFlag(moduleName,"endMobTurnValue") ? "checked" : "") ?? "";
-		
 		let monsters = {};
 		let weapons = {};
 		let availableAttacks = {};
@@ -177,8 +179,6 @@ export class MobAttackDialog extends FormApplication {
 			this.monsters = monsters;
 			this.weapons = {...weapons};
 			this.availableAttacks = availableAttacks;
-		} else {
-			this.localUpdate = false;
 		}
 
 		// calculate total number of attacks and average damage
@@ -193,26 +193,110 @@ export class MobAttackDialog extends FormApplication {
 			}
 		}
 
-		let targetACtext = ((game.user.isGM && this.targetToken) ? ` ${game.i18n.localize("MAT.dialogTargetArmorClassMessage")} ${newTargetAC}.` : (!this.targetToken) ? ` ${game.i18n.localize("MAT.noTargetAllAttacksHitText")}` : ``);
-		if (this.numTargets > 1) {
-			targetACtext = `Note: support for handling multiple targets will arrive later. Please make sure only one token is targeted when executing a Mob Attack.`
+		
+		let weaponsOnTarget = {};
+		for (let [monsterID, monsterData] of Object.entries(duplicate(this.monsters))) {
+			Object.assign(weaponsOnTarget,monsterData.weapons);
+			for (let i = 0; i < monsterData.amount - 1; i++) {
+				for (let weaponID of Object.keys(monsterData.weapons)) {
+					if (weaponsOnTarget[weaponID]) {
+						weaponsOnTarget[weaponID + String(i)] = monsterData.weapons[weaponID];
+					}
+				}
+			}
 		}
+
+
+		let weaponsOnTargetArray = [];
+		for (let [weaponID, weaponData] of Object.entries(weaponsOnTarget)) {
+			if (weaponData.useButtonValue !== `checked`) {
+				delete weaponsOnTarget[weaponID];
+			} else {
+				for (let j = 0; j < weaponData.numAttack; j++) {
+					let singleWeaponData = duplicate(weaponData);
+					singleWeaponData.numAttack = 1;
+					weaponsOnTargetArray.push(singleWeaponData);
+				}
+			}
+		}
+
+		let targets = [];
+		let targetCount = 0;
+		let arrayStart = 0;
+		let targetAC = 10;
+		let arrayLength = Math.floor(weaponsOnTargetArray.length / this.targetTokens.length);
+		if (arrayLength === 0) arrayLength = 1; 
+		for (let targetToken of this.targetTokens) {
+			targetAC = targetToken?.actor.data.data.attributes.ac.value + this.armorClassMod;
+			targets.push({
+				targetId: targetToken?.id,
+				targetImg: targetToken?.data?.img ?? "icons/svg/mystery-man.svg",
+				targetImgName: targetToken?.name ?? "Unknown target",
+				isGM: game.user.isGM,
+				weapons: weaponsOnTargetArray.slice(arrayStart, arrayLength * (1 + targetCount)),
+				noWeaponMsg: '',
+				targetIndex: targetCount,
+				targetAC: targetAC,
+				targetACtext: ((game.user.isGM) ? ` ${game.i18n.localize("MAT.dialogTargetArmorClassMessage")}` : ``)
+			})
+
+			let targetTotalNumAttacks = targets[targets.length - 1].weapons.length;
+			let targetTotalAverageDamage = 0;
+			for (let weapon of targets[targets.length - 1].weapons) {
+				targetTotalAverageDamage += weapon.averageDamage;
+			}
+			targets[targets.length - 1]["targetTotalNumAttacks"] = targetTotalNumAttacks;
+			targets[targets.length - 1]["targetTotalAverageDamage"] = targetTotalAverageDamage;
+
+			if (targetCount === this.targetTokens.length - 1) {
+				for (let i = 0; i < (weaponsOnTargetArray.length - arrayLength * (1 + targetCount)); i++) {
+					targets[i].weapons.push(weaponsOnTargetArray[weaponsOnTargetArray.length - 1 - i]);
+					targets[i].targetTotalNumAttacks += 1;
+					targets[i].targetTotalAverageDamage += weaponsOnTargetArray[weaponsOnTargetArray.length - 1 - i].averageDamage;
+				}
+			}
+			arrayStart = arrayLength * (1 + targetCount);
+			targetCount++;
+		}
+
+		for (let target of targets) {
+			if (target.weapons.length === 0) {
+				target.noWeaponMsg = "None";
+			}
+		}
+
+		if (!this.targetUpdate) {
+			this.targets = targets;
+		} else {
+			this.targetUpdate = false;
+			for (let i = 0; i< this.targets.length; i++) {
+				let targetTotalNumAttacks = this.targets[i].weapons.length;
+				let targetTotalAverageDamage = 0;
+				for (let weapon of this.targets[i].weapons) {
+					targetTotalAverageDamage += weapon.averageDamage;
+				}
+				this.targets[i].targetTotalNumAttacks = targetTotalNumAttacks;
+				this.targets[i].targetTotalAverageDamage = targetTotalAverageDamage;
+			}
+		}
+
+		if (this.localUpdate) this.localUpdate = false;
+
+		let noTargetACtext = ((!this.targetToken) ? ` ${game.i18n.localize("MAT.noTargetAllAttacksHitText")}` : ``);
 
 		let data = {
 			mobName: mobName,
 			numSelected: this.numSelected,
 			numTargets: this.numTargets,
+			multipleTargets: this.numTargets > 1,
 			pluralTokensOrNot: ((this.numSelected === 1) ? `` : `s`),
-			targetImg: this.targetToken?.data?.img ?? "icons/svg/mystery-man.svg",
-			targetImgName: this.targetToken?.name ?? "Unknown target",
-			targetId: this.targetToken?.id,
-			targetAC: newTargetAC,
-			targetACtext: targetACtext,
+			targets: this.targets,
+			noTargetACtext: noTargetACtext,
 			armorClassMod: (game.user.getFlag(moduleName,"persistACmod") ?? game.settings.get(moduleName,"persistACmod")) ? game.settings.get(moduleName,"savedArmorClassMod") : this.armorClassMod,
 			monsters: this.monsters,
 			selectRollType: game.settings.get(moduleName,"askRollType"),
 			endMobTurn: game.settings.get(moduleName,"endMobTurn"),
-			endMobTurnValue: endMobTurnValue,
+			endMobTurnValue: (game.user.getFlag(moduleName,"endMobTurnValue") ? "checked" : "") ?? "",
 			hiddenCollapsibleName: this.collapsibleName,
 			hiddenCollapsibleCSS: this.collapsibleCSS,
 			collapsiblePlusMinus: this.collapsiblePlusMinus,
@@ -238,6 +322,62 @@ export class MobAttackDialog extends FormApplication {
 		return data
 	}
 
+	_canDragStart(selector) {
+		return true;
+	}
+
+	_canDragDrop(selector) {
+		return true;
+	}
+
+	_onDragStart(event) {
+		const li = event.currentTarget;
+
+		const targetImg = li.firstElementChild.getAttribute("src");
+		const targetId = li.parentNode.parentNode.parentNode.firstElementChild.firstElementChild.getAttribute("data-item-id");
+		const targetIndex = li.parentNode.parentNode.parentNode.firstElementChild.firstElementChild.getAttribute("data-target-index");
+		const weaponId = li.firstElementChild.getAttribute("data-item-id");
+		
+		const dragData = {
+			type: "Weapon on Target",
+			targets: this.targets,
+			targetId: targetId,
+			weaponId: weaponId,
+			targetIndex: targetIndex,
+			img: targetImg
+		}
+		event.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+	}
+
+	_onDragDrop(event) {
+		return;
+	}
+
+	_onDrop(event) {
+		let data;
+		try {
+			data = JSON.parse(event.dataTransfer.getData('text/plain'));
+		} catch (err) {
+			return false;
+		}
+
+		// Copy attack over from source to target
+		const li = event.currentTarget;
+		const currentTargetId = li.parentNode.parentNode.firstElementChild.firstElementChild.getAttribute("data-item-id");
+		const currentTargetIndex = li.parentNode.parentNode.firstElementChild.firstElementChild.getAttribute("data-target-index");
+		if (!currentTargetId) return;
+
+		this.targets.filter(t => (t.targetId === currentTargetId && t.targetIndex === parseInt(currentTargetIndex)))[0].weapons.push(data.targets.filter(t => t.targetId === data.targetId)[0].weapons.filter(w => w.weaponId === data.weaponId)[0]);
+	
+		// After copying, delete attack from source
+		let targetWeapons = this.targets.filter(t => (t.targetId === data.targetId && t.targetIndex === parseInt(data.targetIndex)))[0].weapons;
+		let weaponIndex = targetWeapons.indexOf(targetWeapons.filter(w => w.weaponId === data.weaponId)[0]);
+		this.targets.filter(t => (t.targetId === data.targetId && t.targetIndex === parseInt(data.targetIndex)))[0].weapons.splice(weaponIndex,1);
+
+		this.targetUpdate = true;
+		this.localUpdate = true;
+		this.render(true);
+	}
 
 	activateListeners(html) {
 		super.activateListeners(html);
@@ -590,6 +730,7 @@ export class MobAttackDialog extends FormApplication {
 			}
 			this.armorClassMod = acMod + 1;
 			await game.settings.set(moduleName,"savedArmorClassMod",acMod + 1);
+			// this.targetUpdate = true;
 			this.localUpdate = true;
 			this.render(true);
 		})
@@ -603,6 +744,7 @@ export class MobAttackDialog extends FormApplication {
 			}
 			this.armorClassMod = acMod - 1;
 			await game.settings.set(moduleName,"savedArmorClassMod",acMod - 1);
+			// this.targetUpdate = true;
 			this.localUpdate = true;
 			this.render(true);
 		})
@@ -614,7 +756,7 @@ export class MobAttackDialog extends FormApplication {
 				for (let token of canvas.tokens.controlled) {
 					selectedTokenIds.push({tokenId: token.id, tokenUuid: ((coreVersion08x()) ? token.document.uuid : token.uuid), actorId: token.actor.id});
 				}
-				let mobAttackData = await prepareMobAttack(html, selectedTokenIds, this.weapons, this.availableAttacks, this.targetToken, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
+				let mobAttackData = await prepareMobAttack(html, selectedTokenIds, this.weapons, this.availableAttacks, this.targets, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
 				if (game.settings.get(moduleName,"mobRules") === 0) {
 					rollMobAttack(mobAttackData);
 				} else {
@@ -634,7 +776,7 @@ export class MobAttackDialog extends FormApplication {
 			for (let token of canvas.tokens.controlled) {
 				selectedTokenIds.push({tokenId: token.id, tokenUuid: ((coreVersion08x()) ? token.document.uuid : token.uuid), actorId: token.actor.id});
 			}
-			let mobAttackData = await prepareMobAttack(html, selectedTokenIds, this.weapons, this.availableAttacks, this.targetToken, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
+			let mobAttackData = await prepareMobAttack(html, selectedTokenIds, this.weapons, this.availableAttacks, this.targets, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
 			let mobList = game.settings.get(moduleName,"hiddenMobList");
 
 			// Create macro

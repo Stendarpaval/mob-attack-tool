@@ -162,13 +162,35 @@
 			</div>
 		</div>
 		<div class="tab" data-tab="targets">
+			{{#if this.multipleTargets}}<p class="hint">Click and drag attack icons to move them between targets.</p><hr>{{/if}}
+			{{#each this.targets}}
+				{{#with this}}
+				<div class="mat-target-label">
+					<label class="mat-label mat-col1">
+						<img class="mat-target-icon" src="{{this.targetImg}}" title="Targeted token" width="54" height="54" data-item-id="{{this.targetId}}" data-target-index="{{this.targetIndex}}">
+					</label>
+					<div class="mat-label mat-col2">
+						{{#if this.isGM}}{{this.targetImgName}}{{/if}}
+						<p class="hint">This target{{#if this.isGM}}{{this.targetACtext}} <strong>{{this.targetAC}}</strong> and{{/if}} will be attacked <strong>{{this.targetTotalNumAttacks}}</strong> times.<br>Average amount of damage (if all attacks hit): <strong>{{this.targetTotalAverageDamage}}</strong> points of damage.</p>
+						<div class="mat-attacks-on-target-box">
+							{{#each this.weapons}}
+								<label class="mat-label target-attack-box">
+									<img class="mat-weapon-icon mat-weapon " src="{{this.weaponImg}}" title="Open {{this.weaponNameImg}} ({{this.weaponActorName}}) sheet" width="30" height="30" data-item-id="{{this.weaponId}}">
+								</label>
+							{{/each}}
+						</div>
+					</div>
+				</div>
+				<hr>
+				{{/with}}
+			{{/each}}
 			<!-- <div class="form-group">
 				<img class="mat-monster-icon" src="{{targetImg}}" title="Open {{targetImgName}} sheet" width="36" height="36" data-item-id="{{targetId}}">
 				<div class="form-fields">
 					<p>{{targetACtext}}</p>
 				</div>
 			</div> -->
-			<p class="hint">{{targetACtext}}</p>
+			<p class="hint">{{noTargetACtext}}</p>
 			<div class="form-group">
 				<label>{{localize 'MAT.acMod'}}:</label>
 				<div class="form-fields">

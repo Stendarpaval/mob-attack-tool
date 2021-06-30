@@ -77,10 +77,10 @@ export async function callMidiMacro(item, midiMacroData) {
 
 
 export function checkTarget() {
-	if (canvas.tokens.objects.children.filter(isTargeted).length > 1) {
-		ui.notifications.warn(game.i18n.localize("MAT.singleTargetWarning"));
-		return false;
-	}
+	// if (canvas.tokens.objects.children.filter(isTargeted).length > 1) {
+	// 	ui.notifications.warn(game.i18n.localize("MAT.singleTargetWarning"));
+	// 	return false;
+	// }
 
 	let targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
 	if (!targetToken && game.settings.get(moduleName, "mobRules") === 0) {
@@ -214,6 +214,7 @@ export async function prepareMonsters(actorList, keepCheckboxes=false, oldMonste
 				let labelData = {
 					numAttacksName: `numAttacks${(weaponData.id + ((isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``)).replace(" ","-")}`,
 					numAttack: numAttacksTotal,
+					weaponActorName: weaponData.actor.name,
 					weaponId: weaponData.id,
 					weaponImg: weaponData.img,
 					weaponNameImg: weaponData.name.replace(" ","-"),
@@ -237,7 +238,7 @@ export async function prepareMonsters(actorList, keepCheckboxes=false, oldMonste
 }
 
 
-export async function prepareMobAttack(html, selectedTokenIds, weapons, availableAttacks, targetToken, targetAC, numSelected, monsters) {
+export async function prepareMobAttack(html, selectedTokenIds, weapons, availableAttacks, targets, targetAC, numSelected, monsters) {
 	let mobList = game.settings.get(moduleName,"hiddenMobList");
 	if (game.settings.get("mob-attack-tool", "hiddenChangedMob")) {
 		let mobName = game.settings.get(moduleName,'hiddenMobName');
@@ -263,19 +264,35 @@ export async function prepareMobAttack(html, selectedTokenIds, weapons, availabl
 		weaponID += ((isVersatile) ?  ` (${game.i18n.localize("Versatile")})` : ``);
 
 		if (html.find(`input[name="use` + weaponData.id.replace(" ","-") + `"]`)[0].checked) {
-			numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponData.id.replace(" ","-")}"]`)[0].value);
-			if (numAttacksMultiplier === NaN) {
-				numAttacksMultiplier = 0;
+			attacks[weaponData.id] = [];
+			for (let target of targets) {
+				if (target.weapons.filter(w => w.weaponId === weaponData.id).length > 0) {
+					attacks[weaponData.id].push({targetId: target.targetId, targetNumAttacks: target.weapons.filter(w => w.weaponId === weaponData.id).length});
+				}
 			}
-			attacks[weaponData.id] = availableAttacks[weaponData.id] * numAttacksMultiplier;
+			if (targets.length === 0) {
+				numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponData.id.replace(" ","-")}"]`)[0].value);
+				if (numAttacksMultiplier === NaN) {
+					numAttacksMultiplier = 0;
+				}
+				attacks[weaponData.id].push({targetId: null, targetNumAttacks: availableAttacks[weaponData.id] * numAttacksMultiplier});
+			}
 			weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name, "weaponID": weaponData.id});
 		}
 		if (html.find(`input[name="use` + weaponID.replace(" ","-") + `"]`)[0].checked) {
-			numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponID.replace(" ","-")}"]`)[0].value);
-			if (numAttacksMultiplier === NaN) {
-				numAttacksMultiplier = 0;
+			attacks[weaponID] = [];
+			for (let target of targets) {
+				if (target.weapons.filter(w => w.weaponId === weaponData.id).length > 0) {
+					attacks[weaponID].push({targetId: target.targetId, targetNumAttacks: target.weapons.filter(w => w.weaponId === weaponData.id).length});
+				}
 			}
-			attacks[weaponID] = availableAttacks[weaponData.id] * numAttacksMultiplier;
+			if (targets.length === 0) {
+				numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponID.replace(" ","-")}"]`)[0].value);
+				if (numAttacksMultiplier === NaN) {
+					numAttacksMultiplier = 0;
+				}
+				attacks[weaponID].push({targetId: null, targetNumAttacks: availableAttacks[weaponData.id] * numAttacksMultiplier});
+			}
 			weaponLocators.push({"actorID": weaponData.actor.id, "weaponName": weaponData.name, "weaponID": weaponID});
 		}
 	}
@@ -305,7 +322,7 @@ export async function prepareMobAttack(html, selectedTokenIds, weapons, availabl
 
 	// Bundle data together
 	let mobAttackData = {
-		targetToken,
+		targets,
 		targetAC,
 		numSelected,
 		selectedTokenIds,

@@ -41,6 +41,25 @@
 	column-gap:5px;
 }
 
+
+.mat-target-label {
+	display:grid;
+	grid-template-columns: 13% 80.8%;
+	column-gap: 5px;
+}
+
+.mat-attacks-on-target-box {
+	/*flex: 0 0 auto;*/
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	border:2px groove #eeede0; 
+	padding: 3px; 
+	margin-bottom: 0.5em;
+	min-height: 44px;
+}
+
 .mat-mob-name-label-group {
 	display:grid; 
 	grid-template-columns: 36% 3% 40% 5% 7% 7%; 
@@ -150,6 +169,11 @@ input[type="number"].numTable {
 	margin:0px 5px 0px 0px; 
 	border:none;
 	cursor: pointer;
+}
+
+.mat-target-icon {
+	margin:0px 3px 0px 3px;
+	border:none;
 }
 
 .mat-monster-name {

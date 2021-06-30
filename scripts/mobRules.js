@@ -9,79 +9,86 @@ export async function rollMobAttack(data) {
 	let attackData = [];
 	let messageData = {messages: {}};
 	let isVersatile;
-	for ( let [key, value] of Object.entries(data.attacks) ) { 
-		isVersatile = false;
-		if (key.endsWith(`(${game.i18n.localize("Versatile")})`.replace(" ", "-"))) {
-			isVersatile = true;
-			key = key.slice(0,key.indexOf(` (${game.i18n.localize("Versatile")})`));
-		}
-		const weaponData = data.weapons[key]; 
-		const actorName = weaponData.actor.name;
-		const finalAttackBonus = getAttackBonus(weaponData);
-		const d20Needed = calcD20Needed(finalAttackBonus, data.targetAC, data.rollTypeValue);
-		const attackersNeeded = calcAttackersNeeded(d20Needed);
-
-		// Check whether how many attackers can use this weapon
-		let availableAttacks = value;
-		
-		if (availableAttacks / attackersNeeded >= 1) {
-			const numHitAttacks = Math.floor(availableAttacks/attackersNeeded);
-			const pluralOrNot = ` ${game.i18n.localize((numHitAttacks === 1) ? "MAT.oneAttackSingular" : "MAT.oneAttackPlural")}!`;
-			const sOrNot = ((numHitAttacks > 1) ? "s" : "");
-			const targetACtext = game.user.isGM ? `${game.i18n.localize("MAT.targetAC")} ${data.targetAC}` : ``;
-
-			let actorAmount = data.numSelected;
-			if (data.monsters?.[weaponData.actor.id]?.["amount"]) {
-				actorAmount = data.monsters[weaponData.actor.id]["amount"];
+	for ( let [key, value] of Object.entries(data.attacks) ) {
+		for (let j = 0; j < value.length; j++) {
+			isVersatile = false;
+			if (key.endsWith(`(${game.i18n.localize("Versatile")})`.replace(" ", "-"))) {
+				isVersatile = true;
+				key = key.slice(0,key.indexOf(` (${game.i18n.localize("Versatile")})`));
 			}
 
-			let tokenAttackList = [];
-			let attackToken;
-			let availableTokens = data.selectedTokenIds.filter(t => !tokenAttackList.includes(t));
-			for (let i = 0; i < numHitAttacks; i++) {
-				attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
-				if (attackToken) tokenAttackList.push(attackToken);
-			}
+			let targetAC = data.targets.filter(t => t.targetId === value[j].targetId)[0]?.targetAC;
+			const weaponData = data.weapons[key]; 
+			const actorName = weaponData.actor.name;
+			const finalAttackBonus = getAttackBonus(weaponData);
+			const d20Needed = calcD20Needed(finalAttackBonus, targetAC, data.rollTypeValue);
+			const attackersNeeded = calcAttackersNeeded(d20Needed);
 
-			// Mob attack results message
-			let msgData = {
-				actorAmount: actorAmount,
-				targetName: data.targetToken.name,
-				targetACtext: targetACtext,
-				d20Needed: d20Needed,
-				finalAttackBonus: finalAttackBonus,
-				weaponName: `${weaponData.name}${(isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``}`,
-				availableAttacks: availableAttacks,
-				attackersNeeded: attackersNeeded,
-				numSelected: data.numSelected,
-				numHitAttacks: numHitAttacks,
-				pluralOrNot: pluralOrNot,
-				sOrNot: sOrNot
-			}
+			// Check whether how many attackers can use this weapon
+			let availableAttacks = value[j]?.targetNumAttacks;
+			
+			if (availableAttacks / attackersNeeded >= 1) {
+				const numHitAttacks = Math.floor(availableAttacks/attackersNeeded);
+				const pluralOrNot = ` ${game.i18n.localize((numHitAttacks === 1) ? "MAT.oneAttackSingular" : "MAT.multipleAttackPlural")}!`;
+				const sOrNot = ((numHitAttacks > 1) ? "s" : "");
+				const targetACtext = game.user.isGM ? `${game.i18n.localize("MAT.targetAC")} ${targetAC}` : ``;
 
-			if (!messageData.messages[actorName]) {
-				messageData.messages[actorName] = [msgData];
+				let actorAmount = data.numSelected;
+				if (data.monsters?.[weaponData.actor.id]?.["amount"]) {
+					actorAmount = data.monsters[weaponData.actor.id]["amount"];
+				}
+
+				let tokenAttackList = [];
+				let attackToken;
+				let availableTokens = data.selectedTokenIds.filter(t => !tokenAttackList.includes(t));
+				for (let i = 0; i < numHitAttacks; i++) {
+					attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
+					if (attackToken) tokenAttackList.push(attackToken);
+				}
+
+				// Mob attack results message
+				let msgData = {
+					actorAmount: actorAmount,
+					targetACtext: targetACtext,
+					d20Needed: d20Needed,
+					finalAttackBonus: finalAttackBonus,
+					weaponName: `${weaponData.name}${(isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``}`,
+					availableAttacks: availableAttacks,
+					attackersNeeded: attackersNeeded,
+					numSelected: data.numSelected,
+					numHitAttacks: numHitAttacks,
+					pluralOrNot: pluralOrNot,
+					sOrNot: sOrNot,
+					displayTarget: data.targets.length !== 0,
+					targetImg: data.targets.filter(t => t.targetId === value[j].targetId)[0]?.targetImg,
+					targetId: value[j]?.targetId
+				}
+
+				if (!messageData.messages[actorName]) {
+					messageData.messages[actorName] = [msgData];
+				} else {
+					messageData.messages[actorName].push(msgData);
+				}
+
+				if (!messageData["totalHitAttacks"]) {
+					messageData["totalHitAttacks"] = numHitAttacks;
+				} else {
+					messageData["totalHitAttacks"] += numHitAttacks;
+				}
+
+				attackData.push({
+					data: data,
+					weaponData: weaponData,
+					numHitAttacks: numHitAttacks,
+					isVersatile: isVersatile,
+					tokenAttackList,
+					targetId: value[j]?.targetId ?? undefined
+				})
+
+				await new Promise(resolve => setTimeout(resolve, 250));
 			} else {
-				messageData.messages[actorName].push(msgData);
+				ui.notifications.warn(game.i18n.format("MAT.lowAttackBonusOrSmallMob",{weaponName: weaponData.name}));
 			}
-
-			if (!messageData["totalHitAttacks"]) {
-				messageData["totalHitAttacks"] = numHitAttacks;
-			} else {
-				messageData["totalHitAttacks"] += numHitAttacks;
-			}
-
-			attackData.push({
-				data: data,
-				weaponData: weaponData,
-				numHitAttacks: numHitAttacks,
-				isVersatile: isVersatile,
-				tokenAttackList
-			})
-
-			await new Promise(resolve => setTimeout(resolve, 250));
-		} else {
-			ui.notifications.warn(game.i18n.format("MAT.lowAttackBonusOrSmallMob",{weaponName: weaponData.name}));
 		}
 	}
 	if (attackData.length === 0) {
@@ -93,7 +100,7 @@ export async function rollMobAttack(data) {
 		await sendChatMessage(messageText);
 
 		for (let attack of attackData) {
-			await processMobRulesDamageRolls(attack.data, attack.weaponData, attack.numHitAttacks, attack.isVersatile, attack.tokenAttackList);
+			await processMobRulesDamageRolls(attack.data, attack.weaponData, attack.numHitAttacks, attack.isVersatile, attack.tokenAttackList, attack.targetId);
 			await new Promise(resolve => setTimeout(resolve, 500));
 		}
 
@@ -104,7 +111,7 @@ export async function rollMobAttack(data) {
 }
 
 
-export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVersatile, tokenAttackList) {
+export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVersatile, tokenAttackList, targetId) {
 
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
@@ -164,10 +171,10 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 		
 		let workflow = new MidiQOL.DamageOnlyWorkflow(
 			weaponData.actor, 
-			data.targetToken, 
+			canvas.tokens.get(targetId) ?? undefined,
 			damageRoll.total, 
 			damageTypeLabels[0], 
-			[data.targetToken], 
+			(canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
 			damageRoll, 
 			{
 				flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})`, 
@@ -184,8 +191,8 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 				actorUuid: weaponData.actor.uuid,
 				tokenId: workflow.tokenId,
 				tokenUuid: workflow.tokenUuid,
-				targets: (data.targetToken) ? [data.targetToken] : [],
-				hitTargets: (data.targetToken) ? [data.targetToken] : [],
+				targets: (canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
+				hitTargets: (canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
 				damageRoll: damageRoll,
 				damageRollHTML: workflow.damageRollHTML,
 				attackRoll: workflow?.attackRoll,
@@ -247,6 +254,20 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 					flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})`
 				}
 			);
+		}
+	}
+	// trigger AutoAnimations
+	if (game.settings.get(moduleName, "enableAutoAnimations")) {
+		let j = 0;
+		if (game.modules.get(coreVersion08x() ? "autoanimations" : "automated-jb2a-animations")?.active) {
+			for (let i = 0; i < numHitAttacks; i++) {
+				if (j < tokenAttackList.length) {
+					j = i;
+				} else {
+					j = tokenAttackList.length - 1;
+				}
+				AutoAnimations.playAnimation(canvas.tokens.get(tokenAttackList[j].tokenId), [canvas.tokens.get(targetId)], weaponData);
+			}
 		}
 	}
 }

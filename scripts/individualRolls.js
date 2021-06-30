@@ -10,135 +10,147 @@ export async function rollMobAttackIndividually(data) {
 	let messageData = {messages: {}};
 	let isVersatile;
 	for ( let [key, value] of Object.entries(data.attacks) ) {
-		isVersatile = false;
-		if (key.endsWith(`(${game.i18n.localize("Versatile")})`.replace(" ", "-"))) {
-			isVersatile = true;
-			key = key.slice(0,key.indexOf(` (${game.i18n.localize("Versatile")})`));
-		}
-		const weaponData = data.weapons[key];
-		const actorName = weaponData.actor.name;
-		const finalAttackBonus = getAttackBonus(weaponData);
+		for (let j = 0; j < value.length; j++) {	
+			isVersatile = false;
+			if (key.endsWith(`(${game.i18n.localize("Versatile")})`.replace(" ", "-"))) {
+				isVersatile = true;
+				key = key.slice(0,key.indexOf(` (${game.i18n.localize("Versatile")})`));
+			}
+			const weaponData = data.weapons[key];
+			const actorName = weaponData.actor.name;
+			const finalAttackBonus = getAttackBonus(weaponData);
 
-		let attackFormula = '';
-		
-		if (data.withAdvantage === true) {
-			attackFormula = `2d20kh + ${finalAttackBonus}`;
-		} else if (data.withDisadvantage === true) {
-			attackFormula = `2d20kl + ${finalAttackBonus}`;
-		} else {
-			attackFormula = `1d20 + ${finalAttackBonus}`
-		}
-
-		// Check how many attackers have this weapon
-		let numHitAttacks = 0;
-		let numCrits = 0;
-		let numCritFails = 0;
-		let availableAttacks = value;
-
-		// Evaluate how many individually rolled attacks hit
-		let attackRoll, attackRollEvaluated = [], successfulAttackRolls = [];
-		let atkRollData = [];
-
-		// Determine crit threshold
-		let critThreshold = 20;
-		if (weaponData.type === "weapon" && weaponData.actor.getFlag("dnd5e","weaponCriticalThreshold") > 0) {
-			critThreshold = weaponData.actor.getFlag("dnd5e","weaponCriticalThreshold");
-		} else if (weaponData.type === "spell" && weaponData.actor.getFlag("dnd5e","spellCriticalThreshold") > 0) {
-			critThreshold = weaponData.actor.getFlag("dnd5e","spellCriticalThreshold");
-		}
-
-		let tokenAttackList = [];
-		for (let i = 0; i < availableAttacks; i++) {	
-			attackRoll = new Roll(attackFormula);
-			attackRollEvaluated[i] = (coreVersion08x()) ? await attackRoll.evaluate({async: true}) : attackRoll.evaluate();
-
-			// Check settings for rolling 3d dice from Dice So Nice
-			if (game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls")) {
-				if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) {
-					if (!game.settings.get(moduleName, "hideDSNAttackRoll") || !game.user.isGM) game.dice3d.showForRoll(attackRoll);
-				}
+			let attackFormula = '';
+			
+			if (data.withAdvantage === true) {
+				attackFormula = `2d20kh + ${finalAttackBonus}`;
+			} else if (data.withDisadvantage === true) {
+				attackFormula = `2d20kl + ${finalAttackBonus}`;
+			} else {
+				attackFormula = `1d20 + ${finalAttackBonus}`
 			}
 
-			// Determine crits and natural 1s
-			let attackToken;
-			let availableTokens = data.selectedTokenIds.filter(t => !tokenAttackList.includes(t));
-			if (attackRollEvaluated[i].total - finalAttackBonus >= critThreshold) {
-				numCrits++;
-				numHitAttacks += 1;
-				successfulAttackRolls.push(attackRollEvaluated[i]);
-				atkRollData.push({roll: attackRollEvaluated[i].total, color: "max", finalAttackBonus: finalAttackBonus});
-				attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
-			} else if (attackRollEvaluated[i].total - finalAttackBonus === 1) {
-				numCritFails++;
-				if (game.user.getFlag(moduleName,"showAllAttackRolls") ?? game.settings.get(moduleName,"showAllAttackRolls")) {
-					atkRollData.push({roll: attackRollEvaluated[i].total, color: "min", finalAttackBonus: finalAttackBonus});
-				}
-			} else if (attackRollEvaluated[i].total >= ((data.targetAC) ? data.targetAC : 0) && attackRollEvaluated[i].total - finalAttackBonus > 1) {
-				numHitAttacks += 1;
-				successfulAttackRolls.push(attackRollEvaluated[i]);
-				atkRollData.push({roll: attackRollEvaluated[i].total, color: "", finalAttackBonus: finalAttackBonus});
-				attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
-			} else if (game.user.getFlag(moduleName,"showAllAttackRolls") ?? game.settings.get(moduleName,"showAllAttackRolls")) {
-				atkRollData.push({roll: attackRollEvaluated[i].total, color: "discarded", finalAttackBonus: finalAttackBonus});
+			// Check how many attackers have this weapon
+			let numHitAttacks = 0;
+			let numCrits = 0;
+			let numCritFails = 0;
+			let availableAttacks = value[j]?.targetNumAttacks;
+
+			let targetAC = data.targets.filter(t => t.targetId === value[j].targetId)[0]?.targetAC;
+
+			// Evaluate how many individually rolled attacks hit
+			let attackRoll, attackRollEvaluated = [], successfulAttackRolls = [];
+			let atkRollData = [];
+
+			// Determine crit threshold
+			let critThreshold = 20;
+			if (weaponData.type === "weapon" && weaponData.actor.getFlag("dnd5e","weaponCriticalThreshold") > 0) {
+				critThreshold = weaponData.actor.getFlag("dnd5e","weaponCriticalThreshold");
+			} else if (weaponData.type === "spell" && weaponData.actor.getFlag("dnd5e","spellCriticalThreshold") > 0) {
+				critThreshold = weaponData.actor.getFlag("dnd5e","spellCriticalThreshold");
 			}
-			if (attackToken) tokenAttackList.push(attackToken);
+
+			let tokenAttackList = [];
+			for (let i = 0; i < availableAttacks; i++) {	
+				attackRoll = new Roll(attackFormula);
+				attackRollEvaluated[i] = (coreVersion08x()) ? await attackRoll.evaluate({async: true}) : attackRoll.evaluate();
+
+				// Check settings for rolling 3d dice from Dice So Nice
+				if (game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls")) {
+					if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) {
+						if (!game.settings.get(moduleName, "hideDSNAttackRoll") || !game.user.isGM) game.dice3d.showForRoll(attackRoll);
+					}
+				}
+
+				// Determine crits and natural 1s
+				// Also, make a list of tokens that successfully attacked for (animation) macro purposes
+				let attackToken;
+				let availableTokens = data.selectedTokenIds.filter(t => (!tokenAttackList.includes(t) || (canvas.tokens.get(t.tokenId).actor.id === weaponData.actor.id && tokenAttackList.filter(attackToken => attackToken.tokenId === t.tokenId).length < Math.floor(availableAttacks / data.selectedTokenIds.length))) );
+				if (attackRollEvaluated[i].total - finalAttackBonus >= critThreshold) {
+					numCrits++;
+					numHitAttacks += 1;
+					successfulAttackRolls.push(attackRollEvaluated[i]);
+					atkRollData.push({roll: attackRollEvaluated[i].total, color: "max", finalAttackBonus: finalAttackBonus});
+					attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
+				} else if (attackRollEvaluated[i].total - finalAttackBonus === 1) {
+					numCritFails++;
+					if (game.user.getFlag(moduleName,"showAllAttackRolls") ?? game.settings.get(moduleName,"showAllAttackRolls")) {
+						atkRollData.push({roll: attackRollEvaluated[i].total, color: "min", finalAttackBonus: finalAttackBonus});
+					}
+				} else if (attackRollEvaluated[i].total >= ((targetAC) ? targetAC : 0) && attackRollEvaluated[i].total - finalAttackBonus > 1) {
+					numHitAttacks += 1;
+					successfulAttackRolls.push(attackRollEvaluated[i]);
+					atkRollData.push({roll: attackRollEvaluated[i].total, color: "", finalAttackBonus: finalAttackBonus});
+					attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
+				} else if (game.user.getFlag(moduleName,"showAllAttackRolls") ?? game.settings.get(moduleName,"showAllAttackRolls")) {
+					atkRollData.push({roll: attackRollEvaluated[i].total, color: "discarded", finalAttackBonus: finalAttackBonus});
+				}
+				if (attackToken) tokenAttackList.push(attackToken);
+			}
+			
+			const hitTarget = numHitAttacks > 0;
+			let crits, hitOrMiss;
+			if (hitTarget) {
+				crits = numCrits;
+				hitOrMiss = game.i18n.localize((crits === 1) ? "MAT.attackHitSingular" : "MAT.attackHitPlural");
+			} else {
+				crits = numCritFails;
+				hitOrMiss = game.i18n.localize((crits === 1) ? "MAT.attackMissSingular" : "MAT.attackMissPlural");
+			}
+			const critMsg = (crits > 0) ? `, ${crits}${hitOrMiss}${game.i18n.localize("MAT.critHitDescription")}` : ``;
+			const pluralOrNot = ((numHitAttacks === 1) ? ` ${game.i18n.localize((availableAttacks > 1) ? "MAT.oneAttackPlural" : "MAT.oneAttackSingular")}` : ` ${game.i18n.localize((availableAttacks > 1) ? "MAT.multipleAttackPlural" : "MAT.multipleAttackSingular")}`);
+
+			let actorAmount = data.numSelected;
+			if (data.monsters?.[weaponData.actor.id]?.["amount"]) {
+				actorAmount = data.monsters[weaponData.actor.id]["amount"];
+			}
+
+			if (availableAttacks === undefined) break;
+
+			// Mob attack results message
+			let msgData = {
+				actorAmount: actorAmount,
+				weaponName: `${weaponData.name}${(isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``}`,
+				availableAttacks: availableAttacks,
+				numHitAttacks: numHitAttacks,
+				pluralOrNot: pluralOrNot,
+				critMsg: critMsg,
+				endOfMsg: `!`,
+				atkRollData: atkRollData,
+				showIndividualAttackRolls: (atkRollData.length === 0) ? false : game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls"),
+				displayTarget: data.targets.length !== 0,
+				targetImg: data.targets.filter(t => t.targetId === value[j].targetId)[0]?.targetImg,
+				targetId: value[j]?.targetId
+			}
+
+			// Store message data for later
+			if (!messageData.messages[actorName]) {
+				messageData.messages[actorName] = [msgData];
+			} else {
+				messageData.messages[actorName].push(msgData);
+			}
+
+			if (!messageData["totalHitAttacks"]) {
+				messageData["totalHitAttacks"] = numHitAttacks;
+			} else {
+				messageData["totalHitAttacks"] += numHitAttacks;
+			}
+
+
+			attackData.push({
+				data,
+				weaponData,
+				finalAttackBonus,
+				successfulAttackRolls,
+				numHitAttacks,
+				numCrits,
+				isVersatile,
+				tokenAttackList,
+				targetId: value[j]?.targetId ?? undefined
+			})
+
+			await new Promise(resolve => setTimeout(resolve, 250));	
 		}
-		
-		const hitTarget = numHitAttacks > 0;
-		let crits, hitOrMiss;
-		if (hitTarget) {
-			crits = numCrits;
-			hitOrMiss = game.i18n.localize((crits === 1) ? "MAT.attackHitSingular" : "MAT.attackHitPlural");
-		} else {
-			crits = numCritFails;
-			hitOrMiss = game.i18n.localize((crits === 1) ? "MAT.attackMissSingular" : "MAT.attackMissPlural");
-		}
-		const critMsg = (crits > 0) ? `, ${crits}${hitOrMiss}${game.i18n.localize("MAT.critHitDescription")}` : ``;
-		const pluralOrNot = ((numHitAttacks === 1) ? ` ${game.i18n.localize((availableAttacks > 1) ? "MAT.oneAttackPlural" : "MAT.oneAttackSingular")}${(numCrits > 0) ? ` ${game.i18n.localize("MAT.critHitDescription")}` : ``}!` : ` ${game.i18n.localize((availableAttacks > 1) ? "MAT.multipleAttackPlural" : "MAT.multipleAttackSingular")}${critMsg}!`);
-		const targetACtext = game.user.isGM ? ` (AC ${data.targetAC})` : ``;
-
-		let actorAmount = data.numSelected;
-		if (data.monsters?.[weaponData.actor.id]?.["amount"]) {
-			actorAmount = data.monsters[weaponData.actor.id]["amount"];
-		}
-
-		// Mob attack results message
-		let msgData = {
-			actorAmount: actorAmount,
-			weaponName: `${weaponData.name}${(isVersatile) ? ` (${game.i18n.localize("Versatile")})` : ``}`,
-			availableAttacks: availableAttacks,
-			numHitAttacks: numHitAttacks,
-			pluralOrNot: pluralOrNot,
-			atkRollData: atkRollData,
-			showIndividualAttackRolls: (atkRollData.length === 0) ? false : game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls")
-		}
-
-		// Store message data for later
-		if (!messageData.messages[actorName]) {
-			messageData.messages[actorName] = [msgData];
-		} else {
-			messageData.messages[actorName].push(msgData);
-		}
-
-		if (!messageData["totalHitAttacks"]) {
-			messageData["totalHitAttacks"] = numHitAttacks;
-		} else {
-			messageData["totalHitAttacks"] += numHitAttacks;
-		}
-
-
-		attackData.push({
-			data,
-			weaponData,
-			finalAttackBonus,
-			successfulAttackRolls,
-			numHitAttacks,
-			numCrits,
-			isVersatile,
-			tokenAttackList
-		})
-
-		await new Promise(resolve => setTimeout(resolve, 250));	
 	}
 	if (attackData.length === 0) return;
 
@@ -151,7 +163,7 @@ export async function rollMobAttackIndividually(data) {
 
 	// Process damage rolls
 	for (let attack of attackData) {
-		await processIndividualDamageRolls(attack.data, attack.weaponData, attack.finalAttackBonus, attack.successfulAttackRolls, attack.numHitAttacks, attack.numCrits, attack.isVersatile, attack.tokenAttackList);
+		await processIndividualDamageRolls(attack.data, attack.weaponData, attack.finalAttackBonus, attack.successfulAttackRolls, attack.numHitAttacks, attack.numCrits, attack.isVersatile, attack.tokenAttackList, attack.targetId);
 		await new Promise(resolve => setTimeout(resolve, 500));
 	}
 
@@ -161,7 +173,7 @@ export async function rollMobAttackIndividually(data) {
 }
 
 
-export async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, successfulAttackRolls, numHitAttacks, numCrits, isVersatile, tokenAttackList) {
+export async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, successfulAttackRolls, numHitAttacks, numCrits, isVersatile, tokenAttackList, targetId) {
 
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
@@ -221,13 +233,13 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 			if (weaponData.data.data.consume.type === "ammo") {
 				try {
 					await mobAttackRoll.addField(["ammo", {name: weaponData.actor.items.get(weaponData.data.data.consume.target).name}]);	
-					await mobAttackRoll.toMessage();
+					await mobAttackRoll.toMessage({speaker: {actor: weaponData.actor, token: weaponData.actor.getActiveTokens()[0], alias: weaponData.actor.getActiveTokens()[0].name}});
 				} catch (error) {
 					console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
 					ui.notifications.error(game.i18n.format("MAT.ammoError", {weaponName: weaponData.name}));
 				}
 			} else {
-				await mobAttackRoll.toMessage();
+				await mobAttackRoll.toMessage({speaker: {actor: weaponData.actor, token: weaponData.actor.getActiveTokens()[0], alias: weaponData.actor.getActiveTokens()[0].name}});
 			}
 
 		// Midi-QOL active, Better Rolls inactive
@@ -263,10 +275,12 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 			
 			let workflow = new MidiQOL.DamageOnlyWorkflow(
 				weaponData.actor, 
-				(data.targetToken) ? data.targetToken : undefined, 
+				// (data.targetToken) ? data.targetToken : undefined, 
+				canvas.tokens.get(targetId) ?? undefined,
 				damageRoll.total, 
 				damageTypeLabels[0], 
-				(data.targetToken) ? [data.targetToken] : [], 
+				// (data.targetToken) ? [data.targetToken] : [], 
+				(canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
 				damageRoll, 
 				{
 					flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})${(numCrits > 0) ? ` (${game.i18n.localize("MAT.critIncluded")})` : ``}`, 
@@ -283,8 +297,8 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 					actorUuid: weaponData.actor.uuid,
 					tokenId: workflow.tokenId,
 					tokenUuid: workflow.tokenUuid,
-					targets: (data.targetToken) ? [data.targetToken] : [],
-					hitTargets: (data.targetToken) ? [data.targetToken] : [],
+					targets: (canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
+					hitTargets: (canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
 					damageRoll: damageRoll,
 					damageRollHTML: workflow.damageRollHTML,
 					attackRoll: successfulAttackRolls[0],
@@ -324,6 +338,8 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 				}
 			}
 			Hooks.call("midi-qol.DamageRollComplete", workflow);
+
+			
 			
 		// Neither Better Rolls nor Midi-QOL active
 		} else {
@@ -374,6 +390,20 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 					);
 				}
 			}
+		}
+		// trigger AutoAnimations
+		if (game.settings.get(moduleName, "enableAutoAnimations")) {
+			let j = 0;
+			if (game.modules.get(coreVersion08x() ? "autoanimations" : "automated-jb2a-animations")?.active) {
+				for (let i = 0; i < numHitAttacks; i++) {
+					if (j < tokenAttackList.length) {
+						j = i;
+					} else {
+						j = tokenAttackList.length - 1;
+					}
+					AutoAnimations.playAnimation(canvas.tokens.get(tokenAttackList[j].tokenId), [canvas.tokens.get(targetId)], weaponData);
+				}
+			}	
 		}
 	}
 }

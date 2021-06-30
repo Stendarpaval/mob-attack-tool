@@ -8,7 +8,7 @@
 	<tbody>
 		{{#each this}}
 		<tr>
-			<td>{{this.numHitAttacks}} {{localize 'of'}} {{this.availableAttacks}} {{this.weaponName}}{{this.pluralOrNot}}</td>
+			<td style="display:inline-block; vertical-align:middle; line-height: normal;">{{this.numHitAttacks}} {{localize 'of'}} {{this.availableAttacks}} {{this.weaponName}}{{this.pluralOrNot}}{{#if this.displayTarget}} <img class="mat-target-icon" src="{{this.targetImg}}" title="Target" width="25" height="25" data-item-id="{{this.targetId}}" style="display:inline-block; vertical-align:middle; line-height: normal;">{{/if}}{{this.critMsg}}{{this.endOfMsg}}</td>
 		</tr>
 		{{#if this.showIndividualAttackRolls}}
 		<tr class="mat-midi-show-atk-lines">
