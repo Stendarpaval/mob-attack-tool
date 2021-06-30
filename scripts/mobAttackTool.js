@@ -70,6 +70,11 @@ export class MobAttackDialog extends FormApplication {
 
 		this.currentlySelectingTokens = false;
 		this.targets = [];
+
+		let mobList = game.settings.get(moduleName,"hiddenMobList");
+		if (canvas.tokens.controlled.length === 0 && Object.keys(mobList).length === 0) {
+			this.close();
+		}
 	}
 
 
@@ -138,7 +143,7 @@ export class MobAttackDialog extends FormApplication {
 
 			// generate default mob name
 			if ((this.numSelected > 0 || Object.keys(mobList).length === 0)) {
-				mobName = `${game.settings.get(moduleName, "defaultMobPrefix")} ${canvas.tokens.controlled[0].name}${game.settings.get(moduleName, "defaultMobSuffix")}`;
+				mobName = `${game.settings.get(moduleName, "defaultMobPrefix")} ${canvas.tokens.controlled[0]?.name}${game.settings.get(moduleName, "defaultMobSuffix")}`;
 			} else {
 				mobName = `${Object.keys(mobList)[this.mobListIndex]}`;
 			}
@@ -848,9 +853,9 @@ export class MobAttackDialog extends FormApplication {
 				this.collapsibleCSS = "mat-collapsible-content-closed";
 			}
 			await game.user.setFlag(moduleName,"endMobTurnValue", html.find(`input[name="endMobTurn"]`)[0].checked)
-			let rollTypeOptions = {advantage: "", normal: "", disadvantage: ""};
-			rollTypeOptions[html.find("[name=rollType]")[0].value] = "selected";
-			this.rollTypeSelection = rollTypeOptions;
+			// let rollTypeOptions = {advantage: "", normal: "", disadvantage: ""};
+			// rollTypeOptions[html.find("[name=rollType]")[0].value] = "selected";
+			// this.rollTypeSelection = rollTypeOptions;
 			this.localUpdate = true;
 		    this.render(true);
 		})

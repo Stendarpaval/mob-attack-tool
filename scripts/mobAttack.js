@@ -39,7 +39,10 @@ Hooks.on("controlToken", async (token, controlState) => {
 	if (mobDialog) {
 		if (mobDialog.rendered && !mobDialog.currentlySelectingTokens) {
 			await game.settings.set(moduleName, "hiddenChangedMob", false);
-			mobDialog.render(true);
+			let mobList = game.settings.get(moduleName,"hiddenMobList");
+			if (canvas.tokens.controlled.length !== 0 || Object.keys(mobList).length !== 0) {
+				mobDialog.render();
+			}
 		}
 	}
 });
@@ -51,8 +54,10 @@ Hooks.on("targetToken", async (token, targetState) => {
 	if (mobDialog) {
 		if (mobDialog.rendered) {
 			// await game.settings.set(moduleName, "hiddenChangedMob", false);
-			mobDialog.render(true);
+			let mobList = game.settings.get(moduleName,"hiddenMobList");
+			if (canvas.tokens.controlled.length !== 0 || Object.keys(mobList).length !== 0) {
+				mobDialog.render();
+			}
 		}
 	}
-	
-})
+});
