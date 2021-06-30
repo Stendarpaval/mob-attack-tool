@@ -4,7 +4,7 @@
 [![Foundry Hub Endorsements](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fmob-attack-tool%2Fshield%2Fendorsements)](https://www.foundryvtt-hub.com/package/mob-attack-tool/) [![Foundry Hub Comments](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fmob-attack-tool%2Fshield%2Fcomments)](https://www.foundryvtt-hub.com/package/mob-attack-tool/)
 
 # Mob Attack Tool
-This is a module for Foundry VTT that offers a tool for handling mob attacks in the dnd5e system. The focus lies on offering GMs and players accessible and flexible tools to speed up large combat encounters. This module supports use of the [Dice so Nice!](https://gitlab.com/riccisi/foundryvtt-dice-so-nice/-/tree/master), [Better Rolls for 5e](https://github.com/RedReign/FoundryVTT-BetterRolls5e), [Midi-QOL](https://gitlab.com/tposney/midi-qol/-/tree/master), and [Grouped Initiative](https://github.com/tonifisler/foundry-group-initiative) modules. 
+This is a module for Foundry VTT that offers a tool for handling mob attacks in the dnd5e system. The focus lies on offering GMs and players accessible and flexible tools to speed up large combat encounters. This module supports use of the [Dice so Nice!](https://gitlab.com/riccisi/foundryvtt-dice-so-nice/-/tree/master), [Better Rolls for 5e](https://github.com/RedReign/FoundryVTT-BetterRolls5e), [Midi-QOL](https://gitlab.com/tposney/midi-qol/-/tree/master), [Grouped Initiative](https://github.com/tonifisler/foundry-group-initiative), and [Automated Animations](https://github.com/otigon/automated-jb2a-animations) modules. 
 
 ## How to install
 You can install this module by searching Foundry's package browser or by pasting this url in the corresponding text field of Foundry's package installer: `https://raw.githubusercontent.com/Stendarpaval/mob-attack-tool/main/module.json`
@@ -45,7 +45,7 @@ For more elaborate examples and screenshots, please head over to [EXAMPLES.md](E
 ## Planned improvements
 * Further (optional) automation of the initial selection of tokens -> _In Progress_
 * Some documentation and better structuring of the repo -> _In Progress_
-* Multiple target selection --> _In Progress_
+* Multiple target selection enhancements
 
 ## Translations
 Mob Attack Tool currently supports these languages:
