@@ -11,7 +11,7 @@
 	"MAT.ammoError": "이 {weaponName} 공격에 탄약 필드를 추가하는 동안 오류가 발생했습니다.",
 	"MAT.invalidDamageFormula": "{weaponDataName}에 올바른 피해 수식이 없어서 굴림을 할 수 없습니다.",
 
-	"MAT.dialogTargetArmorClassMessage": "대상의 AC는 다음과 같습니다",
+	"MAT.dialogTargetArmorClassMessage": "의 AC:",
 	"MAT.dialogChooseWeaponOption": "공격 옵션을 선택하십시오",
 	"MAT.dialogNumSelected": "다음을 선택했습니다",
 	"MAT.dialogClickIconText": "아이콘을 클릭하여 액터 또는 무기 시트를 엽니다.",
@@ -50,6 +50,14 @@
 	"MAT.numTotalHitsSingular": "공격이 명중했습니다!",
 	"MAT.numTotalHitsPlural": "공격이 명중했습니다!",
 
+	"MAT.totalNumberOfAttacks": "공격 총 횟수",
+	"MAT.averageDamageIfAllAttacksHit": "평균 피해량(모두 명중시)",
+	"MAT.pointsOfDamage": "의 피해",
+	"MAT.clickDragAttackIconsTargets": "공격 아이콘을 클릭&드래그하여 공격 대상을 변경한다.",
+	"MAT.thisTarget": "이 대상",
+	"MAT.willBeAttacked": "명중 예상:",
+	"MAT.times": "회",
+	
 	"MAT.midiDamageLabel": "공격 - 대상 AC",
 	"MAT.critIncluded": "치명타 포함",
 	"MAT.targetAC": "대상 AC",
