@@ -97,7 +97,7 @@
 						<i class="fas fa-arrow-left"></i>
 					</a>
 				</label>
-				<input type="text" name="mobName" value="{{mobName}}" onClick="this.select();"/>
+				<input type="text" name="mobName" class="MAT-mobName" value="{{mobName}}" onClick="this.select();"/>
 				<label>
 					 <a class="nextMob" title="{{localize 'Switch to next saved mob'}}">
 						<i class="fas fa-arrow-right"></i>
@@ -115,8 +115,8 @@
 	<hr>
 	<section id="mobDialog-tabs" class="content">
 		<div class="tab active" data-tab="weapons">
-			<p class="hint">{{localize 'MAT.dialogNumSelected'}} <strong>{{numSelected}}</strong> token{{pluralTokensOrNot}}. Total number of attacks: <strong>{{this.numTotalAttacks}}</strong>.</p>
-			<p class="hint">Average amount of damage (if all attacks hit): <strong>{{this.totalAverageDamage}}</strong> points of damage.</p>
+			<p class="hint">{{localize 'MAT.dialogNumSelected'}} <strong>{{numSelected}}</strong> token{{pluralTokensOrNot}}. {{localize 'MAT.totalNumberOfAttacks'}}: <strong>{{this.numTotalAttacks}}</strong>.</p>
+			<p class="hint">{{localize 'MAT.averageDamageIfAllAttacksHit'}}: <strong>{{this.totalAverageDamage}}</strong> {{localize 'MAT.pointsOfDamage'}}.</p>
 			<div name="mobListOptions">
 				<hr>
 				{{#each this.monsters}}
@@ -162,7 +162,7 @@
 			</div>
 		</div>
 		<div class="tab" data-tab="targets">
-			{{#if this.multipleTargets}}<p class="hint">Click and drag attack icons to move them between targets.</p><hr>{{/if}}
+			{{#if this.multipleTargets}}<p class="hint">{{localize 'MAT.clickDragAttackIconsTargets'}}</p><hr>{{/if}}
 			{{#each this.targets}}
 				{{#with this}}
 				<div class="mat-target-label">
@@ -171,7 +171,7 @@
 					</label>
 					<div class="mat-label mat-col2">
 						{{#if this.isGM}}{{this.targetImgName}}{{/if}}
-						<p class="hint">This target{{#if this.isGM}}{{this.targetACtext}} <strong>{{this.targetAC}}</strong> and{{/if}} will be attacked <strong>{{this.targetTotalNumAttacks}}</strong> times.<br>Average amount of damage (if all attacks hit): <strong>{{this.targetTotalAverageDamage}}</strong> points of damage.</p>
+						<p class="hint">{{localize 'MAT.thisTarget'}}{{#if this.isGM}}{{this.targetACtext}} <strong>{{this.targetAC}}</strong> {{localize 'and'}}{{/if}} {{localize 'MAT.willBeAttacked'}} <strong>{{this.targetTotalNumAttacks}}</strong> {{localize 'MAT.times'}}.<br>{{localize 'MAT.averageDamageIfAllAttacksHit'}}: <strong>{{this.targetTotalAverageDamage}}</strong> {{localize 'MAT.pointsOfDamage'}}.</p>
 						<div class="mat-attacks-on-target-box">
 							{{#each this.weapons}}
 								<label class="mat-label target-attack-box">

@@ -50,6 +50,14 @@
 	"MAT.numTotalHitsSingular": "attack hits in total!",
 	"MAT.numTotalHitsPlural": "attacks hit in total!",
 
+	"MAT.totalNumberOfAttacks": "Total number of attacks",
+	"MAT.averageDamageIfAllAttacksHit": "Average amount of damage (if all attacks hit)",
+	"MAT.pointsOfDamage": "points of damage",
+	"MAT.clickDragAttackIconsTargets": "Click and drag attack icons to move them between targets.",
+	"MAT.thisTarget": "This target",
+	"MAT.willBeAttacked": "will be attacked",
+	"MAT.times": "times",
+
 	"MAT.midiDamageLabel": "Attack - Target AC",
 	"MAT.critIncluded": "Crit included",
 	"MAT.targetAC": "Target AC",
