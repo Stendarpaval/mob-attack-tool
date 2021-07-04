@@ -16,11 +16,7 @@
 		}
 	],
 	"url": "https://github.com/Stendarpaval/mob-attack-tool",
-<<<<<<< Updated upstream
-	"version": "0.2.21",
-=======
 	"version": "0.2.22",
->>>>>>> Stashed changes
 	"minimumCoreVersion": "0.7.9",
 	"compatibleCoreVersion": "0.8.8",
 	"system": ["dnd5e"],
@@ -31,9 +27,5 @@
 		"styles/mob-attack-tool.css"
 	],
 	"manifest": "https://raw.githubusercontent.com/Stendarpaval/mob-attack-tool/main/module.json",
-<<<<<<< Updated upstream
-	"download": "https://github.com/Stendarpaval/mob-attack-tool/releases/download/0.2.21/module.zip"
-=======
 	"download": "https://github.com/Stendarpaval/mob-attack-tool/releases/download/0.2.22/module.zip"
->>>>>>> Stashed changes
 }
