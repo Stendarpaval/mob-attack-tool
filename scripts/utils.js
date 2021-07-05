@@ -7,16 +7,6 @@ String.prototype.capitalize = function() {
 }
 
 
-export function makeId(length) {
-	var result = '';
-	var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	var charactersLength = characters.length;
-	for ( var i = 0; i < length; i++ ) {
-		result += characters.charAt(Math.floor(Math.random() * charactersLength));
-	}
-   return result;
-}
-
 // This is based in large part on midi-qol's callMacro method
 export async function callMidiMacro(item, midiMacroData) {
 	const macroName = getProperty(item, "data.flags.midi-qol.onUseMacroName");
@@ -77,17 +67,87 @@ export async function callMidiMacro(item, midiMacroData) {
 
 
 export function checkTarget() {
-	// if (canvas.tokens.objects.children.filter(isTargeted).length > 1) {
-	// 	ui.notifications.warn(game.i18n.localize("MAT.singleTargetWarning"));
-	// 	return false;
-	// }
-
 	let targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
 	if (!targetToken && game.settings.get(moduleName, "mobRules") === 0) {
 		ui.notifications.warn(game.i18n.localize("MAT.targetValidACWarning"));
 		return false;
 	}
 	return true;
+}
+
+
+export function getTargetData(monsters) {
+	let targetTokens = canvas.tokens.objects.children.filter(isTargeted);
+	let weaponsOnTarget = {};
+	for (let [monsterID, monsterData] of Object.entries(duplicate(monsters))) {
+		Object.assign(weaponsOnTarget,monsterData.weapons);
+		for (let i = 0; i < monsterData.amount - 1; i++) {
+			for (let weaponID of Object.keys(monsterData.weapons)) {
+				if (weaponsOnTarget[weaponID]) {
+					weaponsOnTarget[weaponID + String(i)] = monsterData.weapons[weaponID];
+				}
+			}
+		}
+	}
+
+	let weaponsOnTargetArray = [];
+	for (let [weaponID, weaponData] of Object.entries(weaponsOnTarget)) {
+		if (weaponData.useButtonValue !== `checked`) {
+			delete weaponsOnTarget[weaponID];
+		} else {
+			for (let j = 0; j < weaponData.numAttack; j++) {
+				let singleWeaponData = duplicate(weaponData);
+				singleWeaponData.numAttack = 1;
+				weaponsOnTargetArray.push(singleWeaponData);
+			}
+		}
+	}
+
+	let targets = [];
+	let targetCount = 0;
+	let arrayStart = 0;
+	let targetAC = 10;
+	let arrayLength = Math.floor(weaponsOnTargetArray.length / targetTokens.length);
+	if (arrayLength === 0) arrayLength = 1; 
+	for (let targetToken of targetTokens) {
+		targetAC = targetToken?.actor.data.data.attributes.ac.value;
+		targets.push({
+			targetId: targetToken?.id,
+			targetImg: targetToken?.data?.img ?? "icons/svg/mystery-man.svg",
+			targetImgName: targetToken?.name ?? "Unknown target",
+			isGM: game.user.isGM,
+			weapons: weaponsOnTargetArray.slice(arrayStart, arrayLength * (1 + targetCount)),
+			noWeaponMsg: '',
+			targetIndex: targetCount,
+			targetAC: targetAC,
+			targetACtext: ((game.user.isGM) ? ` ${game.i18n.localize("MAT.dialogTargetArmorClassMessage")}` : ``)
+		})
+
+		let targetTotalNumAttacks = targets[targets.length - 1].weapons.length;
+		let targetTotalAverageDamage = 0;
+		for (let weapon of targets[targets.length - 1].weapons) {
+			targetTotalAverageDamage += weapon.averageDamage;
+		}
+		targets[targets.length - 1]["targetTotalNumAttacks"] = targetTotalNumAttacks;
+		targets[targets.length - 1]["targetTotalAverageDamage"] = targetTotalAverageDamage;
+
+		if (targetCount === targetTokens.length - 1) {
+			for (let i = 0; i < (weaponsOnTargetArray.length - arrayLength * (1 + targetCount)); i++) {
+				targets[i].weapons.push(weaponsOnTargetArray[weaponsOnTargetArray.length - 1 - i]);
+				targets[i].targetTotalNumAttacks += 1;
+				targets[i].targetTotalAverageDamage += weaponsOnTargetArray[weaponsOnTargetArray.length - 1 - i].averageDamage;
+			}
+		}
+		arrayStart = arrayLength * (1 + targetCount);
+		targetCount++;
+	}
+
+	for (let target of targets) {
+		if (target.weapons.length === 0) {
+			target.noWeaponMsg = "None";
+		}
+	}
+	return targets;
 }
 
 
@@ -314,7 +374,7 @@ export async function prepareMobAttack(html, selectedTokenIds, weapons, availabl
 	}
 
 	// End the turn of mob attackers grouped together in initiative
-	let endMobTurn = html.find(`input[name="endMobTurn"]`)[0].checked;
+	let endMobTurn = html.find(`input[name="endMobTurn"]`)[0]?.checked ?? false;
 
 	// Remember what user chose last time
 	await game.user.setFlag(moduleName,"endMobTurnValue",endMobTurn);

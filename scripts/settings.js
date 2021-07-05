@@ -237,6 +237,22 @@ const matSettings = {
 		config: false,
 		default: true,
 		type: Boolean
+	},
+	"enableMobInitiative": {
+		name: "SETTINGS.MAT.enableMobInitiative",
+		hint: "SETTINGS.MAT.enableMobInitiativeHint",
+		scope: "world",
+		config: false,
+		default: false,
+		type: Boolean
+	},
+	"groupMobInitiative": {
+		name: "SETTINGS.MAT.groupMobInitiative",
+		hint: "SETTINGS.MAT.groupMobInitiativeHint",
+		scope: "world",
+		config: false,
+		default: false,
+		type: Boolean
 	}
 };
 
@@ -396,6 +412,22 @@ class RollSettingsMenu extends FormApplication {
 						hint: matSettings.hideDSNAttackRoll.hint,
 						value: game.settings.get(moduleName,"hideDSNAttackRoll"),
 						id: "hideDSNAttackRoll",
+						isCheckbox: true,
+						client: game.user.isGM
+					},
+					enableMobInitiative: {
+						name: matSettings.enableMobInitiative.name,
+						hint: matSettings.enableMobInitiative.hint,
+						value: game.settings.get(moduleName,"enableMobInitiative"),
+						id: "enableMobInitiative",
+						isCheckbox: true,
+						client: game.user.isGM
+					},
+					groupMobInitiative: {
+						name: matSettings.groupMobInitiative.name,
+						hint: matSettings.groupMobInitiative.hint,
+						value: game.settings.get(moduleName,"groupMobInitiative"),
+						id: "groupMobInitiative",
 						isCheckbox: true,
 						client: game.user.isGM
 					},

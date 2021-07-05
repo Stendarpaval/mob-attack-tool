@@ -2,6 +2,7 @@ import { initSettings } from "./settings.js";
 import { initMobAttackTool, MobAttackDialog } from "./mobAttackTool.js";
 import { MobAttacks } from "./mobAttackTool.js";
 import { checkTarget, isTargeted } from "./utils.js";
+import { rollNPC, rollAll, rollGroupInitiative } from "./group-initiative/groupInitiative.js";
 
 export const moduleName = "mob-attack-tool";
 
@@ -61,3 +62,32 @@ Hooks.on("targetToken", async (token, targetState) => {
 		}
 	}
 });
+
+
+// group initiative: override roll methods from combat tracker
+Hooks.on("renderCombatTracker", ( app, html, options ) => {
+	let combat = options.combat;
+	if (!combat) return;
+	
+	if (!combat.originalRollNPC) {
+		combat.originalRollNPC = combat.rollNPC;	
+	}
+	if (!combat.originalRollAll) {
+		combat.originalRollAll = combat.rollAll;	
+	}
+
+	if (game.settings.get(moduleName, "enableMobInitiative")) {	
+		combat.rollNPC = rollNPC.bind(combat);
+		combat.rollAll = rollAll.bind(combat);	
+	} 
+	else {
+		// reset the methods
+		if (combat.originalRollNPC) {
+			combat.rollNPC = combat.originalRollNPC;
+		}
+		if (combat.originalRollAll) {
+			combat.rollAll = combat.originalRollAll;
+		}
+	}
+});
+
