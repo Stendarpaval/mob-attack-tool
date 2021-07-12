@@ -95,6 +95,14 @@ const matSettings = {
 		default: true,
 		type: Boolean
 	},
+	"autoSelectMobCombatants": {
+		name: "SETTINGS.MAT.autoSelectMobCombatants",
+		hint: "SETTINGS.MAT.autoSelectMobCombatantsHint",
+		scope: "world",
+		config: true,
+		default: true,
+		type: Boolean
+	},
 	"askRollType": {
 		name: "SETTINGS.MAT.askRollType",
 		hint: "SETTINGS.MAT.askRollTypeHint",

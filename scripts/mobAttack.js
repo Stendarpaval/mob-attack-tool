@@ -64,6 +64,41 @@ Hooks.on("targetToken", async (token, targetState) => {
 });
 
 
+// select mob tokens if next combatant is part of a saved mob
+Hooks.on("updateCombat", async (combat, changed, options, userId) => {
+	if (!("turn" in changed)) return;
+	if (!game.settings.get(moduleName, "autoSelectMobCombatants")) return;
+	let thisCombat = game.combats.get(combat.id);
+	if (thisCombat.data.combatants.length === 0) return;
+	if (!game.user.isGM && game.combat.combatant.players.filter(p => p.id === game.user.id).length === 0) return;
+
+	const mobList = game.settings.get("mob-attack-tool","hiddenMobList");
+	const nextTurn = combat.turns[changed.turn];
+	const nextTokenId = (coreVersion08x()) ? nextTurn.data.tokenId : nextTurn.tokenId;
+	let nextMobName = "";
+	for (let mobName of Object.keys(mobList)) {
+		if (mobList[mobName].selectedTokenIds.includes(nextTokenId) && mobList[mobName].userId === game.user.id) {
+			nextMobName = mobName;
+			break;
+		}
+	}
+	if (nextMobName === "") return;
+	const dialogId = game.settings.get(moduleName, "currentDialogId");
+	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
+	if (mobDialog) mobDialog.currentlySelectingTokens = true;
+	canvas.tokens.releaseAll();
+	for (let tokenId of mobList[nextMobName].selectedTokenIds) {
+		if (canvas.tokens.placeables.filter(t => t.id === tokenId).length > 0) {
+			canvas.tokens.get(tokenId).control({releaseOthers: false})	
+		}
+	}
+	if (mobDialog) {
+		mobDialog.numSelected = canvas.tokens.controlled.length;
+		mobDialog.currentlySelectingTokens = false;
+	}
+})
+
+
 // group initiative: override roll methods from combat tracker
 Hooks.on("renderCombatTracker", ( app, html, options ) => {
 	let combat = options.combat;

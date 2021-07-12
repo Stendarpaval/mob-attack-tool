@@ -438,30 +438,69 @@ export async function loadMob(event, selectedMob) {
 
 export async function endGroupedMobTurn(data) {
 	if (game.combat != null) {
-		let mobActors = [];
 
-		for (let [key, value] of Object.entries(data.attacks)) {
-			mobActors.push(data.weapons[key].actor);
-		}
-
-		if (mobActors.filter(m => m.id === game.combat.combatant.actor.id).length > 0) {
-			let turnIndex = game.combat.turns.indexOf(game.combat.combatant);
-			let lastMobTurn = turnIndex;
-			let currentRound = game.combat.round;
-			for (let i = turnIndex + 1; i < game.combat.turns.length; i++) {
-				if (mobActors.filter(m => m.id === game.combat.turns[i].actor.id).length > 0) {
-					lastMobTurn++;
-				} else {
+		const mobList = game.settings.get("mob-attack-tool","hiddenMobList");
+		const combatants = game.combat.turns;
+		let mobCreatures = {};
+		let otherCreatures = [];
+		for (let combatant of combatants) {
+			let savedMob;
+			for (let mobName of Object.keys(mobList)) {
+				if (mobList[mobName].selectedTokenIds.includes(((coreVersion08x()) ? combatant.data.tokenId : combatant.tokenId))) {
+					savedMob = mobList[mobName];
 					break;
 				}
 			}
-			if (lastMobTurn === game.combat.turns.length - 1) {
-				await game.combat.nextRound();
+			if (savedMob) {
+				if (Object.keys(mobList).includes(savedMob.mobName)) {
+					if (!mobCreatures[savedMob.mobName]?.length) {
+						mobCreatures[savedMob.mobName] = [((coreVersion08x()) ? combatant.data._id : combatant._id)];
+					} else {
+						mobCreatures[savedMob.mobName].push(((coreVersion08x()) ? combatant.data._id : combatant._id));
+					}
+				}
 			} else {
-				await game.combat.update({round: currentRound, turn: lastMobTurn + 1});
+				otherCreatures.push(combatant);
 			}
-		} else {
-			console.log("Mob Attack Tool | Mob turn could not be ended because the mob attack was used during another combatant's turn.");
+		}
+		
+		for (let mobName of Object.keys(mobList)) {
+			if (mobCreatures[mobName].includes(((coreVersion08x()) ? game.combat.combatant.data._id : game.combat.combatant._id))) {
+				let turnIndex = game.combat.turns.indexOf(game.combat.combatant);
+				let lastMobTurn = turnIndex;
+				let currentRound = game.combat.round;
+				for (let i = turnIndex + 1; i < game.combat.turns.length; i++) {
+					if (mobCreatures[mobName].includes(((coreVersion08x()) ? game.combat.turns[i].data._id : game.combat.turns[i]._id))) {
+						lastMobTurn++;
+					} else {
+						break;
+					}
+				}
+				if (lastMobTurn === game.combat.turns.length - 1) {
+					await game.combat.nextRound();
+				} else {
+					await game.combat.update({round: currentRound, turn: lastMobTurn + 1});
+				}
+				break;
+			}
+			if (mobName === Object.keys(mobList)[Object.keys(mobList).length - 1]) {
+				// skip turn of selected tokens (not a saved mob per se)
+				let turnIndex = game.combat.turns.indexOf(game.combat.combatant);
+				let lastMobTurn = turnIndex;
+				let currentRound = game.combat.round;
+				for (let i = turnIndex + 1; i < game.combat.turns.length; i++) {
+					if (data.selectedTokenIds.filter(t => t.tokenId === ((coreVersion08x()) ? game.combat.turns[i].data.tokenId : game.combat.turns[i].tokenId)).length > 0) {
+						lastMobTurn++;
+					} else {
+						break;
+					}
+				}
+				if (lastMobTurn === game.combat.turns.length - 1) {
+					await game.combat.nextRound();
+				} else {
+					await game.combat.update({round: currentRound, turn: lastMobTurn + 1});
+				}
+			}
 		}
 	}
 }

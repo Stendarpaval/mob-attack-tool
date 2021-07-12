@@ -153,6 +153,9 @@
  	"SETTINGS.MAT.showMobAttackResultsToPlayersHint": "Enable this to make the Mob Attack Results message visible to players (if your roll mode is set to Public Rolls). Disable it to whisper the results to the GM. (Client specific setting)",
  	"SETTINGS.MAT.keepDialogOpen": "Keep dialog open",
  	"SETTINGS.MAT.keepDialogOpenHint": "Enable this to prevent the Mob Attack dialog from closing after executing a Mob Attack. This can be useful if you need to make multiple Mob Attacks in a short amount of time, or you could minimize the dialog and maximize it when you need it. (Client specific setting)",
+ 	"SETTINGS.MAT.autoSelectMobCombatants": "Autoselect saved mob combatants",
+ 	"SETTINGS.MAT.autoSelectMobCombatantsHint": "Enable this to automatically select the tokens of saved mob attackers when the combat tracker is updated to one of their turns.",
+ 	"SETTINGS.MAT.autoDeselectMob": "Autodeselect saved mob combatants",
 
  	"SETTINGS.MAT.defaultMobPrefix": "Default mob name prefix",
  	"SETTINGS.MAT.defaultMobPrefixHint": "Choose what default text will appear before the name of the first creature of a mob.",
