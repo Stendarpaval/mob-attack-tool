@@ -465,7 +465,7 @@ export async function endGroupedMobTurn(data) {
 		}
 		
 		for (let mobName of Object.keys(mobList)) {
-			if (mobCreatures[mobName].includes(((coreVersion08x()) ? game.combat.combatant.data._id : game.combat.combatant._id))) {
+			if (mobCreatures[mobName]?.includes(((coreVersion08x()) ? game.combat.combatant.data._id : game.combat.combatant._id))) {
 				let turnIndex = game.combat.turns.indexOf(game.combat.combatant);
 				let lastMobTurn = turnIndex;
 				let currentRound = game.combat.round;
