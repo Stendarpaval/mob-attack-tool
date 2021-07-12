@@ -107,6 +107,7 @@ export async function rollMobAttackIndividually(data) {
 
 			if (availableAttacks === undefined) break;
 
+
 			// Mob attack results message
 			let msgData = {
 				actorAmount: actorAmount,
@@ -269,6 +270,13 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 				}
 			}
 			damageRoll = await damageRoll.evaluate({async: true});
+			let targetToken = canvas.tokens.get(targetId);
+			if (targetToken.actor === null && game.modules.get("multilevel-tokens").active) {
+				let mltFlags = targetToken.data.flags["multilevel-tokens"];
+				if (mltFlags?.sscene) {
+					targetToken = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken);
+				}
+			}
 			
 			// Roll Dice so Nice dice
 			if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
@@ -276,11 +284,11 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 			let workflow = new MidiQOL.DamageOnlyWorkflow(
 				weaponData.actor, 
 				// (data.targetToken) ? data.targetToken : undefined, 
-				canvas.tokens.get(targetId) ?? undefined,
+				targetToken ?? undefined,
 				damageRoll.total, 
 				damageTypeLabels[0], 
 				// (data.targetToken) ? [data.targetToken] : [], 
-				(canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
+				targetToken ? [targetToken] : [],
 				damageRoll, 
 				{
 					flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})${(numCrits > 0) ? ` (${game.i18n.localize("MAT.critIncluded")})` : ``}`, 
@@ -297,8 +305,8 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 					actorUuid: weaponData.actor.uuid,
 					tokenId: workflow.tokenId,
 					tokenUuid: workflow.tokenUuid,
-					targets: (canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
-					hitTargets: (canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
+					targets: targetToken ? [targetToken] : [],
+					hitTargets: targetToken ? [targetToken] : [],
 					damageRoll: damageRoll,
 					damageRollHTML: workflow.damageRollHTML,
 					attackRoll: successfulAttackRolls[0],

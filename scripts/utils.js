@@ -78,6 +78,15 @@ export function checkTarget() {
 
 export function getTargetData(monsters) {
 	let targetTokens = canvas.tokens.objects.children.filter(isTargeted);
+	for (let i = 0; i < targetTokens.length; i++) {
+		if (targetTokens[i].actor === null && game.modules.get("multilevel-tokens").active) {
+			let mltFlags = targetTokens[i].data.flags["multilevel-tokens"];
+			if (targetTokens.filter(t => t.id === mltFlags.stoken).length > 0) {
+				targetTokens.splice(i,1);
+				i--;
+			}
+		}
+	}
 	let weaponsOnTarget = {};
 	for (let [monsterID, monsterData] of Object.entries(duplicate(monsters))) {
 		Object.assign(weaponsOnTarget,monsterData.weapons);
@@ -110,7 +119,16 @@ export function getTargetData(monsters) {
 	let arrayLength = Math.floor(weaponsOnTargetArray.length / targetTokens.length);
 	if (arrayLength === 0) arrayLength = 1; 
 	for (let targetToken of targetTokens) {
-		targetAC = targetToken?.actor.data.data.attributes.ac.value;
+		if (targetToken.actor === null && game.modules.get("multilevel-tokens").active) {
+			let mltFlags = targetToken.data.flags["multilevel-tokens"];
+			if (mltFlags?.sscene) {
+				targetAC = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken).actor.data.data.attributes.ac.value;
+			} else {
+				targetAC = canvas.tokens.get(mltFlags.stoken).actor.data.data.attributes.ac.value;
+			}
+		} else {
+			targetAC = targetToken?.actor.data.data.attributes.ac.value;
+		}
 		targets.push({
 			targetId: targetToken?.id,
 			targetImg: targetToken?.data?.img ?? "icons/svg/mystery-man.svg",
@@ -465,7 +483,7 @@ export async function endGroupedMobTurn(data) {
 		}
 		
 		for (let mobName of Object.keys(mobList)) {
-			if (mobCreatures[mobName].includes(((coreVersion08x()) ? game.combat.combatant.data._id : game.combat.combatant._id))) {
+			if (mobCreatures[mobName]?.includes(((coreVersion08x()) ? game.combat.combatant.data._id : game.combat.combatant._id))) {
 				let turnIndex = game.combat.turns.indexOf(game.combat.combatant);
 				let lastMobTurn = turnIndex;
 				let currentRound = game.combat.round;

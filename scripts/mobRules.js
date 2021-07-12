@@ -168,13 +168,21 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 		await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
 
 		if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
+
+		let targetToken = canvas.tokens.get(targetId);
+		if (targetToken.actor === null && game.modules.get("multilevel-tokens").active) {
+			let mltFlags = targetToken.data.flags["multilevel-tokens"];
+			if (mltFlags?.sscene) {
+				targetToken = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken);
+			}
+		}
 		
 		let workflow = new MidiQOL.DamageOnlyWorkflow(
 			weaponData.actor, 
-			canvas.tokens.get(targetId) ?? undefined,
+			targetToken ?? undefined,
 			damageRoll.total, 
 			damageTypeLabels[0], 
-			(canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
+			targetToken ? [targetToken] : [],
 			damageRoll, 
 			{
 				flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})`, 
@@ -191,8 +199,8 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 				actorUuid: weaponData.actor.uuid,
 				tokenId: workflow.tokenId,
 				tokenUuid: workflow.tokenUuid,
-				targets: (canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
-				hitTargets: (canvas.tokens.get(targetId)) ? [canvas.tokens.get(targetId)] : [],
+				targets: targetToken ? [targetToken] : [],
+				hitTargets: targetToken ? [targetToken] : [],
 				damageRoll: damageRoll,
 				damageRollHTML: workflow.damageRollHTML,
 				attackRoll: workflow?.attackRoll,

@@ -98,11 +98,29 @@ export class MobAttackDialog extends FormApplication {
 		let mobList = game.settings.get(moduleName,"hiddenMobList");
 
 		this.targetTokens = canvas.tokens.objects.children.filter(isTargeted); 
+		for (let i = 0; i < this.targetTokens.length; i++) {
+			if (this.targetTokens[i].actor === null && game.modules.get("multilevel-tokens").active) {
+				let mltFlags = this.targetTokens[i].data.flags["multilevel-tokens"];
+				if (this.targetTokens.filter(t => t.id === mltFlags.stoken).length > 0) {
+					this.targetTokens.splice(i,1);
+					i--;
+				}
+			}
+		}
 		this.targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
 		this.numTargets = 0;
 		if (this.targetToken) {
-			this.targetAC = this.targetToken.actor.data.data.attributes.ac.value;
-			this.numTargets = canvas.tokens.objects.children.filter(isTargeted).length;
+			if (this.targetToken.actor === null && game.modules.get("multilevel-tokens").active) {
+				let mltFlags = this.targetToken.data.flags["multilevel-tokens"];
+				if (mltFlags?.sscene) {
+					this.targetAC = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken).actor.data.data.attributes.ac.value;
+				} else {
+					this.targetAC = canvas.tokens.get(mltFlags.stoken).actor.data.data.attributes.ac.value;
+				}
+			} else {
+				this.targetAC = this.targetToken.actor.data.data.attributes.ac.value;
+			}
+			this.numTargets = this.targetTokens.length;
 		}
 
 		this.numSelected = canvas.tokens.controlled.length;
