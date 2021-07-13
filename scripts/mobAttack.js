@@ -1,8 +1,7 @@
 import { initSettings } from "./settings.js";
 import { initMobAttackTool, MobAttackDialog } from "./mobAttackTool.js";
 import { MobAttacks } from "./mobAttackTool.js";
-import { checkTarget, isTargeted } from "./utils.js";
-import { rollNPC, rollAll, rollGroupInitiative } from "./group-initiative/groupInitiative.js";
+import { rollNPC, rollAll } from "./group-initiative/groupInitiative.js";
 
 export const moduleName = "mob-attack-tool";
 
@@ -33,7 +32,7 @@ Hooks.on("ready", async () => {
 })
 
 // update dialog windows if new tokens are selected
-Hooks.on("controlToken", async (token, controlState) => {
+Hooks.on("controlToken", async () => {
 	// if (!controlState) return;
 	let dialogId = game.settings.get(moduleName, "currentDialogId");
 	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
@@ -49,7 +48,7 @@ Hooks.on("controlToken", async (token, controlState) => {
 });
 
 // update dialog if targeted token changes
-Hooks.on("targetToken", async (token, targetState) => {
+Hooks.on("targetToken", async () => {
 	let dialogId = game.settings.get(moduleName, "currentDialogId");
 	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
 	if (mobDialog) {
@@ -65,7 +64,7 @@ Hooks.on("targetToken", async (token, targetState) => {
 
 
 // select mob tokens if next combatant is part of a saved mob
-Hooks.on("updateCombat", async (combat, changed, options, userId) => {
+Hooks.on("updateCombat", async (combat, changed) => {
 	if (!("turn" in changed)) return;
 	if (!game.settings.get(moduleName, "autoSelectMobCombatants")) return;
 	let thisCombat = game.combats.get(combat.id);
@@ -97,6 +96,16 @@ Hooks.on("updateCombat", async (combat, changed, options, userId) => {
 		mobDialog.currentlySelectingTokens = false;
 	}
 })
+
+
+//  Hide DSN 3d dice
+Hooks.on('diceSoNiceRollStart', (messageId, context) => {
+	if (game.settings.get(moduleName, "hiddenDSNactiveFlag")) return;
+    
+    //Hide this roll
+    context.blind=true;
+});
+
 
 
 // group initiative: override roll methods from combat tracker

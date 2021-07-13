@@ -1,9 +1,12 @@
 import { moduleName, coreVersion08x } from "./mobAttack.js";
-import { checkTarget, endGroupedMobTurn, getDamageFormulaAndType, calcD20Needed, calcAttackersNeeded, isTargeted, sendChatMessage, getAttackBonus, getScalingFactor, callMidiMacro } from "./utils.js";
-import { getMultiattackFromActor } from "./multiattack.js";
+import { endGroupedMobTurn, getDamageFormulaAndType, sendChatMessage, getAttackBonus, callMidiMacro } from "./utils.js";
 
 
 export async function rollMobAttackIndividually(data) {
+	// Temporarily disable DSN 3d dice from rolling, per settings
+	if (!game.settings.get(moduleName, "enableDiceSoNice")) {
+		await game.settings.set(moduleName, "hiddenDSNactiveFlag", false);
+	}
 
 	// Cycle through selected weapons
 	let attackData = [];
@@ -65,7 +68,7 @@ export async function rollMobAttackIndividually(data) {
 				// Determine crits and natural 1s
 				// Also, make a list of tokens that successfully attacked for (animation) macro purposes
 				let attackToken;
-				let availableTokens = data.selectedTokenIds.filter(t => (!tokenAttackList.includes(t) || (canvas.tokens.get(t.tokenId).actor.id === weaponData.actor.id && tokenAttackList.filter(attackToken => attackToken.tokenId === t.tokenId).length < Math.floor(availableAttacks / data.numSelected))) );
+				let availableTokens = data.selectedTokenIds.filter(t => (!tokenAttackList.includes(t) || (canvas.tokens.get(t.tokenId).actor.id === weaponData.actor.id && tokenAttackList.filter(atkToken => atkToken.tokenId === t.tokenId).length < Math.floor(availableAttacks / data.numSelected))) );
 				if (attackRollEvaluated[i].total - finalAttackBonus >= critThreshold) {
 					numCrits++;
 					numHitAttacks += 1;
@@ -271,7 +274,7 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 			}
 			damageRoll = await damageRoll.evaluate({async: true});
 			let targetToken = canvas.tokens.get(targetId);
-			if (targetToken.actor === null && game.modules.get("multilevel-tokens").active) {
+			if (targetToken?.actor === null && game.modules.get("multilevel-tokens").active) {
 				let mltFlags = targetToken.data.flags["multilevel-tokens"];
 				if (mltFlags?.sscene) {
 					targetToken = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken);
@@ -416,4 +419,6 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 			}	
 		}
 	}
+	// Allow DSN 3d dice to be rolled again
+	await game.settings.set(moduleName, "hiddenDSNactiveFlag", true);
 }

@@ -1,9 +1,12 @@
 import { moduleName, coreVersion08x } from "./mobAttack.js";
-import { checkTarget, endGroupedMobTurn, getDamageFormulaAndType, calcD20Needed, calcAttackersNeeded, isTargeted, sendChatMessage, getAttackBonus, getScalingFactor, callMidiMacro } from "./utils.js";
-import { getMultiattackFromActor } from "./multiattack.js";
+import { endGroupedMobTurn, getDamageFormulaAndType, calcD20Needed, calcAttackersNeeded, sendChatMessage, getAttackBonus, callMidiMacro } from "./utils.js";
 
 
 export async function rollMobAttack(data) {
+	// Temporarily disable DSN 3d dice from rolling, per settings
+	if (!game.settings.get(moduleName, "enableDiceSoNice")) {
+		await game.settings.set(moduleName, "hiddenDSNactiveFlag", false);
+	}
 
 	// Cycle through selected weapons
 	let attackData = [];
@@ -170,7 +173,7 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 		if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
 
 		let targetToken = canvas.tokens.get(targetId);
-		if (targetToken.actor === null && game.modules.get("multilevel-tokens").active) {
+		if (targetToken?.actor === null && game.modules.get("multilevel-tokens").active) {
 			let mltFlags = targetToken.data.flags["multilevel-tokens"];
 			if (mltFlags?.sscene) {
 				targetToken = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken);
@@ -280,4 +283,6 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 			}
 		}
 	}
+	// Allow DSN 3d dice to be rolled again
+	await game.settings.set(moduleName, "hiddenDSNactiveFlag", true);
 }

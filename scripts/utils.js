@@ -272,8 +272,8 @@ export async function prepareMonsters(actorList, keepCheckboxes=false, oldMonste
 				for (let i = 0; i < damageData[0].length; i++) {
 					((i > 0) ? weaponDamageText += `<br>${damageData[0][i]} ${damageData[1][i].capitalize()}` : weaponDamageText += `${damageData[0][i]} ${damageData[1][i].capitalize()}`);
 				}
-				let numAttacksTotal = 1, preChecked = false;
-				let autoDetect = game.settings.get(moduleName,"autoDetectMultiattacks");
+				numAttacksTotal = 1, preChecked = false;
+				autoDetect = game.settings.get(moduleName,"autoDetectMultiattacks");
 				if (autoDetect > 0) [numAttacksTotal, preChecked] = getMultiattackFromActor(weaponData.name, weaponData.actor, weapons, options);
 				if (autoDetect === 1 || isVersatile) preChecked = false;
 				let weaponRangeText = ``;
@@ -443,7 +443,6 @@ export async function loadMob(event, selectedMob) {
 	mobDialog.actorList = actorList;
 	await game.settings.set(moduleName,"hiddenMobList",mobList);
 
-	let mobIndex = mobDialog.mobListIndex;
 	for (let i = 0; i < Object.keys(mobList).length; i++) {
 		if (Object.keys(mobList)[i] === selectedMob) {
 			mobDialog.mobListIndex = i;
@@ -502,21 +501,24 @@ export async function endGroupedMobTurn(data) {
 				break;
 			}
 			if (mobName === Object.keys(mobList)[Object.keys(mobList).length - 1]) {
-				// skip turn of selected tokens (not a saved mob per se)
-				let turnIndex = game.combat.turns.indexOf(game.combat.combatant);
-				let lastMobTurn = turnIndex;
-				let currentRound = game.combat.round;
-				for (let i = turnIndex + 1; i < game.combat.turns.length; i++) {
-					if (data.selectedTokenIds.filter(t => t.tokenId === ((coreVersion08x()) ? game.combat.turns[i].data.tokenId : game.combat.turns[i].tokenId)).length > 0) {
-						lastMobTurn++;
-					} else {
-						break;
+				// skip turn of selected tokens (not a saved mob per se),
+				// but only if they include the current combatant.
+				if (data.selectedTokenIds.filter(t => t.tokenId === game.combat.combatant.data.tokenId).length > 0) {
+					let turnIndex = game.combat.turns.indexOf(game.combat.combatant);
+					let lastMobTurn = turnIndex;
+					let currentRound = game.combat.round;
+					for (let i = turnIndex + 1; i < game.combat.turns.length; i++) {
+						if (data.selectedTokenIds.filter(t => t.tokenId === ((coreVersion08x()) ? game.combat.turns[i].data.tokenId : game.combat.turns[i].tokenId)).length > 0) {
+							lastMobTurn++;
+						} else {
+							break;
+						}
 					}
-				}
-				if (lastMobTurn === game.combat.turns.length - 1) {
-					await game.combat.nextRound();
-				} else {
-					await game.combat.update({round: currentRound, turn: lastMobTurn + 1});
+					if (lastMobTurn === game.combat.turns.length - 1) {
+						await game.combat.nextRound();
+					} else {
+						await game.combat.update({round: currentRound, turn: lastMobTurn + 1});
+					}
 				}
 			}
 		}
@@ -529,7 +531,6 @@ export function getDamageFormulaAndType(weaponData, versatile) {
 	let diceFormulas = [];
 	let damageTypes = [];
 	let damageTypeLabels = []
-	let partsLength = weaponData.data.data.damage.parts.length;
 	let lengthIndex = 0;
 	for (let diceFormulaParts of weaponData.data.data.damage.parts) {
 		damageTypeLabels.push(diceFormulaParts[1]);
@@ -603,7 +604,7 @@ export function isTargeted(token) {
 				return true;
 			}
 		}
-	};
+	}
 }
 
 
@@ -622,7 +623,6 @@ export async function sendChatMessage(text) {
 
 
 export function getAttackBonus(weaponData) {
-	const actorName = weaponData.actor.name;
 	let weaponAbility = weaponData.abilityMod;
 	if (weaponAbility === "" || typeof weaponAbility === "undefined" || weaponAbility == null) {
 		if (!weaponData.type === "spell") {

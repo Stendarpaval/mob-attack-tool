@@ -36,6 +36,7 @@
 	"MAT.macroNamePrefix": "Mob Attack of",
 	"MAT.macroNamePostfix": "(s)",
 	"MAT.macroNotification": "was saved to the macro directory",
+	"MAT.macroOverwriteDialog": "A macro named {userMacroName} already exists. Are you sure you want to overwrite it?",
 
 	"MAT.oneAttackSingular": "attack hits",
 	"MAT.oneAttackPlural": "attacks hits",
@@ -105,7 +106,7 @@
 	"SETTINGS.MAT.playerAccess": "Allow players to use Mob Attack Tool",
 	"SETTINGS.MAT.playerAccessHint": "If enabled, players will be able to see and use the Mob Attack Tool button. However, they will not see target AC. If disabled, only the GM will be able to use Mob Attack Tool.",
 	"SETTINGS.MAT.enableDiceSoNice": "Enable Dice So Nice rolls",
-	"SETTINGS.MAT.enableDiceSoNiceHint": "Choose whether or not to roll the 3d dice from the Dice So Nice module, provided that you have that module installed. (Note: rolls handled by Better Rolls for 5e or Midi-QOL can still trigger Dice So Nice dice when this is disabled.)",
+	"SETTINGS.MAT.enableDiceSoNiceHint": "Choose whether or not to roll the 3d dice from the Dice So Nice module for mob attacks, provided that you have that module installed.",
 	"SETTINGS.MAT.hideDiceSoNiceAttackRoll": "Hide 3D dice for GM attack rolls",
 	"SETTINGS.MAT.hideDiceSoNiceAttackRollHint": "This setting requires Dice So Nice to be active and that you are rolling attacks individually. If enabled, no 3D dice are rolled for attack rolls made by the GM.",
 	"SETTINGS.MAT.enableMidi": "Enable Midi-QOL",

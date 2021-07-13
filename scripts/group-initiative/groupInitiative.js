@@ -90,9 +90,9 @@ export async function rollGroupInitiative(creatures) {
 	await this.rollInitiative(ids, {messageOptions});
 
 	// prepare others in the group
-	let updates;
+	let groupUpdates;
 	if (coreVersion08x()) {
-		 updates = creatures.reduce((updates, {id, initiative, actor, data}) => {
+		groupUpdates = creatures.reduce((updates, {id, initiative, actor, data}) => {
 			let group;
 			if (game.settings.get(moduleName,"groupMobInitiative")) {
 				let savedMob;
@@ -116,7 +116,7 @@ export async function rollGroupInitiative(creatures) {
 			return updates;
 		}, []);
 	} else {
-		updates = creatures.reduce((updates, {_id, initiative, actor, tokenId}) => {
+		groupUpdates = creatures.reduce((updates, {_id, initiative, actor, tokenId}) => {
 			let group;
 			if (game.settings.get(moduleName,"groupMobInitiative")) {
 				let savedMob;
@@ -143,9 +143,9 @@ export async function rollGroupInitiative(creatures) {
 
 	// batch update all other combatants
 	if (coreVersion08x()) {
-		this.updateEmbeddedDocuments('Combatant', updates);	
+		this.updateEmbeddedDocuments('Combatant', groupUpdates);	
 	} else {
-		this.updateEmbeddedEntity('Combatant', updates);	
+		this.updateEmbeddedEntity('Combatant', groupUpdates);	
 	}
 	
 }

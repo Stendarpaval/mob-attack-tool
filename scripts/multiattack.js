@@ -22,7 +22,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		if (desc.endsWith(".</p>")) {
 			desc = desc.slice(0,-5);
 		}
-
+		
 		// First split multiattack description in general and specific parts
 		let attackIndex = desc.indexOf(`attack`);
 		let attackType = ``;
@@ -171,7 +171,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 				multiattack = [getScalingFactor(weaponData), false];
 			}	
 		}
-	};
+	}
 
 	// select this weapon if it deals the most damage and no other weapons or spells are selected
 	if (options?.checkMaxDamageWeapon) {

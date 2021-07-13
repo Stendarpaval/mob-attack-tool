@@ -261,6 +261,13 @@ const matSettings = {
 		config: false,
 		default: false,
 		type: Boolean
+	},
+	"hiddenDSNactiveFlag": {
+		name: "hiddenDSNactiveFlag",
+		scope: "world",
+		config: false,
+		default: true,
+		type: Boolean
 	}
 };
 
@@ -307,7 +314,7 @@ class RollSettingsMenu extends FormApplication {
 		})
 	}
 
-	getData(options={}) {
+	getData() {
 		const data = {
 			settings: {
 				roll: {
@@ -495,61 +502,61 @@ class RollSettingsMenu extends FormApplication {
 
 	async _updateObject(event, formData) {
 		for (let [settingKey, value] of Object.entries(formData)) {
-			if (settingKey === "enableDiceSoNice" && game.modules.get("dice-so-nice")?.active) {
-				if (game.user.isGM) {
-					await game.user.setFlag(moduleName, settingKey, value);
-					await game.settings.set(moduleName, settingKey, value);
-					await game.settings.set("dice-so-nice", "enabled", value);
-				}
-			} else {
-				if (settingKey === "tempSetting") {
-					let customTable = coreVersion08x() ? game.settings.get(moduleName,"tempSetting") : game.settings.get(moduleName,"tempSetting")[0];
-					let tableArray = {};
-					let correctionLoops = 2;
-					for (let j = 0; j < correctionLoops; j++) {
-						for (let i = 0; i < Math.floor(customTable.length/3); i++) {
-							tableArray[i] = value.slice(3 * i, 3 * i + 3);
-							if (parseInt(tableArray[i][1]) < parseInt(tableArray[i][0])) {
-								ui.notifications.warn(game.i18n.format("MAT.warnCustomTableUpperLimit",{upperLimit: tableArray[i][1], lowerLimit: tableArray[i][0]}));
-								value[3 * i + 1] = value[3 * i];
-							}
-							if (i > 0) {
-								if (parseInt(tableArray[i][0]) <= parseInt(tableArray[i-1][1])) {
-									// ui.notifications.warn(game.i18n.format("MAT.warnCustomTableLowerLimit",{lowerLimit: tableArray[i][0], prevUpperLimit: tableArray[i-1][1]}));
-									value[3 * i] = parseInt(value[3 * (i - 1) + 1]) + 1;
-									if (value[3 * i] > 20) {
-										value[3 * i] = 20;
-									}
-								}
-								if (parseInt(tableArray[i][0]) - 1 >= parseInt(tableArray[i-1][1])) {
-									value[3 * i] = parseInt(value[3 * (i - 1) + 1]) + 1;
-									if (value[3 * i] > 20) {
-										value[3 * i] = 20;
-									}
-									if (parseInt(tableArray[i][1]) < value[3 * i]) {
-										// ui.notifications.warn(game.i18n.format("MAT.warnCustomTableUpperLimit",{upperLimit: tableArray[i][1], lowerLimit: tableArray[i][0]}));
-										value[3 * i + 1] = value[3 * i];
-									}
+			// if (settingKey === "enableDiceSoNice" && game.modules.get("dice-so-nice")?.active) {
+			// 	if (game.user.isGM) {
+			// 		await game.user.setFlag(moduleName, settingKey, value);
+			// 		await game.settings.set(moduleName, settingKey, value);
+			// 		await game.settings.set("dice-so-nice", "enabled", value);
+			// 	}
+			// } else {
+			if (settingKey === "tempSetting") {
+				let customTable = coreVersion08x() ? game.settings.get(moduleName,"tempSetting") : game.settings.get(moduleName,"tempSetting")[0];
+				let tableArray = {};
+				let correctionLoops = 2;
+				for (let j = 0; j < correctionLoops; j++) {
+					for (let i = 0; i < Math.floor(customTable.length/3); i++) {
+						tableArray[i] = value.slice(3 * i, 3 * i + 3);
+						if (parseInt(tableArray[i][1]) < parseInt(tableArray[i][0])) {
+							ui.notifications.warn(game.i18n.format("MAT.warnCustomTableUpperLimit",{upperLimit: tableArray[i][1], lowerLimit: tableArray[i][0]}));
+							value[3 * i + 1] = value[3 * i];
+						}
+						if (i > 0) {
+							if (parseInt(tableArray[i][0]) <= parseInt(tableArray[i-1][1])) {
+								// ui.notifications.warn(game.i18n.format("MAT.warnCustomTableLowerLimit",{lowerLimit: tableArray[i][0], prevUpperLimit: tableArray[i-1][1]}));
+								value[3 * i] = parseInt(value[3 * (i - 1) + 1]) + 1;
+								if (value[3 * i] > 20) {
+									value[3 * i] = 20;
 								}
 							}
-							if (i === Math.floor(customTable.length/3) - 1) {
-								if (parseInt(tableArray[i][1]) < 20) {
-									value[3 * i + 1] = 20;
+							if (parseInt(tableArray[i][0]) - 1 >= parseInt(tableArray[i-1][1])) {
+								value[3 * i] = parseInt(value[3 * (i - 1) + 1]) + 1;
+								if (value[3 * i] > 20) {
+									value[3 * i] = 20;
 								}
+								if (parseInt(tableArray[i][1]) < value[3 * i]) {
+									// ui.notifications.warn(game.i18n.format("MAT.warnCustomTableUpperLimit",{upperLimit: tableArray[i][1], lowerLimit: tableArray[i][0]}));
+									value[3 * i + 1] = value[3 * i];
+								}
+							}
+						}
+						if (i === Math.floor(customTable.length/3) - 1) {
+							if (parseInt(tableArray[i][1]) < 20) {
+								value[3 * i + 1] = 20;
 							}
 						}
 					}
 				}
-				await game.user.setFlag(moduleName, settingKey, value);
-				await game.settings.set(moduleName, settingKey, value);
 			}
+			await game.user.setFlag(moduleName, settingKey, value);
+			await game.settings.set(moduleName, settingKey, value);
+			// }
 		}
 	}
 
 	activateListeners(html) {
 		super.activateListeners(html);
 
-		html.on('click', '.MATaddRow', async (event) => {
+		html.on('click', '.MATaddRow', async () => {
 			let tableData = [];
 			let tableDataHtml = html.find(`input[name="tempSetting"]`);
 			for (let input of tableDataHtml) {
@@ -565,7 +572,7 @@ class RollSettingsMenu extends FormApplication {
 			this.render(true);
 		})
 
-		html.on('click', '.MATremoveRow', async (event) => {
+		html.on('click', '.MATremoveRow', async () => {
 			let tableData = [];
 			let tableDataHtml = html.find(`input[name="tempSetting"]`);
 			for (let input of tableDataHtml) {
@@ -580,7 +587,7 @@ class RollSettingsMenu extends FormApplication {
 			this.render(true);
 		})
 
-		html.on('click', '.MATresetTable', async (event) => {
+		html.on('click', '.MATresetTable', async () => {
 			await game.settings.set(moduleName, "tempSetting",matSettings.tempSetting.default);
 			this.render(true);
 		})
