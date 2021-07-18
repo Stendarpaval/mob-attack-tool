@@ -1,4 +1,4 @@
-import { moduleName, coreVersion08x } from "./mobAttack.js";
+import { moduleName } from "./mobAttack.js";
 import { endGroupedMobTurn, getDamageFormulaAndType, calcD20Needed, calcAttackersNeeded, sendChatMessage, getAttackBonus, callMidiMacro } from "./utils.js";
 
 
@@ -270,7 +270,7 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 	// trigger AutoAnimations
 	if (game.settings.get(moduleName, "enableAutoAnimations")) {
 		let j = 0;
-		if (game.modules.get(coreVersion08x() ? "autoanimations" : "automated-jb2a-animations")?.active) {
+		if (game.modules.get("autoanimations")?.active) {
 			for (let i = 0; i < numHitAttacks; i++) {
 				if (j < tokenAttackList.length) {
 					j = i;

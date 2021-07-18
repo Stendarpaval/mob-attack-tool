@@ -4,7 +4,7 @@ Their github: https://github.com/tonifisler/foundry-group-initiativ
 */
 
 
-import { moduleName, coreVersion08x } from "../mobAttack.js";
+import { moduleName } from "../mobAttack.js";
 
 
 export async function rollNPC() {
@@ -35,7 +35,7 @@ export async function rollGroupInitiative(creatures) {
 		for (let combatant of creatures) {
 			let savedMob;
 			for (let mobName of Object.keys(mobList)) {
-				if (mobList[mobName].selectedTokenIds.includes(((coreVersion08x()) ? combatant.data.tokenId : combatant.tokenId))) {
+				if (mobList[mobName].selectedTokenIds.includes(combatant.data.tokenId)) {
 					savedMob = mobList[mobName];
 					break;
 				}
@@ -43,9 +43,9 @@ export async function rollGroupInitiative(creatures) {
 			if (savedMob) {
 				if (Object.keys(mobList).includes(savedMob.mobName)) {
 					if (!mobCreatures[savedMob.mobName]?.length) {
-						mobCreatures[savedMob.mobName] = [((coreVersion08x()) ? combatant.data._id : combatant._id)];	
+						mobCreatures[savedMob.mobName] = [combatant.data._id];	
 					} else {
-						mobCreatures[savedMob.mobName].push(((coreVersion08x()) ? combatant.data._id : combatant._id));
+						mobCreatures[savedMob.mobName].push(combatant.data._id);
 					}
 				} else {
 					console.log("Mob Attack Tool | Token saved to deleted mob detected");
@@ -59,7 +59,7 @@ export async function rollGroupInitiative(creatures) {
 		const otherGroups = otherCreatures.reduce(
 			(g, combatant) => ({
 				...g,
-				[combatant.actor.id]: (g[combatant.actor.id] || []).concat(((coreVersion08x()) ? combatant.data._id : combatant._id)),
+				[combatant.actor.id]: (g[combatant.actor.id] || []).concat(combatant.data._id),
 			}),
 			{}
 		);
@@ -73,7 +73,7 @@ export async function rollGroupInitiative(creatures) {
 		groups = creatures.reduce(
 			(g, combatant) => ({
 				...g,
-				[combatant.actor.id]: (g[combatant.actor.id] || []).concat(((coreVersion08x()) ? combatant.data._id : combatant._id)),
+				[combatant.actor.id]: (g[combatant.actor.id] || []).concat(combatant.data._id),
 			}),
 			{}
 		);	
@@ -91,62 +91,32 @@ export async function rollGroupInitiative(creatures) {
 
 	// prepare others in the group
 	let groupUpdates;
-	if (coreVersion08x()) {
-		groupUpdates = creatures.reduce((updates, {id, initiative, actor, data}) => {
-			let group;
-			if (game.settings.get(moduleName,"groupMobInitiative")) {
-				let savedMob;
-				for (let mobName of Object.keys(mobList)) {
-					if (mobList[mobName].selectedTokenIds.includes(data.tokenId)) {
-						savedMob = mobList[mobName];
-						group = groups[savedMob.mobName];
-						break;
-					}
+	
+	groupUpdates = creatures.reduce((updates, {id, initiative, actor, data}) => {
+		let group;
+		if (game.settings.get(moduleName,"groupMobInitiative")) {
+			let savedMob;
+			for (let mobName of Object.keys(mobList)) {
+				if (mobList[mobName].selectedTokenIds.includes(data.tokenId)) {
+					savedMob = mobList[mobName];
+					group = groups[savedMob.mobName];
+					break;
 				}
-				if (!savedMob?.mobName) group = groups[actor.data._id];
-			} else {
-				group = groups[actor.data._id];
 			}
-			if (group.length <= 1 || initiative) return updates;
+			if (!savedMob?.mobName) group = groups[actor.data._id];
+		} else {
+			group = groups[actor.data._id];
+		}
+		if (group.length <= 1 || initiative) return updates;
 
-			// get initiative from leader of group
-			initiative = this.combatants.get(group[0]).initiative;	
-			
-			updates.push({_id: id, initiative});
-			return updates;
-		}, []);
-	} else {
-		groupUpdates = creatures.reduce((updates, {_id, initiative, actor, tokenId}) => {
-			let group;
-			if (game.settings.get(moduleName,"groupMobInitiative")) {
-				let savedMob;
-				for (let mobName of Object.keys(mobList)) {
-					if (mobList[mobName].selectedTokenIds.includes(tokenId)) {
-						savedMob = mobList[mobName];
-						group = groups[savedMob.mobName];
-						break;
-					}
-				}
-				if (!savedMob?.mobName) group = groups[actor._id];
-			} else {
-				group = groups[actor._id];
-			}
-			if (group.length <= 1 || initiative) return updates;
-
-			// get initiative from leader of group
-			initiative = this.getCombatant(group[0]).initiative;
-			
-			updates.push({_id, initiative});
-			return updates;
-		}, []);
-	}
+		// get initiative from leader of group
+		initiative = this.combatants.get(group[0]).initiative;	
+		
+		updates.push({_id: id, initiative});
+		return updates;
+	}, []);
 
 	// batch update all other combatants
-	if (coreVersion08x()) {
-		this.updateEmbeddedDocuments('Combatant', groupUpdates);	
-	} else {
-		this.updateEmbeddedEntity('Combatant', groupUpdates);	
-	}
-	
+	this.updateEmbeddedDocuments('Combatant', groupUpdates);	
 }
 

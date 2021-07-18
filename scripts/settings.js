@@ -1,4 +1,5 @@
-import { moduleName, coreVersion08x } from "./mobAttack.js";
+import { moduleName } from "./mobAttack.js";
+import { replaceRerollInitiativeHook } from "./utils.js";
 
 
 const matSettings = {
@@ -268,6 +269,14 @@ const matSettings = {
 		config: false,
 		default: true,
 		type: Boolean
+	},
+	"groupRerollInitiativeCUB": {
+		name: "SETTINGS.MAT.groupRerollInitiativeCUB",
+		hint: "SETTINGS.MAT.groupRerollInitiativeCUBHint",
+		scope: "world",
+		config: false,
+		default: false,
+		type: Boolean	
 	}
 };
 
@@ -446,6 +455,14 @@ class RollSettingsMenu extends FormApplication {
 						isCheckbox: true,
 						client: game.user.isGM
 					},
+					groupRerollInitiativeCUB: {
+						name: matSettings.groupRerollInitiativeCUB.name,
+						hint: matSettings.groupRerollInitiativeCUB.hint,
+						value: game.settings.get(moduleName,"groupRerollInitiativeCUB"),
+						id: "groupRerollInitiativeCUB",
+						isCheckbox: true,
+						client: game.user.isGM
+					},
 					enableMidi: {
 						name: matSettings.enableMidi.name,
 						hint: matSettings.enableMidi.hint,
@@ -484,7 +501,7 @@ class RollSettingsMenu extends FormApplication {
 				}
 			}
 		};
-		let customTable = coreVersion08x() ? game.settings.get(moduleName,"tempSetting") : game.settings.get(moduleName,"tempSetting")[0];
+		let customTable = game.settings.get(moduleName,"tempSetting");
 		for (let i = 0; i < Math.floor(customTable.length/3); i++) {
 			data.settings.mobTable.hiddenTable.rows[i] = {
 				d20RollMinId: "tempSetting",
@@ -502,15 +519,26 @@ class RollSettingsMenu extends FormApplication {
 
 	async _updateObject(event, formData) {
 		for (let [settingKey, value] of Object.entries(formData)) {
-			// if (settingKey === "enableDiceSoNice" && game.modules.get("dice-so-nice")?.active) {
-			// 	if (game.user.isGM) {
-			// 		await game.user.setFlag(moduleName, settingKey, value);
-			// 		await game.settings.set(moduleName, settingKey, value);
-			// 		await game.settings.set("dice-so-nice", "enabled", value);
-			// 	}
-			// } else {
+			if (settingKey === "groupRerollInitiativeCUB" && game.modules.get("combat-utility-belt")?.active) {
+				if (game.user.isGM) {
+					if (!value && game.settings.get(moduleName, "groupRerollInitiativeCUB")) {
+						for (let hook of Hooks._hooks["updateCombat"]) {
+							if (hook.toLocaleString().indexOf(`MAT's replacement hook for CUB's RerollInitiative`) !== -1) {
+								console.log("Mob Attack Tool | Restoring CUB's RerollInitiative function on the 'updateCombat' hook.");
+								Hooks.off("updateCombat", hook);
+								if (game.mobAttackTool.storedHooks?.["combat-utility-belt.rerollInitiative"]) {
+									Hooks.on("updateCombat", game.mobAttackTool.storedHooks?.["combat-utility-belt.rerollInitiative"]);	
+								}
+								break;
+							}
+						}
+					} else if (value && !game.settings.get(moduleName, "groupRerollInitiativeCUB")) {
+						await replaceRerollInitiativeHook();
+					}
+				}
+			}
 			if (settingKey === "tempSetting") {
-				let customTable = coreVersion08x() ? game.settings.get(moduleName,"tempSetting") : game.settings.get(moduleName,"tempSetting")[0];
+				let customTable = game.settings.get(moduleName,"tempSetting");
 				let tableArray = {};
 				let correctionLoops = 2;
 				for (let j = 0; j < correctionLoops; j++) {
@@ -522,7 +550,6 @@ class RollSettingsMenu extends FormApplication {
 						}
 						if (i > 0) {
 							if (parseInt(tableArray[i][0]) <= parseInt(tableArray[i-1][1])) {
-								// ui.notifications.warn(game.i18n.format("MAT.warnCustomTableLowerLimit",{lowerLimit: tableArray[i][0], prevUpperLimit: tableArray[i-1][1]}));
 								value[3 * i] = parseInt(value[3 * (i - 1) + 1]) + 1;
 								if (value[3 * i] > 20) {
 									value[3 * i] = 20;
@@ -534,7 +561,6 @@ class RollSettingsMenu extends FormApplication {
 									value[3 * i] = 20;
 								}
 								if (parseInt(tableArray[i][1]) < value[3 * i]) {
-									// ui.notifications.warn(game.i18n.format("MAT.warnCustomTableUpperLimit",{upperLimit: tableArray[i][1], lowerLimit: tableArray[i][0]}));
 									value[3 * i + 1] = value[3 * i];
 								}
 							}
@@ -549,7 +575,6 @@ class RollSettingsMenu extends FormApplication {
 			}
 			await game.user.setFlag(moduleName, settingKey, value);
 			await game.settings.set(moduleName, settingKey, value);
-			// }
 		}
 	}
 
@@ -568,8 +593,7 @@ class RollSettingsMenu extends FormApplication {
 			}
 			customTable = customTable.concat([parseInt(customTable[customTable.length - 2]) + 1, parseInt(customTable[customTable.length - 2]) + 1, parseInt(customTable[customTable.length - 1])]);
 			await game.settings.set(moduleName, "tempSetting", customTable);
-			// console.log(`Added a row. Current table length: ${customTable.length}.`);
-			this.render(true);
+			this.render();
 		})
 
 		html.on('click', '.MATremoveRow', async () => {
@@ -583,13 +607,12 @@ class RollSettingsMenu extends FormApplication {
 				customTable = customTable.slice(0, customTable.length-3);
 				await game.settings.set(moduleName, "tempSetting", customTable);
 			}
-			// console.log(`Removed a row. Current table length: ${customTable.length}.`);
-			this.render(true);
+			this.render();
 		})
 
 		html.on('click', '.MATresetTable', async () => {
 			await game.settings.set(moduleName, "tempSetting",matSettings.tempSetting.default);
-			this.render(true);
+			this.render();
 		})
 	}
 }

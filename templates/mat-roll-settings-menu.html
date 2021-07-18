@@ -1,12 +1,12 @@
 {{! This partial is based on the foundry settings partial}}
 {{#*inline "settingPartial"}}
 	<div class="form-group">
-		<label>{{localize this.name}}</label>
+		<label style="flex-grow: 5;">{{localize this.name}}</label>
 		<div class="form-fields">
 			{{#if this.isCheckbox}}
-				<input type="checkbox" name="{{this.id}}" data-dtype="Boolean" {{checked this.value}} {{#if this.disabled}}disabled{{/if}}/>
+				<input type="checkbox" name="{{this.id}}" data-dtype="Boolean" {{checked this.value}} {{#if this.disabled}}disabled{{/if}} />
 			{{else if this.isSelect}}
-				<select name="{{this.id}}">
+				<select name="{{this.id}}" >
 					{{#select this.value}}
 						{{#each this.choices as |name k|}}
 							<option value="{{k}}">{{localize name}}</option>
@@ -97,7 +97,7 @@
 		<div class="tab" data-tab="mobTable">
 			<div class="settings-list">
 				<div class="form-group">
-					<label>{{localize this.settings.mobTable.hiddenTableCheckBox.name}}</label>
+					<label style="flex-grow: 5;">{{localize this.settings.mobTable.hiddenTableCheckBox.name}}</label>
 					<div class="form-fields">
 						<input type="checkbox" name="{{this.settings.mobTable.hiddenTableCheckBox.id}}" data-dtype="Boolean" {{checked this.settings.mobTable.hiddenTableCheckBox.value}} />
 					</div>

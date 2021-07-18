@@ -1,4 +1,4 @@
-import { moduleName, coreVersion08x } from "./mobAttack.js";
+import { moduleName } from "./mobAttack.js";
 import { getMultiattackFromActor } from "./multiattack.js";
 
 
@@ -17,7 +17,7 @@ export async function callMidiMacro(item, midiMacroData) {
 	const macroData = {
 		...midiMacroData,
 		itemUuid: item?.uuid,
-		item: (coreVersion08x()) ? item?.data.toObject(false) : duplicate(item?.data),
+		item: item?.data.toObject(false),
 		saves: [],
 		superSavers: [],
 		failedSaves: [],
@@ -197,9 +197,9 @@ export async function prepareMonsters(actorList, keepCheckboxes=false, oldMonste
 				monsters[actor.id] = {...monsterData};
 				monsters[actor.id].optionVisible = true;
 				if (game.settings.get(moduleName, "showMultiattackDescription")) {
-					if (actor.items[(coreVersion08x()) ? "contents" : "entries"].filter(i => i.name.startsWith("Multiattack")).length > 0) {
+					if (actor.items.contents.filter(i => i.name.startsWith("Multiattack")).length > 0) {
 						monsters[actor.id]["multiattackDesc"] = $(actor.items.filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value)[0].textContent;
-					} else if (actor.items[(coreVersion08x()) ? "contents" : "entries"].filter(i => i.name.startsWith("Extra Attack")).length > 0) {
+					} else if (actor.items.contents.filter(i => i.name.startsWith("Extra Attack")).length > 0) {
 						monsters[actor.id]["multiattackDesc"] = $(actor.items.filter(i => i.name.startsWith("Extra Attack"))[0].data.data.description.value)[0].textContent;
 					}
 				}
@@ -207,7 +207,7 @@ export async function prepareMonsters(actorList, keepCheckboxes=false, oldMonste
 		}
 
 		let actorWeapons = {};
-		let items = (coreVersion08x()) ? actor.items.contents : actor.items.entries;
+		let items = actor.items.contents;
 		for (let item of items) {
 			if (item.data.type == "weapon" || (item.data.type == "spell" && (item.data.data.level === 0 || item.data.data.preparation.mode === "atwill") && item.data.data.damage.parts.length > 0 && item.data.data.save.ability === "")) {
 				if (weapons[item.id]?.id === item.id) {
@@ -242,14 +242,8 @@ export async function prepareMonsters(actorList, keepCheckboxes=false, oldMonste
 			for (let dTerm of averageDamageRoll.terms.filter(t => t.number > 0 && t.faces > 0)) {
 				averageDamageValue += ((dTerm.faces + 1) / 2) * dTerm.number;
 			}
-			if (coreVersion08x()) {
-				for (let nTerm of averageDamageRoll.terms.filter(t => t.number > 0 && !t.faces)) {
-					averageDamageValue += nTerm.number;
-				}
-			} else {
-				for (let nTerm of averageDamageRoll.terms.filter(t => !t.formula && parseInt(t))) {
-					averageDamageValue += nTerm;
-				}
+			for (let nTerm of averageDamageRoll.terms.filter(t => t.number > 0 && !t.faces)) {
+				averageDamageValue += nTerm.number;
 			}
 			averageDamage[weaponID] = Math.ceil(averageDamageValue);
 			if (highestDamageFormula < maxDamage) {
@@ -463,7 +457,7 @@ export async function endGroupedMobTurn(data) {
 		for (let combatant of combatants) {
 			let savedMob;
 			for (let mobName of Object.keys(mobList)) {
-				if (mobList[mobName].selectedTokenIds.includes(((coreVersion08x()) ? combatant.data.tokenId : combatant.tokenId))) {
+				if (mobList[mobName].selectedTokenIds.includes(combatant.data.tokenId)) {
 					savedMob = mobList[mobName];
 					break;
 				}
@@ -471,9 +465,9 @@ export async function endGroupedMobTurn(data) {
 			if (savedMob) {
 				if (Object.keys(mobList).includes(savedMob.mobName)) {
 					if (!mobCreatures[savedMob.mobName]?.length) {
-						mobCreatures[savedMob.mobName] = [((coreVersion08x()) ? combatant.data._id : combatant._id)];
+						mobCreatures[savedMob.mobName] = [combatant.data._id];
 					} else {
-						mobCreatures[savedMob.mobName].push(((coreVersion08x()) ? combatant.data._id : combatant._id));
+						mobCreatures[savedMob.mobName].push(combatant.data._id);
 					}
 				}
 			} else {
@@ -481,13 +475,39 @@ export async function endGroupedMobTurn(data) {
 			}
 		}
 		
+		let skipComplete = false;
 		for (let mobName of Object.keys(mobList)) {
-			if (mobCreatures[mobName]?.includes(((coreVersion08x()) ? game.combat.combatant.data._id : game.combat.combatant._id))) {
+			if (mobCreatures[mobName]?.includes(game.combat.combatant.data._id) && canvas.tokens.controlled.filter(t => t.id)?.includes(game.combat.combatant.data._id)) {
 				let turnIndex = game.combat.turns.indexOf(game.combat.combatant);
 				let lastMobTurn = turnIndex;
 				let currentRound = game.combat.round;
 				for (let i = turnIndex + 1; i < game.combat.turns.length; i++) {
-					if (mobCreatures[mobName].includes(((coreVersion08x()) ? game.combat.turns[i].data._id : game.combat.turns[i]._id))) {
+					if (mobCreatures[mobName].includes(game.combat.turns[i].data._id)) {
+						lastMobTurn++;
+					} else {
+						break;
+					}
+				}
+				if (lastMobTurn === game.combat.turns.length - 1) {
+					await game.combat.nextRound();
+					skipComplete = true;
+				} else if (Object.keys(mobList).length > 0) {
+					await game.combat.update({round: currentRound, turn: lastMobTurn + 1});
+					skipComplete = true;
+				}
+				break;
+			}
+		}
+		if (!skipComplete) {
+			// skip turn of selected tokens (not a saved mob per se),
+			// but only if they include the current combatant.
+			// if (data.selectedTokenIds.filter(t => t.tokenId === game.combat.combatant.data.tokenId).length > 0) {
+			if (canvas.tokens.controlled.filter(t => t.id === game.combat.combatant.data.tokenId).length > 0) {
+				let turnIndex = game.combat.turns.indexOf(game.combat.combatant);
+				let lastMobTurn = turnIndex;
+				let currentRound = game.combat.round;
+				for (let i = turnIndex + 1; i < game.combat.turns.length; i++) {
+					if (data.selectedTokenIds.filter(t => t.tokenId === game.combat.turns[i].data.tokenId).length > 0) {
 						lastMobTurn++;
 					} else {
 						break;
@@ -498,29 +518,61 @@ export async function endGroupedMobTurn(data) {
 				} else {
 					await game.combat.update({round: currentRound, turn: lastMobTurn + 1});
 				}
-				break;
 			}
-			if (mobName === Object.keys(mobList)[Object.keys(mobList).length - 1]) {
-				// skip turn of selected tokens (not a saved mob per se),
-				// but only if they include the current combatant.
-				if (data.selectedTokenIds.filter(t => t.tokenId === game.combat.combatant.data.tokenId).length > 0) {
-					let turnIndex = game.combat.turns.indexOf(game.combat.combatant);
-					let lastMobTurn = turnIndex;
-					let currentRound = game.combat.round;
-					for (let i = turnIndex + 1; i < game.combat.turns.length; i++) {
-						if (data.selectedTokenIds.filter(t => t.tokenId === ((coreVersion08x()) ? game.combat.turns[i].data.tokenId : game.combat.turns[i].tokenId)).length > 0) {
-							lastMobTurn++;
-						} else {
-							break;
-						}
-					}
-					if (lastMobTurn === game.combat.turns.length - 1) {
-						await game.combat.nextRound();
-					} else {
-						await game.combat.update({round: currentRound, turn: lastMobTurn + 1});
+		}
+	}
+}
+
+
+export async function replaceRerollInitiativeHook () {
+	for (let hook of Hooks._hooks["updateCombat"]) {
+		if (hook.toLocaleString().indexOf("RerollInitiative._onUpdateCombat") !== -1 && 
+			hook.toLocaleString().indexOf(`MAT's replacement hook for CUB's RerollInitiative`) === -1) {
+			console.log("Mob Attack Tool | Replacing CUB's RerollInitiative function on the 'updateCombat' hook with one compatible with Group Initiative.");
+			game.mobAttackTool.storedHooks["combat-utility-belt.rerollInitiative"] = hook;
+			Hooks.off("updateCombat", hook);
+
+			Hooks.on("updateCombat", async (combat, update) => {
+				// MAT's replacement hook for CUB's RerollInitiative (don't delete this comment)
+				// Please note that part of the code below was taken directly from CUB's codebase
+				const reroll = game.settings.get("combat-utility-belt","enableRerollInitiative");
+				if (!reroll) return; 
+				
+				const roundUpdate = hasProperty(update, "round");
+				
+				// Return if this update does not contains a round
+				if (!roundUpdate) return;
+
+				// If we are not moving forward through the rounds, return
+				if (update.round < 2 || update.round < combat.previous.round) return;
+
+				const gmUsers = game.users.contents.filter(u => u.isGM);
+				const gmUserId = game.user.isGM ? game.userId : gmUsers.length ? gmUsers[0].id : null;
+
+				if (!gmUserId) return;
+
+				const rerollTemp = game.settings.get("combat-utility-belt","rerollTempCombatants");
+				let tempCombatantIds, tempInitUpdates = [];
+				if (!rerollTemp) {
+					tempCombatantIds = combat.combatants.filter(c => c.getFlag('combat-utility-belt','temporaryCombatant')).map(c => c.id);
+					for (let id of tempCombatantIds) {
+						tempInitUpdates.push({id: id, initiative: game.combat.combatants.get(id).initiative});
 					}
 				}
-			}
+				// TODO: find a cleaner way to reroll than resetting and rolling again
+				await combat.resetAll();
+				// combat.rollAll() should be compatible with Group Initiative
+				await combat.rollAll();
+
+				// return the tempCombatants back to their previous initiative
+				if (!rerollTemp) {
+					for (let tempUpdate of tempInitUpdates) {
+						await game.combat.setInitiative(tempUpdate.id, tempUpdate.initiative);
+					}	
+				}
+				await combat.update({turn: 0});
+			})
+			break;
 		}
 	}
 }
@@ -567,7 +619,7 @@ export function calcD20Needed(attackBonus, targetAC, rollTypeValue) {
 export function calcAttackersNeeded(d20Needed) {
 	let attackersNeeded = 0;
 	if (game.settings.get(moduleName,"hiddenTableCheckBox")) {
-		let customTable = coreVersion08x() ? game.settings.get(moduleName,"tempSetting") : game.settings.get(moduleName,"tempSetting")[0];
+		let customTable = game.settings.get(moduleName,"tempSetting");
 		let tableArray = {};
 		for (let i = 0; i < Math.floor(customTable.length/3); i++) {
 			tableArray[i] = customTable.slice(3 * i, 3 * i + 3);
@@ -609,7 +661,7 @@ export function isTargeted(token) {
 
 
 export async function sendChatMessage(text) {
-	let whisperIDs = (coreVersion08x()) ? game.users.contents.filter(u => u.isGM).map(u => u.id) : game.users.entities.filter(u => u.isGM).map(u => u.id);
+	let whisperIDs = game.users.contents.filter(u => u.isGM).map(u => u.id);
 
 	let chatData = {
 		user: game.user.id,

@@ -2,13 +2,9 @@ import { initSettings } from "./settings.js";
 import { initMobAttackTool, MobAttackDialog } from "./mobAttackTool.js";
 import { MobAttacks } from "./mobAttackTool.js";
 import { rollNPC, rollAll } from "./group-initiative/groupInitiative.js";
+import { replaceRerollInitiativeHook } from "./utils.js";
 
 export const moduleName = "mob-attack-tool";
-
-export function coreVersion08x() {
-	// Check if Core is 0.8.x or even newer
-	return parseInt(game.data.version.slice(2)) > 7;
-}
 
 
 Hooks.once("init", () => {
@@ -18,11 +14,13 @@ Hooks.once("init", () => {
 	initMobAttackTool();
 
 	const dialogs = new Map();
+	const storedHooks = {};
 	game.mobAttackTool = {
 		applications: {
 			MobAttackDialog
 		},
-		dialogs
+		dialogs,
+		storedHooks
 	}
 })
 
@@ -62,7 +60,6 @@ Hooks.on("targetToken", async () => {
 	}
 });
 
-
 // select mob tokens if next combatant is part of a saved mob
 Hooks.on("updateCombat", async (combat, changed) => {
 	if (!("turn" in changed)) return;
@@ -73,7 +70,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 
 	const mobList = game.settings.get("mob-attack-tool","hiddenMobList");
 	const nextTurn = combat.turns[changed.turn];
-	const nextTokenId = (coreVersion08x()) ? nextTurn.data.tokenId : nextTurn.tokenId;
+	const nextTokenId = nextTurn.data.tokenId;
 	let nextMobName = "";
 	for (let mobName of Object.keys(mobList)) {
 		if (mobList[mobName].selectedTokenIds.includes(nextTokenId) && mobList[mobName].userId === game.user.id) {
@@ -84,6 +81,12 @@ Hooks.on("updateCombat", async (combat, changed) => {
 	if (nextMobName === "") return;
 	const dialogId = game.settings.get(moduleName, "currentDialogId");
 	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
+
+	// wait a moment to let CUB's Pan / Select feature do its thing
+	if (game.modules.get("combat-utility-belt")?.active) {
+		await new Promise(resolve => setTimeout(resolve, 50));
+	}
+
 	if (mobDialog) mobDialog.currentlySelectingTokens = true;
 	canvas.tokens.releaseAll();
 	for (let tokenId of mobList[nextMobName].selectedTokenIds) {
@@ -97,7 +100,6 @@ Hooks.on("updateCombat", async (combat, changed) => {
 	}
 })
 
-
 //  Hide DSN 3d dice
 Hooks.on('diceSoNiceRollStart', (messageId, context) => {
 	if (game.settings.get(moduleName, "hiddenDSNactiveFlag")) return;
@@ -105,8 +107,6 @@ Hooks.on('diceSoNiceRollStart', (messageId, context) => {
     //Hide this roll
     context.blind=true;
 });
-
-
 
 // group initiative: override roll methods from combat tracker
 Hooks.on("renderCombatTracker", ( app, html, options ) => {
@@ -135,3 +135,11 @@ Hooks.on("renderCombatTracker", ( app, html, options ) => {
 	}
 });
 
+// replace CUB's RerollInitiative hook with one compatible with Group Initiative
+Hooks.on("init", async () => {
+	// wait a moment for CUB to initialize
+	if (!game.settings.get(moduleName,"groupRerollInitiativeCUB") || !game.settings.get(moduleName,"enableMobInitiative")) return;
+	await new Promise(resolve => setTimeout(resolve, 1000));
+
+	await replaceRerollInitiativeHook();
+})

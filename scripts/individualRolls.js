@@ -1,4 +1,4 @@
-import { moduleName, coreVersion08x } from "./mobAttack.js";
+import { moduleName } from "./mobAttack.js";
 import { endGroupedMobTurn, getDamageFormulaAndType, sendChatMessage, getAttackBonus, callMidiMacro } from "./utils.js";
 
 
@@ -56,7 +56,7 @@ export async function rollMobAttackIndividually(data) {
 			let tokenAttackList = [];
 			for (let i = 0; i < availableAttacks; i++) {	
 				attackRoll = new Roll(attackFormula);
-				attackRollEvaluated[i] = (coreVersion08x()) ? await attackRoll.evaluate({async: true}) : attackRoll.evaluate();
+				attackRollEvaluated[i] = await attackRoll.evaluate({async: true});
 
 				// Check settings for rolling 3d dice from Dice So Nice
 				if (game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls")) {
@@ -405,7 +405,7 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 		// trigger AutoAnimations
 		if (game.settings.get(moduleName, "enableAutoAnimations")) {
 			let j = 0;
-			if (game.modules.get(coreVersion08x() ? "autoanimations" : "automated-jb2a-animations")?.active) {
+			if (game.modules.get("autoanimations")?.active) {
 				for (let i = 0; i < numHitAttacks; i++) {
 					if (j < tokenAttackList.length) {
 						j = i;

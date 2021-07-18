@@ -1,4 +1,4 @@
-import { moduleName, coreVersion08x } from "./mobAttack.js";
+import { moduleName } from "./mobAttack.js";
 import { checkTarget, getTargetData, prepareMonsters, prepareMobAttack, loadMob, isTargeted } from "./utils.js";
 import { rollMobAttackIndividually } from "./individualRolls.js";
 import { rollMobAttack } from "./mobRules.js";
@@ -697,7 +697,7 @@ export class MobAttackDialog extends FormApplication {
 			if (checkTarget()) {
 				let selectedTokenIds = [];
 				for (let token of canvas.tokens.controlled) {
-					selectedTokenIds.push({tokenId: token.id, tokenUuid: ((coreVersion08x()) ? token.document.uuid : token.uuid), actorId: token.actor.id});
+					selectedTokenIds.push({tokenId: token.id, tokenUuid: token.document.uuid, actorId: token.actor.id});
 				}
 				let mobAttackData = await prepareMobAttack(html, selectedTokenIds, this.weapons, this.availableAttacks, this.targets, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
 				if (game.settings.get(moduleName,"mobRules") === 0) {
@@ -717,7 +717,7 @@ export class MobAttackDialog extends FormApplication {
 			// prepare data
 			let selectedTokenIds = [];
 			for (let token of canvas.tokens.controlled) {
-				selectedTokenIds.push({tokenId: token.id, tokenUuid: ((coreVersion08x()) ? token.document.uuid : token.uuid), actorId: token.actor.id});
+				selectedTokenIds.push({tokenId: token.id, tokenUuid: token.document.uuid, actorId: token.actor.id});
 			}
 			let mobAttackData = await prepareMobAttack(html, selectedTokenIds, this.weapons, this.availableAttacks, this.targets, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
 			let mobList = game.settings.get(moduleName,"hiddenMobList");
@@ -816,7 +816,7 @@ export function MobAttacks() {
 		if (!checkTarget()) return;
 		let selectedTokenIds = [];
 		for (let token of canvas.tokens.controlled) {
-			selectedTokenIds.push({tokenId: token.id, tokenUuid: ((coreVersion08x()) ? token.document.uuid : token.uuid), actorId: token.actor.id});
+			selectedTokenIds.push({tokenId: token.id, tokenUuid: token.document.uuid, actorId: token.actor.id});
 		}
 		
 		data["selectedTokenIds"] = selectedTokenIds;
