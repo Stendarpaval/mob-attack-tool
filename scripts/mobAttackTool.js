@@ -375,7 +375,7 @@ export class MobAttackDialog extends FormApplication {
 		// increase numAttack of a weapon
 		html.on("click", ".increaseNumAttack", async (event) => {
 			let numAttack = parseInt(event.currentTarget.parentNode.previousElementSibling.value);
-			if (numAttack.isNaN() || numAttack == null || numAttack == undefined) {
+			if (Number.isNaN(numAttack) || numAttack == null || numAttack == undefined) {
 				numAttack = 1;
 			}
 			let updatedNumAttack = numAttack + 1;
@@ -395,7 +395,7 @@ export class MobAttackDialog extends FormApplication {
 		// decrease numAttack of a weapon
 		html.on("click", ".decreaseNumAttack", async (event) => {
 			let numAttack = parseInt(event.currentTarget.parentNode.previousElementSibling.value);
-			if (numAttack.isNaN() || numAttack == null || numAttack == undefined) {
+			if (Number.isNaN(numAttack) || numAttack == null || numAttack == undefined) {
 				numAttack = 1;
 			}
 			let updatedNumAttack = (numAttack - 1 > 1) ? numAttack - 1 : 1;
@@ -416,7 +416,7 @@ export class MobAttackDialog extends FormApplication {
 		// increase number of monsters
 		html.on("click", ".increaseNumMonster", async (event) => {
 			let numMonster = parseInt(event.currentTarget.parentNode.previousElementSibling.value);
-			if (numMonster.isNaN() || numMonster == null || numMonster == undefined) {
+			if (Number.isNaN(numMonster) || numMonster == null || numMonster == undefined) {
 				numMonster = 1;
 			}
 			let monsterId = event.currentTarget.parentNode.previousElementSibling.getAttribute("name");
@@ -437,7 +437,7 @@ export class MobAttackDialog extends FormApplication {
 		// decrease number of monsters
 		html.on("click", ".decreaseNumMonster", async (event) => {
 			let numMonster = parseInt(event.currentTarget.parentNode.previousElementSibling.value);
-			if (numMonster.isNaN() || numMonster == null || numMonster == undefined) {
+			if (Number.isNaN(numMonster) || numMonster == null || numMonster == undefined) {
 				numMonster = 1;
 			}
 			let updatedNumMonster = numMonster - 1;

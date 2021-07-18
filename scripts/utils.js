@@ -501,7 +501,6 @@ export async function endGroupedMobTurn(data) {
 		if (!skipComplete) {
 			// skip turn of selected tokens (not a saved mob per se),
 			// but only if they include the current combatant.
-			// if (data.selectedTokenIds.filter(t => t.tokenId === game.combat.combatant.data.tokenId).length > 0) {
 			if (canvas.tokens.controlled.filter(t => t.id === game.combat.combatant.data.tokenId).length > 0) {
 				let turnIndex = game.combat.turns.indexOf(game.combat.combatant);
 				let lastMobTurn = turnIndex;
