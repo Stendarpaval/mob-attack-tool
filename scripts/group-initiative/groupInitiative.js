@@ -24,8 +24,111 @@ export async function rollAll() {
 	await rollGroupInitiative.call(this, unrolled);
 }
 
-export async function rollGroupInitiative(creatures) {
 
+// override Combat.prototype.rollInitiative (using libWrapper)
+export async function matRollInitiative(ids, {formula=null, updateTurn=true, messageOptions={}}={}) {
+	// Structure input data
+	ids = typeof ids === "string" ? [ids] : ids;
+	const currentId = this.combatant.id;
+	const rollMode = messageOptions.rollMode || game.settings.get("core", "rollMode");
+
+	// Iterate over Combatants, performing an initiative roll for each
+	const updates = [];
+	let messages = [];
+	let creatures = [];
+	for ( let [i, id] of ids.entries() ) {
+
+		// Get Combatant data (non-strictly)
+		const combatant = this.combatants.get(id);
+		creatures.push(combatant);
+
+		// Produce an initiative roll for the Combatant
+		const roll = combatant.getInitiativeRoll(formula);
+		updates.push({_id: id, initiative: roll.total});
+
+		// Construct chat message data
+		let messageData = foundry.utils.mergeObject({
+			speaker: {
+				scene: this.scene.id,
+				actor: combatant.actor?.id,
+				token: combatant.token?.id,
+				alias: combatant.name
+			},
+			flavor: game.i18n.format("COMBAT.RollsInitiative", {name: combatant.name}),
+			flags: {"core.initiativeRoll": true}
+		}, messageOptions);
+		const chatData = await roll.toMessage(messageData, {
+			create: false,
+			rollMode: combatant.hidden && (rollMode === "roll") ? "gmroll" : rollMode
+		});
+		// Play 1 sound for the whole rolled set
+		if ( i > 0 ) chatData.sound = null;
+		messages.push(chatData);
+	}
+	if ( !updates.length ) return this;
+
+
+	if (game.settings.get(moduleName, "enableMobInitiative") && updates.length > 1) {	
+		const mobList = game.settings.get(moduleName,"hiddenMobList");
+		const groups = formInitiativeGroups(creatures);
+		
+		// get first combatant id for each group
+		const leaderIds = Object.keys(groups).map(key => groups[key][0]);
+		
+		// prepare others in the group
+		const leaderUpdates = updates.filter(u => leaderIds.includes(u._id));
+
+		// remove messages about unused initiative rolls
+		messages = messages.reduce((msg, m) => {
+			for (let update of leaderUpdates) {
+				if (update.initiative === parseInt(m.content) && m.speaker.actor === this.combatants.get(update._id).data?.actorId) {
+					msg.push(m);
+				}
+			}
+			return msg;
+		}, []);
+		
+		let groupUpdates = creatures.reduce((gUpdates, {id, initiative, actor, data}) => {
+			let group;
+			if (game.settings.get(moduleName,"groupMobInitiative")) {
+				let savedMob;
+				for (let mobName of Object.keys(mobList)) {
+					if (mobList[mobName].selectedTokenIds.includes(data.tokenId)) {
+						savedMob = mobList[mobName];
+						group = groups[savedMob.mobName];
+						break;
+					}
+				}
+				if (!savedMob?.mobName) group = groups[actor.data._id];
+			} else {
+				group = groups[actor.data._id];
+			}
+
+			// get initiative from leader of group
+			initiative = leaderUpdates.filter(u => u._id === group[0])[0].initiative;
+			
+			gUpdates.push({_id: id, initiative});
+			return gUpdates;
+		}, []);
+
+		await this.updateEmbeddedDocuments("Combatant", groupUpdates);
+	} else {
+		// Update multiple combatants
+		await this.updateEmbeddedDocuments("Combatant", updates);	
+	}
+
+	// Ensure the turn order remains with the same combatant
+	if ( updateTurn ) {
+		await this.update({turn: this.turns.findIndex(t => t.id === currentId)});
+	}
+
+	// Create multiple chat messages
+	await ChatMessage.implementation.create(messages);
+	return this;
+}
+
+
+function formInitiativeGroups(creatures) {
 	let groups;
 	let mobList = game.settings.get(moduleName,"hiddenMobList");
 	if (game.settings.get(moduleName,"groupMobInitiative")) {
@@ -78,6 +181,14 @@ export async function rollGroupInitiative(creatures) {
 			{}
 		);	
 	}
+	return groups;
+}
+
+
+export async function rollGroupInitiative(creatures) {
+
+	let mobList = game.settings.get(moduleName,"hiddenMobList");
+	let groups = formInitiativeGroups(creatures);
 
 	// get first combatant id for each group
 	const ids = Object.keys(groups).map(key => groups[key][0]);

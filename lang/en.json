@@ -156,8 +156,6 @@
  	"SETTINGS.MAT.autoSelectMobCombatants": "Autoselect saved mob combatants",
  	"SETTINGS.MAT.autoSelectMobCombatantsHint": "Enable this to automatically select the tokens of saved mob attackers when the combat tracker is updated to one of their turns.",
  	"SETTINGS.MAT.autoDeselectMob": "Autodeselect saved mob combatants",
- 	"SETTINGS.MAT.groupRerollInitiativeCUB": "Group Initiative in CUB's Reroll Initiative feature",
- 	"SETTINGS.MAT.groupRerollInitiativeCUBHint": "If both this setting and the \"Enable Group Initiative\" setting are enabled, then when you use Combat Utility Belt's Reroll Initiative, the rerolled initiatives will make use of Group Initiative.",
 
  	"SETTINGS.MAT.defaultMobPrefix": "Default mob name prefix",
  	"SETTINGS.MAT.defaultMobPrefixHint": "Choose what default text will appear before the name of the first creature of a mob.",

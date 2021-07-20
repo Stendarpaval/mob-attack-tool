@@ -1,8 +1,8 @@
 import { initSettings } from "./settings.js";
 import { initMobAttackTool, MobAttackDialog } from "./mobAttackTool.js";
 import { MobAttacks } from "./mobAttackTool.js";
-import { rollNPC, rollAll } from "./group-initiative/groupInitiative.js";
-import { replaceRerollInitiativeHook } from "./utils.js";
+import { rollNPC, rollAll, matRollInitiative } from "./group-initiative/groupInitiative.js";
+import { libWrapper } from "./lib/shim.js";
 
 export const moduleName = "mob-attack-tool";
 
@@ -12,6 +12,9 @@ Hooks.once("init", () => {
 
 	initSettings();
 	initMobAttackTool();
+
+	console.log("Mob Attack Tool | Wrapping rollInitiative...");
+	libWrapper.register(moduleName, "Combat.prototype.rollInitiative", matRollInitiative, "OVERRIDE");
 
 	const dialogs = new Map();
 	const storedHooks = {};
@@ -31,7 +34,6 @@ Hooks.on("ready", async () => {
 
 // update dialog windows if new tokens are selected
 Hooks.on("controlToken", async () => {
-	// if (!controlState) return;
 	let dialogId = game.settings.get(moduleName, "currentDialogId");
 	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
 	if (mobDialog) {
@@ -134,12 +136,3 @@ Hooks.on("renderCombatTracker", ( app, html, options ) => {
 		}
 	}
 });
-
-// replace CUB's RerollInitiative hook with one compatible with Group Initiative
-Hooks.on("init", async () => {
-	// wait a moment for CUB to initialize
-	if (!game.settings.get(moduleName,"groupRerollInitiativeCUB") || !game.settings.get(moduleName,"enableMobInitiative")) return;
-	await new Promise(resolve => setTimeout(resolve, 1000));
-
-	await replaceRerollInitiativeHook();
-})

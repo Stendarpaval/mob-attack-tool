@@ -1,5 +1,4 @@
 import { moduleName } from "./mobAttack.js";
-import { replaceRerollInitiativeHook } from "./utils.js";
 
 
 const matSettings = {
@@ -269,14 +268,6 @@ const matSettings = {
 		config: false,
 		default: true,
 		type: Boolean
-	},
-	"groupRerollInitiativeCUB": {
-		name: "SETTINGS.MAT.groupRerollInitiativeCUB",
-		hint: "SETTINGS.MAT.groupRerollInitiativeCUBHint",
-		scope: "world",
-		config: false,
-		default: false,
-		type: Boolean	
 	}
 };
 
@@ -455,14 +446,6 @@ class RollSettingsMenu extends FormApplication {
 						isCheckbox: true,
 						client: game.user.isGM
 					},
-					groupRerollInitiativeCUB: {
-						name: matSettings.groupRerollInitiativeCUB.name,
-						hint: matSettings.groupRerollInitiativeCUB.hint,
-						value: game.settings.get(moduleName,"groupRerollInitiativeCUB"),
-						id: "groupRerollInitiativeCUB",
-						isCheckbox: true,
-						client: game.user.isGM
-					},
 					enableMidi: {
 						name: matSettings.enableMidi.name,
 						hint: matSettings.enableMidi.hint,
@@ -519,24 +502,6 @@ class RollSettingsMenu extends FormApplication {
 
 	async _updateObject(event, formData) {
 		for (let [settingKey, value] of Object.entries(formData)) {
-			if (settingKey === "groupRerollInitiativeCUB" && game.modules.get("combat-utility-belt")?.active) {
-				if (game.user.isGM) {
-					if (!value && game.settings.get(moduleName, "groupRerollInitiativeCUB")) {
-						for (let hook of Hooks._hooks["updateCombat"]) {
-							if (hook.toLocaleString().indexOf(`MAT's replacement hook for CUB's RerollInitiative`) !== -1) {
-								console.log("Mob Attack Tool | Restoring CUB's RerollInitiative function on the 'updateCombat' hook.");
-								Hooks.off("updateCombat", hook);
-								if (game.mobAttackTool.storedHooks?.["combat-utility-belt.rerollInitiative"]) {
-									Hooks.on("updateCombat", game.mobAttackTool.storedHooks?.["combat-utility-belt.rerollInitiative"]);	
-								}
-								break;
-							}
-						}
-					} else if (value && !game.settings.get(moduleName, "groupRerollInitiativeCUB")) {
-						await replaceRerollInitiativeHook();
-					}
-				}
-			}
 			if (settingKey === "tempSetting") {
 				let customTable = game.settings.get(moduleName,"tempSetting");
 				let tableArray = {};

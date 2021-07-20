@@ -523,60 +523,6 @@ export async function endGroupedMobTurn(data) {
 }
 
 
-export async function replaceRerollInitiativeHook () {
-	for (let hook of Hooks._hooks["updateCombat"]) {
-		if (hook.toLocaleString().indexOf("RerollInitiative._onUpdateCombat") !== -1 && 
-			hook.toLocaleString().indexOf(`MAT's replacement hook for CUB's RerollInitiative`) === -1) {
-			console.log("Mob Attack Tool | Replacing CUB's RerollInitiative function on the 'updateCombat' hook with one compatible with Group Initiative.");
-			game.mobAttackTool.storedHooks["combat-utility-belt.rerollInitiative"] = hook;
-			Hooks.off("updateCombat", hook);
-
-			Hooks.on("updateCombat", async (combat, update) => {
-				// MAT's replacement hook for CUB's RerollInitiative (don't delete this comment)
-				// Please note that part of the code below was taken directly from CUB's codebase
-				const reroll = game.settings.get("combat-utility-belt","enableRerollInitiative");
-				if (!reroll) return; 
-				
-				const roundUpdate = hasProperty(update, "round");
-				
-				// Return if this update does not contains a round
-				if (!roundUpdate) return;
-
-				// If we are not moving forward through the rounds, return
-				if (update.round < 2 || update.round < combat.previous.round) return;
-
-				const gmUsers = game.users.contents.filter(u => u.isGM);
-				const gmUserId = game.user.isGM ? game.userId : gmUsers.length ? gmUsers[0].id : null;
-
-				if (!gmUserId) return;
-
-				const rerollTemp = game.settings.get("combat-utility-belt","rerollTempCombatants");
-				let tempCombatantIds, tempInitUpdates = [];
-				if (!rerollTemp) {
-					tempCombatantIds = combat.combatants.filter(c => c.getFlag('combat-utility-belt','temporaryCombatant')).map(c => c.id);
-					for (let id of tempCombatantIds) {
-						tempInitUpdates.push({id: id, initiative: game.combat.combatants.get(id).initiative});
-					}
-				}
-				// TODO: find a cleaner way to reroll than resetting and rolling again
-				await combat.resetAll();
-				// combat.rollAll() should be compatible with Group Initiative
-				await combat.rollAll();
-
-				// return the tempCombatants back to their previous initiative
-				if (!rerollTemp) {
-					for (let tempUpdate of tempInitUpdates) {
-						await game.combat.setInitiative(tempUpdate.id, tempUpdate.initiative);
-					}	
-				}
-				await combat.update({turn: 0});
-			})
-			break;
-		}
-	}
-}
-
-
 export function getDamageFormulaAndType(weaponData, versatile) {
 	let cantripScalingFactor = getScalingFactor(weaponData);
 	let diceFormulas = [];
