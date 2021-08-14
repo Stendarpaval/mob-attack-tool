@@ -144,7 +144,7 @@
 	"SETTINGS.MAT.askRollType": "Include Advantage / Disadvantage selection",
 	"SETTINGS.MAT.askRollTypeHint": "If enabled, then a drop-down list is added to the Mob Attack dialog where you can select to roll with advantage / disadvantage. (Client specific setting)",
 	"SETTINGS.MAT.rollTypeValue": "Advantage / Disadvantage value",
-	"SETTINGS.MAT.rollTypeValueHint": "Choose what bonus / penalty Mob Attacks have when they are rolled with advantage or disadvantage. (5 by default, floating numbers will be rounded down)",
+	"SETTINGS.MAT.rollTypeValueHint": "Choose what bonus / penalty Mob Attacks have (using the \"Mob Rules\" variant) when they are rolled with advantage or disadvantage. (5 by default, floating numbers will be rounded down)",
 	"SETTINGS.MAT.hiddenTableCheckBox": "Use custom Mob Table?",
 	"SETTINGS.MAT.hiddenTableCheckBoxHint": "This is for the Mob Rules option. Change the required d20 roll and the number of required attacks to hit once.",
 	"SETTINGS.MAT.persistACmod": "Persist AC modifier",
