@@ -238,6 +238,6 @@ export async function rollGroupInitiative(creatures) {
 	}, []);
 
 	// batch update all other combatants
-	this.updateEmbeddedDocuments('Combatant', groupUpdates);	
+	await this.updateEmbeddedDocuments('Combatant', groupUpdates);	
 }
 
