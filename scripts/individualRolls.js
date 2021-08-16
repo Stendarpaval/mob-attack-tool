@@ -4,7 +4,7 @@ import { endGroupedMobTurn, getDamageFormulaAndType, sendChatMessage, getAttackB
 
 export async function rollMobAttackIndividually(data) {
 	// Temporarily disable DSN 3d dice from rolling, per settings
-	if (!game.settings.get(moduleName, "enableDiceSoNice")) {
+	if (!game.settings.get(moduleName, "enableDiceSoNice") && game.user.isGM) {
 		await game.settings.set(moduleName, "hiddenDSNactiveFlag", false);
 	}
 
@@ -120,6 +120,8 @@ export async function rollMobAttackIndividually(data) {
 				pluralOrNot: pluralOrNot,
 				critMsg: critMsg,
 				endOfMsg: `!`,
+				withAdvantage: data.withAdvantage,
+				withDisadvantage: data.withDisadvantage,
 				atkRollData: atkRollData,
 				showIndividualAttackRolls: (atkRollData.length === 0) ? false : game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls"),
 				displayTarget: data.targets.length !== 0,
@@ -420,5 +422,5 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 		}
 	}
 	// Allow DSN 3d dice to be rolled again
-	await game.settings.set(moduleName, "hiddenDSNactiveFlag", true);
+	if (game.user.isGM) await game.settings.set(moduleName, "hiddenDSNactiveFlag", true);
 }

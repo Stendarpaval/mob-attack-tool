@@ -4,7 +4,7 @@ import { endGroupedMobTurn, getDamageFormulaAndType, calcD20Needed, calcAttacker
 
 export async function rollMobAttack(data) {
 	// Temporarily disable DSN 3d dice from rolling, per settings
-	if (!game.settings.get(moduleName, "enableDiceSoNice")) {
+	if (!game.settings.get(moduleName, "enableDiceSoNice") && game.user.isGM) {
 		await game.settings.set(moduleName, "hiddenDSNactiveFlag", false);
 	}
 
@@ -284,5 +284,5 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 		}
 	}
 	// Allow DSN 3d dice to be rolled again
-	await game.settings.set(moduleName, "hiddenDSNactiveFlag", true);
+	if (game.user.isGM) await game.settings.set(moduleName, "hiddenDSNactiveFlag", true);
 }

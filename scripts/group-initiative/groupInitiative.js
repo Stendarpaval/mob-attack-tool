@@ -191,14 +191,14 @@ export async function rollGroupInitiative(creatures) {
 	let groups = formInitiativeGroups(creatures);
 
 	// get first combatant id for each group
-	const ids = Object.keys(groups).map(key => groups[key][0]);
+	const leaderIDs = Object.keys(groups).map(key => groups[key][0]);
 
 	const messageOptions = {
 		flavor: "Rolling for initiative! (grouped)"
 	};
 
 	// roll initiative for group leaders only
-	await this.rollInitiative(ids, {messageOptions});
+	await this.rollInitiative(leaderIDs, {messageOptions});
 
 	// prepare others in the group
 	let groupUpdates;
@@ -221,13 +221,23 @@ export async function rollGroupInitiative(creatures) {
 		if (group.length <= 1 || initiative) return updates;
 
 		// get initiative from leader of group
-		initiative = this.combatants.get(group[0]).initiative;	
+		if (leaderIDs.includes(group[0]) && this.combatants.get(group[0])?.initiative) {
+			initiative = this.combatants.get(group[0]).initiative;		
+		} else {
+			for (let leaderID of leaderIDs) {
+				if (this.combatants.get(leaderID).actor.data._id === actor.data._id && this.combatants.get(leaderID)?.initiative) {
+					initiative = this.combatants.get(leaderID).initiative;
+					break;
+				}
+			}
+		}
+		if (!initiative) console.error(`Mob Attack Tool | There was a problem obtaining the initiative score of the group leader of ${actor.name}.`);
 		
 		updates.push({_id: id, initiative});
 		return updates;
 	}, []);
 
 	// batch update all other combatants
-	this.updateEmbeddedDocuments('Combatant', groupUpdates);	
+	await this.updateEmbeddedDocuments('Combatant', groupUpdates);	
 }
 

@@ -18,7 +18,7 @@
 				        <div class="dice">
 				            <ol class="dice-rolls">
 				            	{{#each this.atkRollData}}
-				                <li class="roll die d20 {{this.color}}" title="{{localize 'Attack Roll'}} (+{{this.finalAttackBonus}} {{localize 'MAT.toHit'}})">{{this.roll}}</li>
+				                <li class="roll die d20 {{this.color}}" title="{{localize 'Attack Roll'}} (+{{this.finalAttackBonus}} {{localize 'MAT.toHit'}}) {{#if ../withAdvantage}}(Advantage){{/if}}{{#if ../withDisadvantage}}(Disadvantage){{/if}}">{{this.roll}}</li>
 				                {{/each}}
 				            </ol>
 				        </div>
