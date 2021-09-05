@@ -667,7 +667,7 @@ export class MobAttackDialog extends FormApplication {
 		// increase AC modifier
 		html.on("click", ".increaseACmod", async () => {
 			let acMod = parseInt(html.find(`input[name="armorClassMod"]`)[0].value) ?? 0;
-			if (acMod.isNaN() || acMod == null || acMod == undefined) {
+			if (Number.isNaN(acMod) || acMod == null || acMod == undefined) {
 				acMod = 0;
 				html.find(`input[name="armorClassMod"]`)[0].value = "0";
 			}
@@ -681,7 +681,7 @@ export class MobAttackDialog extends FormApplication {
 		// decrease AC modifier
 		html.on("click", ".decreaseACmod", async () => {
 			let acMod = parseInt(html.find(`input[name="armorClassMod"]`)[0].value) ?? 0;
-			if (acMod.isNaN() || acMod == null || acMod == undefined) {
+			if (Number.isNaN(acMod) || acMod == null || acMod == undefined) {
 				acMod = 0;
 				html.find(`input[name="armorClassMod"]`)[0].value = "0";
 			}
@@ -693,13 +693,14 @@ export class MobAttackDialog extends FormApplication {
 		})
 
 		// execute mob attack
-		html.on("click", ".executeMobAttack", async () => {
+		html.on("click", ".executeMobAttack", async (event) => {
 			if (checkTarget()) {
 				let selectedTokenIds = [];
 				for (let token of canvas.tokens.controlled) {
 					selectedTokenIds.push({tokenId: token.id, tokenUuid: token.document.uuid, actorId: token.actor.id});
 				}
 				let mobAttackData = await prepareMobAttack(html, selectedTokenIds, this.weapons, this.availableAttacks, this.targets, this.targetAC + game.settings.get(moduleName,"savedArmorClassMod"), this.numSelected, this.monsters);
+				mobAttackData.event = event;
 				if (game.settings.get(moduleName,"mobRules") === 0) {
 					rollMobAttack(mobAttackData);
 				} else {
@@ -768,7 +769,7 @@ export class MobAttackDialog extends FormApplication {
 			let disadvKeyEvent = mobAttackData.withDisadvantage;
 			if (!mobAttackData.withAdvantage && !mobAttackData.withDisadvantage) {
 				advKeyEvent = `event.altKey`;
-				disadvKeyEvent = `event.metaKey`;
+				disadvKeyEvent = (game.settings.get(moduleName, "disadvantageKeyBinding") === 0 ? `event.metaKey` : `event.ctrlKey`);
 			}
 
 			let macroData = {

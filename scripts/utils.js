@@ -117,6 +117,7 @@ export function getTargetData(monsters) {
 	let arrayStart = 0;
 	let targetAC = 10;
 	let arrayLength = Math.floor(weaponsOnTargetArray.length / targetTokens.length);
+	let armorClassMod = game.settings.get(moduleName,"savedArmorClassMod");
 	if (arrayLength === 0) arrayLength = 1; 
 	for (let targetToken of targetTokens) {
 		if (targetToken.actor === null && game.modules.get("multilevel-tokens").active) {
@@ -137,7 +138,7 @@ export function getTargetData(monsters) {
 			weapons: weaponsOnTargetArray.slice(arrayStart, arrayLength * (1 + targetCount)),
 			noWeaponMsg: '',
 			targetIndex: targetCount,
-			targetAC: targetAC,
+			targetAC: targetAC + armorClassMod,
 			targetACtext: ((game.user.isGM) ? ` ${game.i18n.localize("MAT.dialogTargetArmorClassMessage")}` : ``)
 		})
 
@@ -344,7 +345,7 @@ export async function prepareMobAttack(html, selectedTokenIds, weapons, availabl
 			}
 			if (targets.length === 0) {
 				numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponData.id.replace(" ","-")}"]`)[0].value);
-				if (numAttacksMultiplier === NaN) {
+				if (Number.isNaN(numAttacksMultiplier)) {
 					numAttacksMultiplier = 0;
 				}
 				attacks[weaponData.id].push({targetId: null, targetNumAttacks: availableAttacks[weaponData.id] * numAttacksMultiplier});
@@ -360,7 +361,7 @@ export async function prepareMobAttack(html, selectedTokenIds, weapons, availabl
 			}
 			if (targets.length === 0) {
 				numAttacksMultiplier = parseInt(html.find(`input[name="numAttacks${weaponID.replace(" ","-")}"]`)[0].value);
-				if (numAttacksMultiplier === NaN) {
+				if (Number.isNaN(numAttacksMultiplier)) {
 					numAttacksMultiplier = 0;
 				}
 				attacks[weaponID].push({targetId: null, targetNumAttacks: availableAttacks[weaponData.id] * numAttacksMultiplier});

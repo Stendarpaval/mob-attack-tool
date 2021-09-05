@@ -25,9 +25,11 @@ export async function rollMobAttackIndividually(data) {
 
 			let attackFormula = '';
 			
-			if (data.withAdvantage === true) {
+			if (data.withAdvantage || (!data.withDisadvantage && data.event.altKey)) {
+				data.withAdvantage = true;
 				attackFormula = `2d20kh + ${finalAttackBonus}`;
-			} else if (data.withDisadvantage === true) {
+			} else if (data.withDisadvantage || (!data.withAdvantage && (game.settings.get(moduleName, "disadvantageKeyBinding") === 0 ? data.event.metaKey : data.event.ctrlKey))) {
+				data.withDisadvantage = true;
 				attackFormula = `2d20kl + ${finalAttackBonus}`;
 			} else {
 				attackFormula = `1d20 + ${finalAttackBonus}`

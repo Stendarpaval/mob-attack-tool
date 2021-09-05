@@ -268,6 +268,18 @@ const matSettings = {
 		config: false,
 		default: true,
 		type: Boolean
+	},
+	"disadvantageKeyBinding": {
+		name: "SETTINGS.MAT.disadvantageKeyBinding",
+		hint: "SETTINGS.MAT.disadvantageKeyBindingHint",
+		scope: "client",
+		config: true,
+		type: Number,
+		default: 0,
+		choices: {
+			0: "SETTINGS.MAT.metaKey",
+			1: "SETTINGS.MAT.ctrlKey"
+		}
 	}
 };
 

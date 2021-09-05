@@ -24,6 +24,15 @@ export async function rollMobAttack(data) {
 			const weaponData = data.weapons[key]; 
 			const actorName = weaponData.actor.name;
 			const finalAttackBonus = getAttackBonus(weaponData);
+			if (!data.withDisadvantage && data.event.altKey) {
+				data.withAdvantage = true;
+				data.rollTypeValue = Math.floor(game.settings.get(moduleName,"rollTypeValue"));
+				data.rollTypeMessage = ` + ${data.rollTypeValue} [adv]`; 
+			} else if (!data.withAdvantage && (game.settings.get(moduleName, "disadvantageKeyBinding") === 0 ? data.event.metaKey : data.event.ctrlKey)) {
+				data.withDisadvantage = true;
+				data.rollTypeValue = -1 * Math.floor(game.settings.get(moduleName,"rollTypeValue"));
+				data.rollTypeMessage = ` - ${data.rollTypeValue} [adv]`; 
+			}
 			const d20Needed = calcD20Needed(finalAttackBonus, targetAC, data.rollTypeValue);
 			const attackersNeeded = calcAttackersNeeded(d20Needed);
 

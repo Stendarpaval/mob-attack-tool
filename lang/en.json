@@ -160,5 +160,10 @@
  	"SETTINGS.MAT.defaultMobPrefix": "Default mob name prefix",
  	"SETTINGS.MAT.defaultMobPrefixHint": "Choose what default text will appear before the name of the first creature of a mob.",
  	"SETTINGS.MAT.defaultMobSuffix": "Default mob name suffix",
- 	"SETTINGS.MAT.defaultMobSuffixHint": "Choose what default text will appear after the namme of the first creature of a mob."
+ 	"SETTINGS.MAT.defaultMobSuffixHint": "Choose what default text will appear after the namme of the first creature of a mob.",
+
+ 	"SETTINGS.MAT.disadvantageKeyBinding": "Disadvantage keybinding",
+ 	"SETTINGS.MAT.disadvantageKeyBindingHint": "Choose which key you want to be able to hold down to roll mob attacks with disadvantage. For MacOS users, the Command key is recommended. For Windows users, the ctrl key is recommended. Note: to roll with advantage, hold down the Option key (MacOS) or Alt key (Windows).",
+ 	"SETTINGS.MAT.metaKey": "Command",
+ 	"SETTINGS.MAT.ctrlKey": "Ctrl"
 }
