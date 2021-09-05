@@ -839,9 +839,9 @@ export function MobAttacks() {
 			attacker = game.actors.get(locator["actorID"]);
 			weapon = attacker.items.getName(locator["weaponName"])
 			weapons[weapon.id] = weapon;
-			attacks[weapon.id] = [];
+			attacks[locator.weaponID] = [];
 			for (let target of targets) {
-				attacks[weapon.id].push({targetId: target.targetId, targetNumAttacks: target.weapons.filter(w => w.weaponId === locator.weaponID).length});
+				attacks[locator.weaponID].push({targetId: target.targetId, targetNumAttacks: target.weapons.filter(w => w.weaponId === weapon.id).length});
 			}
 		})
 
@@ -857,7 +857,12 @@ export function MobAttacks() {
 		})();
 	}
 
+	async function createDialog() {
+		await mobAttackTool();
+	}
+
 	return {
-		quickRoll:quickRoll
+		quickRoll:quickRoll,
+		createDialog:createDialog
 	};
 }
