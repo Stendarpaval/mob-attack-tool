@@ -16,12 +16,15 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 			}
 		}
 
-		// Remove paragraph end html tag from description text
+		// Find Multiattack description
 		let desc = actorData.items.contents.filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value;
-		if (desc.endsWith(".</p>")) {
-			desc = desc.slice(0,-5);
-		}
-		
+
+		// Strip description of html tags
+		desc = desc.replace(/(<([^>]+)>)/gi, "");
+
+		// Remove &nbsp; and trailing whitespaces
+		desc = desc.replace(/&nbsp;/g," ").trim();
+
 		// First split multiattack description in general and specific parts
 		let attackIndex = desc.indexOf(`attack`);
 		let attackType = ``;
