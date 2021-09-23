@@ -25,6 +25,11 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		// Remove &nbsp; and trailing whitespaces
 		desc = desc.replace(/&nbsp;/g," ").trim();
 
+		// Remove the last period
+		if (desc.endsWith(".")) {
+			desc = desc.slice(0,-1);
+		}
+
 		// First split multiattack description in general and specific parts
 		let attackIndex = desc.indexOf(`attack`);
 		let attackType = ``;
