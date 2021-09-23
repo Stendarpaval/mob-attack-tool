@@ -18,6 +18,9 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 
 		// Find Multiattack description
 		let desc = actorData.items.contents.filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value;
+		if (desc.endsWith(".</p>")) {
+			desc = desc.slice(0,-5);
+		}
 
 		// Strip description of html tags
 		desc = desc.replace(/(<([^>]+)>)/gi, "");

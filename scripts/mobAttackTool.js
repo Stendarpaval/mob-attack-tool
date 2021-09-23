@@ -862,8 +862,35 @@ export function MobAttacks() {
 		await mobAttackTool();
 	}
 
+	/*
+	This function saves a mob. 
+
+	input:
+	- mobName [String]    			The name of the mob
+	- actorList [Array]   			An array of the each actor linked to tokens that are part the mob to be saved. If multiple tokens are linked to the same actor, duplicate that actor in the array to match.
+	- selectedTokenIds [Array]  	An array of the ids of the tokens of the mob. 
+	- numSelected [Integer]			The integer number or amount of tokens that make up the mob. 
+
+	output:
+	- mobList [Object]    			The complete data object of all saved mobs, including the one that was just saved to it. 
+
+	 */
+	async function saveMob(mobName, actorList, selectedTokenIds, numSelected) {
+		let mobList = game.settings.get(moduleName, "hiddenMobList");
+		let monsters, weapons, availableAttacks;
+		[monsters, weapons, availableAttacks] = await prepareMonsters(actorList);
+		let monsterArray = [];
+		for (let [monsterID, monsterData] of Object.entries(monsters)) {
+			monsterArray.push(monsterData);
+		}
+		mobList[mobName] = {mobName: mobName, monsters: monsterArray, selectedTokenIds: selectedTokenIds, numSelected: numSelected, userId: game.user.id};
+		await game.settings.set(moduleName,"hiddenMobList",mobList);	
+		return mobList;
+	}
+
 	return {
 		quickRoll:quickRoll,
-		createDialog:createDialog
+		createDialog:createDialog,
+		saveMob:saveMob
 	};
 }
