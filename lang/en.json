@@ -165,5 +165,8 @@
  	"SETTINGS.MAT.disadvantageKeyBinding": "Disadvantage keybinding",
  	"SETTINGS.MAT.disadvantageKeyBindingHint": "Choose which key you want to be able to hold down to roll mob attacks with disadvantage. For MacOS users, the Command key is recommended. For Windows users, the ctrl key is recommended. Note: to roll with advantage, hold down the Option key (MacOS) or Alt key (Windows).",
  	"SETTINGS.MAT.metaKey": "Command",
- 	"SETTINGS.MAT.ctrlKey": "Ctrl"
+ 	"SETTINGS.MAT.ctrlKey": "Ctrl",
+
+ 	"SETTINGS.MAT.noResultsMessage": "Don't send Results chat message",
+ 	"SETTINGS.MAT.noResultsMessageHint": "Enable this setting to prevent the Mob Attack Results message from being sent to the chat log at all."
 }

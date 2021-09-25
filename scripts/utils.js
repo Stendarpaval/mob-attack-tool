@@ -76,7 +76,7 @@ export function checkTarget() {
 }
 
 
-export function getTargetData(monsters) {
+export async function getTargetData(monsters) {
 	let targetTokens = canvas.tokens.objects.children.filter(isTargeted);
 	for (let i = 0; i < targetTokens.length; i++) {
 		if (targetTokens[i].actor === null && game.modules.get("multilevel-tokens").active) {
@@ -130,9 +130,13 @@ export function getTargetData(monsters) {
 		} else {
 			targetAC = targetToken?.actor.data.data.attributes.ac.value;
 		}
+		let targetImg = targetToken?.data?.img ?? "icons/svg/mystery-man.svg";
+		if (VideoHelper.hasVideoExtension(targetImg)) {
+			targetImg = await game.video.createThumbnail(targetImg, {width: 100, height: 100});
+		}
 		targets.push({
 			targetId: targetToken?.id,
-			targetImg: targetToken?.data?.img ?? "icons/svg/mystery-man.svg",
+			targetImg: targetImg,
 			targetImgName: targetToken?.name ?? "Unknown target",
 			isGM: game.user.isGM,
 			weapons: weaponsOnTargetArray.slice(arrayStart, arrayLength * (1 + targetCount)),
@@ -429,7 +433,7 @@ export async function loadMob(event, selectedMob) {
 	let actorList = [];
 	for (let monster of mobData.monsters) {
 		for (let i = 0; i < monster.amount; i++) {
-			actorList.push(game.actors.get(monster.id));	
+			actorList.push(game.actors.get(monster.id));
 		}
 	}
 	[monsters, weapons, availableAttacks] = await prepareMonsters(actorList);
@@ -437,6 +441,8 @@ export async function loadMob(event, selectedMob) {
 	mobList[selectedMob]["weapons"] = weapons;
 	mobDialog.actorList = actorList;
 	await game.settings.set(moduleName,"hiddenMobList",mobList);
+	Hooks.call("mobUpdate", {mobList, mobName: selectedMob, type: "load"});
+	await game.combat.update();
 
 	for (let i = 0; i < Object.keys(mobList).length; i++) {
 		if (Object.keys(mobList)[i] === selectedMob) {

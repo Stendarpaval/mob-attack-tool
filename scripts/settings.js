@@ -280,6 +280,14 @@ const matSettings = {
 			0: "SETTINGS.MAT.metaKey",
 			1: "SETTINGS.MAT.ctrlKey"
 		}
+	},
+	"noResultsMessage": {
+		name: "SETTINGS.MAT.noResultsMessage",
+		hint: "SETTINGS.MAT.noResultsMessageHint",
+		scope: "client",
+		config: false,
+		type: Boolean,
+		default: false
 	}
 };
 
@@ -359,6 +367,14 @@ class RollSettingsMenu extends FormApplication {
 						hint: matSettings.showMobAttackResultsToPlayers.hint,
 						value: game.user.getFlag(moduleName,"showMobAttackResultsToPlayers") ?? game.settings.get(moduleName,"showMobAttackResultsToPlayers"),
 						id: "showMobAttackResultsToPlayers",
+						isCheckbox: true,
+						client: true
+					},
+					noResultsMessage: {
+						name: matSettings.noResultsMessage.name,
+						hint: matSettings.noResultsMessage.hint,
+						value: game.user.getFlag(moduleName,"noResultsMessage") ?? game.settings.get(moduleName,"noResultsMessage"),
+						id: "noResultsMessage",
 						isCheckbox: true,
 						client: true
 					},

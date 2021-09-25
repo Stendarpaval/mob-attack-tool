@@ -167,7 +167,9 @@ export async function rollMobAttackIndividually(data) {
 
 	// Send message
 	let messageText = await renderTemplate('modules/mob-attack-tool/templates/mat-msg-individual-rolls.html', messageData);
-	await sendChatMessage(messageText);
+	if (!game.settings.get(moduleName, "noResultsMessage")) {
+		await sendChatMessage(messageText);
+	}
 
 	// Process damage rolls
 	for (let attack of attackData) {

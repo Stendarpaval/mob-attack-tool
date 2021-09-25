@@ -215,7 +215,7 @@ export class MobAttackDialog extends FormApplication {
 		}
 
 		// create (and/or update) target data
-		let targets = getTargetData(this.monsters);
+		let targets = await getTargetData(this.monsters);
 
 		if (!this.targetUpdate) {
 			this.targets = targets;
@@ -508,7 +508,9 @@ export class MobAttackDialog extends FormApplication {
 		// save the current mob
 		async function saveMobList(mobList, mobName, monsterArray, selectedTokenIds, numSelected) {
 			mobList[mobName] = {mobName: mobName, monsters: monsterArray, selectedTokenIds: selectedTokenIds, numSelected: numSelected, userId: game.user.id};
-			await game.settings.set(moduleName,"hiddenMobList",mobList);	
+			await game.settings.set(moduleName,"hiddenMobList",mobList);
+			Hooks.call("mobUpdate", {mobList, mobName, type: "save"});
+			await game.combat.update();
 			ui.notifications.info(game.i18n.format("MAT.savedMobNotify",{mobName: mobName}));
 		}
 
@@ -577,7 +579,9 @@ export class MobAttackDialog extends FormApplication {
 											break;
 										}
 									}
-									await game.settings.set("mob-attack-tool","hiddenMobList",mobList);
+									await game.settings.set(moduleName,"hiddenMobList",mobList);
+									Hooks.call("mobUpdate", {mobList, mobName: mobSelected, type: "delete"});
+									await game.combat.update();
 									ui.notifications.info(game.i18n.format("MAT.deleteMobNotify",{mobName: mobSelected}));
 									mobSelected = Object.keys(mobList)[0];
 									await game.settings.set(moduleName,'hiddenMobName',mobSelected);
@@ -587,12 +591,16 @@ export class MobAttackDialog extends FormApplication {
 											delete mobList[mobName];
 										}
 									}
-									await game.settings.set("mob-attack-tool","hiddenMobList",mobList);
+									await game.settings.set(moduleName,"hiddenMobList",mobList);
+									Hooks.call("mobUpdate", {mobList, mobName: mobSelected, type: "reset"});
+									await game.combat.update();
 									ui.notifications.info(game.i18n.localize("MAT.resetAllMobsNotify"));
 									mobSelected = initialMobName;
 									await game.settings.set(moduleName,'hiddenMobName',mobSelected);
 								} else if (html.find(`input[name="resetAllMobs"]`)[0]?.checked) {
-									await game.settings.set("mob-attack-tool","hiddenMobList",{});
+									await game.settings.set(moduleName,"hiddenMobList",{});
+									Hooks.call("mobUpdate", {mobList, mobName: mobSelected, type: "resetAll"});
+									await game.combat.update();
 									ui.notifications.info(game.i18n.localize("MAT.resetMobsNotify"));
 									mobSelected = initialMobName;
 									await game.settings.set(moduleName,'hiddenMobName',mobSelected);
@@ -828,28 +836,28 @@ export function MobAttacks() {
 		for (let token of canvas.tokens.controlled) {
 			selectedTokenIds.push({tokenId: token.id, tokenUuid: token.document.uuid, actorId: token.actor.id});
 		}
-		
 		data["selectedTokenIds"] = selectedTokenIds;
-		let targets = getTargetData(data.monsters);
-		data["targets"] = targets;
-
-		let weapons = {};
-		let attacker, weapon;
-		let attacks = {}
-		data.weaponLocators.forEach(locator => {
-			attacker = game.actors.get(locator["actorID"]);
-			weapon = attacker.items.getName(locator["weaponName"])
-			weapons[weapon.id] = weapon;
-			attacks[locator.weaponID] = [];
-			for (let target of targets) {
-				attacks[locator.weaponID].push({targetId: target.targetId, targetNumAttacks: target.weapons.filter(w => w.weaponId === weapon.id).length});
-			}
-		})
-
-		data["weapons"] = weapons;
-		if (targets.length) data["attacks"] = attacks;
 
 		(async () => {
+			let targets = await getTargetData(data.monsters);
+			data["targets"] = targets;
+
+			let weapons = {};
+			let attacker, weapon;
+			let attacks = {}
+			data.weaponLocators.forEach(locator => {
+				attacker = game.actors.get(locator["actorID"]);
+				weapon = attacker.items.getName(locator["weaponName"])
+				weapons[weapon.id] = weapon;
+				attacks[locator.weaponID] = [];
+				for (let target of targets) {
+					attacks[locator.weaponID].push({targetId: target.targetId, targetNumAttacks: target.weapons.filter(w => w.weaponId === weapon.id).length});
+				}
+			})
+
+			data["weapons"] = weapons;
+			if (targets.length) data["attacks"] = attacks;
+		
 			if (game.settings.get(moduleName, "mobRules") === 0) {
 				return rollMobAttack(data);
 			} else {
@@ -863,7 +871,7 @@ export function MobAttacks() {
 	}
 
 	/*
-	This function saves a mob. 
+	This asynchronous function saves a mob. 
 
 	input:
 	- mobName [String]    			The name of the mob
@@ -872,7 +880,7 @@ export function MobAttacks() {
 	- numSelected [Integer]			The integer number or amount of tokens that make up the mob. 
 
 	output:
-	- mobList [Object]    			The complete data object of all saved mobs, including the one that was just saved to it. 
+	- mobList [Object (Promise)]    The complete data object of all saved mobs, including the one that was just saved to it. 
 
 	 */
 	async function saveMob(mobName, actorList, selectedTokenIds, numSelected) {
@@ -884,13 +892,78 @@ export function MobAttacks() {
 			monsterArray.push(monsterData);
 		}
 		mobList[mobName] = {mobName: mobName, monsters: monsterArray, selectedTokenIds: selectedTokenIds, numSelected: numSelected, userId: game.user.id};
-		await game.settings.set(moduleName,"hiddenMobList",mobList);	
+		await game.settings.set(moduleName,"hiddenMobList",mobList);
+		Hooks.call("mobUpdate", {mobList, mobName, type: "save"});
+		await game.combat.update();
 		return mobList;
 	}
+
+	/*
+	This asynchronous function deletes a saved mob.
+
+	input:
+	- mobName [String]				The name of the mob
+
+	output:
+	- mobList [Object (Promise)]	The complete data object of all saved mobs, now without the just deleted mob.
+
+	 */
+
+	async function deleteSavedMob(mobName) {
+		let mobList = game.settings.get(moduleName, "hiddenMobList");
+		for (let nameOfMob of Object.keys(mobList)) {
+			if ((mobList[nameOfMob].userId === game.user.id || game.user.isGM) && mobList[nameOfMob].mobName === mobName) {
+				delete mobList[nameOfMob];
+				break;
+			}
+		}
+		await game.settings.set("mob-attack-tool","hiddenMobList",mobList);
+		Hooks.call("mobUpdate", {mobList, mobName, type: "delete"});
+		const dialogId = game.settings.get(moduleName, "currentDialogId");
+		let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
+		if (mobDialog) {
+			mobDialog.localUpdate = true;
+			await game.settings.set(moduleName, "hiddenChangedMob", false);
+			mobDialog.render();	
+		}
+		await game.combat.update();
+		return mobList;
+	}
+
+	async function createSavedMobsFromCTGgroups(groups, mobNames = []) {
+		let mobList;
+		let dupNameNum = 2;
+		if (!groups.length || !groups[0].length) return;
+
+		for (let i = 0; i < groups.length; i++) {
+			let numSelected = groups[i].length;
+			let actorList = [], selectedTokenIds = [];
+			if (!mobNames[i]) {
+				mobNames[i] = `${game.settings.get(moduleName, "defaultMobPrefix")} ${groups[i][0]?.name}${game.settings.get(moduleName, "defaultMobSuffix")}`;
+				if (i > 0) {
+					if (mobNames[i - 1] === mobNames[i]) {
+						mobNames[i] += ` ${dupNameNum.toString()}`;
+					} else if (mobNames[i - 1].endsWith(dupNameNum.toString())) {
+						dupNameNum++;
+						mobNames[i] += ` ${dupNameNum.toString()}`;
+					}
+				}
+			}
+			for (let combatant of groups[i]) {
+				actorList.push(combatant?.actor);
+				selectedTokenIds.push(combatant.data?.tokenId);
+			}
+			mobList = await saveMob(mobNames[i], actorList, selectedTokenIds, numSelected);
+		}
+		return mobList;
+	}
+
 
 	return {
 		quickRoll:quickRoll,
 		createDialog:createDialog,
-		saveMob:saveMob
+		saveMob:saveMob,
+		deleteSavedMob:deleteSavedMob,
+		createSavedMobsFromCTGgroups:createSavedMobsFromCTGgroups
 	};
 }
