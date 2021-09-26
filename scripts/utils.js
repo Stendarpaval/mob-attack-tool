@@ -442,7 +442,7 @@ export async function loadMob(event, selectedMob) {
 	mobDialog.actorList = actorList;
 	await game.settings.set(moduleName,"hiddenMobList",mobList);
 	Hooks.call("mobUpdate", {mobList, mobName: selectedMob, type: "load"});
-	await game.combat.update();
+	if (game.combat) await game.combat.update();
 
 	for (let i = 0; i < Object.keys(mobList).length; i++) {
 		if (Object.keys(mobList)[i] === selectedMob) {

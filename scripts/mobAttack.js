@@ -30,6 +30,33 @@ Hooks.once("init", () => {
 
 Hooks.on("ready", async () => {
 	window.MobAttacks = MobAttacks();
+
+	// check if CTG's groups have changed
+	Hooks.on("groupUpdate", async (args) => {
+		if (!game.settings.get(moduleName, "autoSaveCTGgroups")) return;
+		if (args.groups[0]) {
+			if (args.groups[0].filter(c => c.initiative).length > 0) {
+				await MobAttacks().createSavedMobsFromCTGgroups(args.groups);
+				const dialogId = game.settings.get(moduleName, "currentDialogId");
+				let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
+				if (mobDialog) mobDialog.render();
+			}
+		}
+	});
+
+	Hooks.on("deleteCombat", async () => {
+		if (!game.settings.get(moduleName, "autoSaveCTGgroups")) return;
+		if (game.modules.get("ctg")?.active) {
+			let mobList = game.settings.get(moduleName, "hiddenMobList");
+
+			// delete existing CTG groups
+			for (let ctgMobName of Object.keys(mobList)) {
+				if (mobList[ctgMobName]?.type === "ctg") {
+					await MobAttacks().deleteSavedMob(ctgMobName);
+				}
+			}
+		}
+	})
 })
 
 // update dialog windows if new tokens are selected
@@ -81,6 +108,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 		}
 	}
 	if (nextMobName === "") return;
+	
 	const dialogId = game.settings.get(moduleName, "currentDialogId");
 	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
 
@@ -99,6 +127,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 	if (mobDialog) {
 		mobDialog.numSelected = canvas.tokens.controlled.length;
 		mobDialog.currentlySelectingTokens = false;
+		mobDialog.render();
 	}
 })
 
@@ -111,7 +140,7 @@ Hooks.on('diceSoNiceRollStart', (messageId, context) => {
 });
 
 // group initiative: override roll methods from combat tracker
-Hooks.on("renderCombatTracker", ( app, html, options ) => {
+Hooks.on("renderCombatTracker", async ( app, html, options ) => {
 	let combat = options.combat;
 	if (!combat) return;
 	
@@ -125,8 +154,7 @@ Hooks.on("renderCombatTracker", ( app, html, options ) => {
 	if (game.settings.get(moduleName, "enableMobInitiative")) {	
 		combat.rollNPC = rollNPC.bind(combat);
 		combat.rollAll = rollAll.bind(combat);	
-	} 
-	else {
+	} else {
 		// reset the methods
 		if (combat.originalRollNPC) {
 			combat.rollNPC = combat.originalRollNPC;

@@ -510,7 +510,7 @@ export class MobAttackDialog extends FormApplication {
 			mobList[mobName] = {mobName: mobName, monsters: monsterArray, selectedTokenIds: selectedTokenIds, numSelected: numSelected, userId: game.user.id};
 			await game.settings.set(moduleName,"hiddenMobList",mobList);
 			Hooks.call("mobUpdate", {mobList, mobName, type: "save"});
-			await game.combat.update();
+			if (game.combat) await game.combat.update();
 			ui.notifications.info(game.i18n.format("MAT.savedMobNotify",{mobName: mobName}));
 		}
 
@@ -581,7 +581,6 @@ export class MobAttackDialog extends FormApplication {
 									}
 									await game.settings.set(moduleName,"hiddenMobList",mobList);
 									Hooks.call("mobUpdate", {mobList, mobName: mobSelected, type: "delete"});
-									await game.combat.update();
 									ui.notifications.info(game.i18n.format("MAT.deleteMobNotify",{mobName: mobSelected}));
 									mobSelected = Object.keys(mobList)[0];
 									await game.settings.set(moduleName,'hiddenMobName',mobSelected);
@@ -593,18 +592,17 @@ export class MobAttackDialog extends FormApplication {
 									}
 									await game.settings.set(moduleName,"hiddenMobList",mobList);
 									Hooks.call("mobUpdate", {mobList, mobName: mobSelected, type: "reset"});
-									await game.combat.update();
 									ui.notifications.info(game.i18n.localize("MAT.resetAllMobsNotify"));
 									mobSelected = initialMobName;
 									await game.settings.set(moduleName,'hiddenMobName',mobSelected);
 								} else if (html.find(`input[name="resetAllMobs"]`)[0]?.checked) {
 									await game.settings.set(moduleName,"hiddenMobList",{});
 									Hooks.call("mobUpdate", {mobList, mobName: mobSelected, type: "resetAll"});
-									await game.combat.update();
 									ui.notifications.info(game.i18n.localize("MAT.resetMobsNotify"));
 									mobSelected = initialMobName;
 									await game.settings.set(moduleName,'hiddenMobName',mobSelected);
 								}
+								if (game.combat) await game.combat.update();
 								resolve(mobSelected);
 							}
 						}
@@ -883,7 +881,7 @@ export function MobAttacks() {
 	- mobList [Object (Promise)]    The complete data object of all saved mobs, including the one that was just saved to it. 
 
 	 */
-	async function saveMob(mobName, actorList, selectedTokenIds, numSelected) {
+	async function saveMob(mobName, actorList, selectedTokenIds, numSelected, type = "") {
 		let mobList = game.settings.get(moduleName, "hiddenMobList");
 		let monsters, weapons, availableAttacks;
 		[monsters, weapons, availableAttacks] = await prepareMonsters(actorList);
@@ -891,10 +889,10 @@ export function MobAttacks() {
 		for (let [monsterID, monsterData] of Object.entries(monsters)) {
 			monsterArray.push(monsterData);
 		}
-		mobList[mobName] = {mobName: mobName, monsters: monsterArray, selectedTokenIds: selectedTokenIds, numSelected: numSelected, userId: game.user.id};
+		mobList[mobName] = {mobName: mobName, monsters: monsterArray, selectedTokenIds: selectedTokenIds, numSelected: numSelected, userId: game.user.id, type: type};
 		await game.settings.set(moduleName,"hiddenMobList",mobList);
 		Hooks.call("mobUpdate", {mobList, mobName, type: "save"});
-		await game.combat.update();
+		if (game.combat) await game.combat.update();
 		return mobList;
 	}
 
@@ -926,12 +924,19 @@ export function MobAttacks() {
 			await game.settings.set(moduleName, "hiddenChangedMob", false);
 			mobDialog.render();	
 		}
-		await game.combat.update();
+		if (game.combat) await game.combat.update();
 		return mobList;
 	}
 
 	async function createSavedMobsFromCTGgroups(groups, mobNames = []) {
-		let mobList;
+		let mobList = game.settings.get(moduleName, "hiddenMobList");
+
+		// delete existing CTG groups first
+		for (let ctgMobName of Object.keys(mobList)) {
+			if (mobList[ctgMobName]?.type === "ctg") {
+				await deleteSavedMob(ctgMobName);
+			}
+		}
 		let dupNameNum = 2;
 		if (!groups.length || !groups[0].length) return;
 
@@ -953,7 +958,7 @@ export function MobAttacks() {
 				actorList.push(combatant?.actor);
 				selectedTokenIds.push(combatant.data?.tokenId);
 			}
-			mobList = await saveMob(mobNames[i], actorList, selectedTokenIds, numSelected);
+			mobList = await saveMob(mobNames[i], actorList, selectedTokenIds, numSelected, "ctg");
 		}
 		return mobList;
 	}

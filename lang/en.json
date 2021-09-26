@@ -168,5 +168,7 @@
  	"SETTINGS.MAT.ctrlKey": "Ctrl",
 
  	"SETTINGS.MAT.noResultsMessage": "Don't send Results chat message",
- 	"SETTINGS.MAT.noResultsMessageHint": "Enable this setting to prevent the Mob Attack Results message from being sent to the chat log at all."
+ 	"SETTINGS.MAT.noResultsMessageHint": "Enable this setting to prevent the Mob Attack Results message from being sent to the chat log at all. (Client specific setting)",
+ 	"SETTINGS.MAT.autoSaveCTGgroups": "Autosave Combat Tracker Group as mobs",
+ 	"SETTINGS.MAT.autoSaveCTGgroupsHint": "If this setting is enabled, then the initiative groupings (toggable containers) that the Combat Tracker Groups module creates will be automatically saved as mobs. These automatically saved mobs are also automatically deleted when the combat encounter ends or is deleted."
 }
