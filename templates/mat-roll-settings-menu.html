@@ -30,16 +30,16 @@
 {{/inline}}
 
 <form class="flexcol" autocomplete="off">
-	<nav class="sheet-tabs tabs">
-		<a class="item active" data-tab="roll"><i class="fas fa-dice-d20"></i> {{localize 'SETTINGS.MAT.rollSettings'}}</a>
-		<a class="item" data-tab="multiattack"><i class="fas fa-fist-raised"></i> {{localize 'SETTINGS.MAT.multiattackSettings'}}</a>
-		<a class="item" data-tab="targets"><i class="fas fa-crosshairs"></i> Targets</a>
-		{{#if isGM}}
-		<a class="item" data-tab="module"><i class="fas fa-cogs"></i> {{localize 'SETTINGS.MAT.moduleSpecificSettings'}}</a>
-		<a class="item" data-tab="mobTable"><i class="fas fa-bars"></i> Custom Table</a>
-		{{/if}}
-	</nav>
-	<section id="config-tabs" class="content">
+	<section id="config-tabs" class="tabs-content">
+		<nav class="sheet-tabs tabs">
+			<a class="item active" data-tab="roll"><i class="fas fa-dice-d20"></i> {{localize 'SETTINGS.MAT.rollSettings'}}</a>
+			<a class="item" data-tab="multiattack"><i class="fas fa-fist-raised"></i> {{localize 'SETTINGS.MAT.multiattackSettings'}}</a>
+			<a class="item" data-tab="targets"><i class="fas fa-crosshairs"></i> Targets</a>
+			{{#if isGM}}
+			<a class="item" data-tab="module"><i class="fas fa-cogs"></i> {{localize 'SETTINGS.MAT.moduleSpecificSettings'}}</a>
+			<a class="item" data-tab="mobTable"><i class="fas fa-bars"></i> Custom Table</a>
+			{{/if}}
+		</nav>
 		<hr>
 		<div class="tab active" data-tab="roll">
 			<div class="settings-list">

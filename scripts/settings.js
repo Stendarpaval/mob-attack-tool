@@ -338,7 +338,7 @@ class RollSettingsMenu extends FormApplication {
 			width: "530",
 			height: "auto",
 			closeOnSubmit: true,
-			tabs: [{navSelector: ".tabs", contentSelector: "form", initial: "roll"}]
+			tabs: [{navSelector: ".tabs", contentSelector: ".tabs-content", initial: "roll"}]
 		})
 	}
 
