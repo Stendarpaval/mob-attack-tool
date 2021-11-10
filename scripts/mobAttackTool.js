@@ -509,7 +509,7 @@ export class MobAttackDialog extends FormApplication {
 		async function saveMobList(mobList, mobName, monsterArray, selectedTokenIds, numSelected) {
 			mobList[mobName] = {mobName: mobName, monsters: monsterArray, selectedTokenIds: selectedTokenIds, numSelected: numSelected, userId: game.user.id};
 			await game.settings.set(moduleName,"hiddenMobList",mobList);
-			Hooks.call("mobUpdate", {mobList, mobName, type: "save"});
+			Hooks.call("matMobUpdate", {mobList, mobName, type: "save"});
 			if (game.combat) await game.combat.update();
 			ui.notifications.info(game.i18n.format("MAT.savedMobNotify",{mobName: mobName}));
 		}
@@ -580,7 +580,7 @@ export class MobAttackDialog extends FormApplication {
 										}
 									}
 									await game.settings.set(moduleName,"hiddenMobList",mobList);
-									Hooks.call("mobUpdate", {mobList, mobName: mobSelected, type: "delete"});
+									Hooks.call("matMobUpdate", {mobList, mobName: mobSelected, type: "delete"});
 									ui.notifications.info(game.i18n.format("MAT.deleteMobNotify",{mobName: mobSelected}));
 									mobSelected = Object.keys(mobList)[0];
 									await game.settings.set(moduleName,'hiddenMobName',mobSelected);
@@ -591,13 +591,13 @@ export class MobAttackDialog extends FormApplication {
 										}
 									}
 									await game.settings.set(moduleName,"hiddenMobList",mobList);
-									Hooks.call("mobUpdate", {mobList, mobName: mobSelected, type: "reset"});
+									Hooks.call("matMobUpdate", {mobList, mobName: mobSelected, type: "reset"});
 									ui.notifications.info(game.i18n.localize("MAT.resetAllMobsNotify"));
 									mobSelected = initialMobName;
 									await game.settings.set(moduleName,'hiddenMobName',mobSelected);
 								} else if (html.find(`input[name="resetAllMobs"]`)[0]?.checked) {
 									await game.settings.set(moduleName,"hiddenMobList",{});
-									Hooks.call("mobUpdate", {mobList, mobName: mobSelected, type: "resetAll"});
+									Hooks.call("matMobUpdate", {mobList, mobName: mobSelected, type: "resetAll"});
 									ui.notifications.info(game.i18n.localize("MAT.resetMobsNotify"));
 									mobSelected = initialMobName;
 									await game.settings.set(moduleName,'hiddenMobName',mobSelected);
@@ -891,8 +891,17 @@ export function MobAttacks() {
 		}
 		mobList[mobName] = {mobName: mobName, monsters: monsterArray, selectedTokenIds: selectedTokenIds, numSelected: numSelected, userId: game.user.id, type: type};
 		await game.settings.set(moduleName,"hiddenMobList",mobList);
-		Hooks.call("mobUpdate", {mobList, mobName, type: "save"});
+		
+		Hooks.call("matMobUpdate", {mobList, mobName, type: "save"});
 		if (game.combat) await game.combat.update();
+		
+		const dialogId = game.settings.get(moduleName, "currentDialogId");
+		let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
+		if (mobDialog) {
+			mobDialog.localUpdate = true;
+			mobDialog.render();
+		}
+		
 		return mobList;
 	}
 
@@ -916,13 +925,13 @@ export function MobAttacks() {
 			}
 		}
 		await game.settings.set("mob-attack-tool","hiddenMobList",mobList);
-		Hooks.call("mobUpdate", {mobList, mobName, type: "delete"});
+		Hooks.call("matMobUpdate", {mobList, mobName, type: "delete"});
 		const dialogId = game.settings.get(moduleName, "currentDialogId");
 		let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
 		if (mobDialog) {
 			mobDialog.localUpdate = true;
 			await game.settings.set(moduleName, "hiddenChangedMob", false);
-			mobDialog.render();	
+			mobDialog.render();
 		}
 		if (game.combat) await game.combat.update();
 		return mobList;

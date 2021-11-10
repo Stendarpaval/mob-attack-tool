@@ -112,6 +112,8 @@
 	"SETTINGS.MAT.enableMidiHint": "Enable this setting to use Midi-QOL for dice rolls if you have that module installed. Disable this setting to prevent Mob Attack Tool from using it.",
 	"SETTINGS.MAT.enableMidiOnUseMacro": "Enable On Use Macro",
 	"SETTINGS.MAT.enableMidiOnUseMacroHint": "If this setting is enabled, Mob Attack Tool will execute macros that are named in the On Use Macro fields of weapon or spell items. This feature requires Midi-QOL.",
+	"SETTINGS.MAT.onUseMacroOnlyOnHits": "Limit On Use Macros to attacks that hit",
+	"SETTINGS.MAT.onUseMacroOnlyOnHitsHint": "While this setting is enabled (in combination with the \"Enable On Use Macro\" setting), only the attack rolls of a mob attack that successfully hit the target will trigger Midi-QOL's On Use Macro feature. Disable this setting to cause all attacks to trigger the On Use Macro of their respective weapon or spell items.",
 	"SETTINGS.MAT.dontSendItemCardId": "Don't share itemCardId",
 	"SETTINGS.MAT.dontSendItemCardIdHint": "This is related to Midi-QOL's On Use Macro feature. Midi-QOL uses the value of itemCardId to merge dice rolls to one chat message card, or to add extra damage rolls to such cards. Mob Attack Tool uses Midi's DamageOnlyWorkflow, which creates chat messages with rolls that are considered \"Other Damage\" rolls. Unfortunately, that means that any On Use Macros that also use DamageOnlyWorkflow will overwrite Mob Attack Tool's damage roll card. If you enable this setting, the value of itemCardId won't be shared, which causes new chat messages to be created instead.",
 	"SETTINGS.MAT.enableBetterRolls": "Enable Better Rolls for 5e",

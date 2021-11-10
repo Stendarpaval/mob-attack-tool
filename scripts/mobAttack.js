@@ -32,11 +32,17 @@ Hooks.on("ready", async () => {
 	window.MobAttacks = MobAttacks();
 
 	// check if CTG's groups have changed
-	Hooks.on("groupUpdate", async (args) => {
+	Hooks.on("ctgGroupUpdate", async (args) => {
+		let groups;
+		if (Array.isArray(args)) {
+			groups = args;
+		} else {
+			groups = args.groups;
+		}
 		if (!game.settings.get(moduleName, "autoSaveCTGgroups")) return;
-		if (args.groups[0]) {
-			if (args.groups[0].filter(c => c.initiative).length > 0) {
-				await MobAttacks().createSavedMobsFromCTGgroups(args.groups);
+		if (groups[0]) {
+			if (groups[0].filter(c => c.initiative).length > 0) {
+				await MobAttacks().createSavedMobsFromCTGgroups(groups);
 				const dialogId = game.settings.get(moduleName, "currentDialogId");
 				let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
 				if (mobDialog) mobDialog.render();
@@ -56,7 +62,7 @@ Hooks.on("ready", async () => {
 				}
 			}
 		}
-	})
+	});
 })
 
 // update dialog windows if new tokens are selected

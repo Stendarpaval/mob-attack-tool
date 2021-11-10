@@ -230,6 +230,14 @@ const matSettings = {
 		default: true,
 		type: Boolean
 	},
+	// "onUseMacroOnlyOnHits": {
+	// 	name: "SETTINGS.MAT.onUseMacroOnlyOnHits",
+	// 	hint: "SETTINGS.MAT.onUseMacroOnlyOnHitsHint",
+	// 	scope: "world",
+	// 	config: false,
+	// 	default: true,
+	// 	type: Boolean
+	// },
 	"dontSendItemCardId": {
 		name: "SETTINGS.MAT.dontSendItemCardId",
 		hint: "SETTINGS.MAT.dontSendItemCardIdHint",
@@ -506,6 +514,14 @@ class RollSettingsMenu extends FormApplication {
 						isCheckbox: true,
 						client: game.user.isGM
 					},
+					// onUseMacroOnlyOnHits: {
+					// 	name: matSettings.onUseMacroOnlyOnHits.name,
+					// 	hint: matSettings.onUseMacroOnlyOnHits.hint,
+					// 	value: game.settings.get(moduleName,"onUseMacroOnlyOnHits"),
+					// 	id: "onUseMacroOnlyOnHits",
+					// 	isCheckbox: true,
+					// 	client: game.user.isGM
+					// },
 					dontSendItemCardId: {
 						name: matSettings.dontSendItemCardId.name,
 						hint: matSettings.dontSendItemCardId.hint,

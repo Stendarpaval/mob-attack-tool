@@ -56,9 +56,15 @@ export async function rollMobAttackIndividually(data) {
 			}
 
 			let tokenAttackList = [];
+			let discardedRollTotal;
+			let discarded = false;
 			for (let i = 0; i < availableAttacks; i++) {	
 				attackRoll = new Roll(attackFormula);
 				attackRollEvaluated[i] = await attackRoll.evaluate({async: true});
+				if (attackRollEvaluated[i].dice[0].results.length > 1) {
+					discardedRollTotal = attackRollEvaluated[i].dice[0].results.filter(r => r.discarded)[0].result + finalAttackBonus;
+					discarded = true;
+				}
 
 				// Check settings for rolling 3d dice from Dice So Nice
 				if (game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls")) {
@@ -75,20 +81,20 @@ export async function rollMobAttackIndividually(data) {
 					numCrits++;
 					numHitAttacks += 1;
 					successfulAttackRolls.push(attackRollEvaluated[i]);
-					atkRollData.push({roll: attackRollEvaluated[i].total, color: "max", finalAttackBonus: finalAttackBonus});
+					atkRollData.push({roll: attackRollEvaluated[i].total, color: "max", finalAttackBonus, discarded, discardedRollTotal});
 					attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
 				} else if (attackRollEvaluated[i].total - finalAttackBonus === 1) {
 					numCritFails++;
 					if (game.user.getFlag(moduleName,"showAllAttackRolls") ?? game.settings.get(moduleName,"showAllAttackRolls")) {
-						atkRollData.push({roll: attackRollEvaluated[i].total, color: "min", finalAttackBonus: finalAttackBonus});
+						atkRollData.push({roll: attackRollEvaluated[i].total, color: "min", finalAttackBonus, discarded, discardedRollTotal});
 					}
 				} else if (attackRollEvaluated[i].total >= ((targetAC) ? targetAC : 0) && attackRollEvaluated[i].total - finalAttackBonus > 1) {
 					numHitAttacks += 1;
 					successfulAttackRolls.push(attackRollEvaluated[i]);
-					atkRollData.push({roll: attackRollEvaluated[i].total, color: "", finalAttackBonus: finalAttackBonus});
+					atkRollData.push({roll: attackRollEvaluated[i].total, color: "", finalAttackBonus, discarded, discardedRollTotal});
 					attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
 				} else if (game.user.getFlag(moduleName,"showAllAttackRolls") ?? game.settings.get(moduleName,"showAllAttackRolls")) {
-					atkRollData.push({roll: attackRollEvaluated[i].total, color: "discarded", finalAttackBonus: finalAttackBonus});
+					atkRollData.push({roll: attackRollEvaluated[i].total, color: "discarded", finalAttackBonus, discarded, discardedRollTotal});
 				}
 				if (attackToken) tokenAttackList.push(attackToken);
 			}
@@ -149,6 +155,7 @@ export async function rollMobAttackIndividually(data) {
 				data,
 				weaponData,
 				finalAttackBonus,
+				availableAttacks,
 				successfulAttackRolls,
 				numHitAttacks,
 				numCrits,
@@ -173,7 +180,7 @@ export async function rollMobAttackIndividually(data) {
 
 	// Process damage rolls
 	for (let attack of attackData) {
-		await processIndividualDamageRolls(attack.data, attack.weaponData, attack.finalAttackBonus, attack.successfulAttackRolls, attack.numHitAttacks, attack.numCrits, attack.isVersatile, attack.tokenAttackList, attack.targetId);
+		await processIndividualDamageRolls(attack.data, attack.weaponData, attack.finalAttackBonus, attack.availableAttacks, attack.successfulAttackRolls, attack.numHitAttacks, attack.numCrits, attack.isVersatile, attack.tokenAttackList, attack.targetId);
 		await new Promise(resolve => setTimeout(resolve, 500));
 	}
 
@@ -183,7 +190,7 @@ export async function rollMobAttackIndividually(data) {
 }
 
 
-export async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, successfulAttackRolls, numHitAttacks, numCrits, isVersatile, tokenAttackList, targetId) {
+export async function processIndividualDamageRolls(data, weaponData, finalAttackBonus, availableAttacks, successfulAttackRolls, numHitAttacks, numCrits, isVersatile, tokenAttackList, targetId) {
 
 	// Check for betterrolls5e and midi-qol
 	let betterrollsActive = false;
@@ -202,6 +209,16 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 	// Process attack and damage rolls
 	let showAttackRolls = game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls");
 	let showDamageRolls = game.user.getFlag(moduleName,"showIndividualDamageRolls") ?? game.settings.get(moduleName,"showIndividualDamageRolls");
+
+	// Determine target token
+	let targetToken = canvas.tokens.get(targetId);
+	if (targetToken?.actor === null && game.modules.get("multilevel-tokens").active) {
+		let mltFlags = targetToken.data.flags["multilevel-tokens"];
+		if (mltFlags?.sscene) {
+			targetToken = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken);
+		}
+	}
+
 	if (numHitAttacks != 0) {
 		// Better Rolls 5e active
 		if (betterrollsActive) {
@@ -279,13 +296,6 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 				}
 			}
 			damageRoll = await damageRoll.evaluate({async: true});
-			let targetToken = canvas.tokens.get(targetId);
-			if (targetToken?.actor === null && game.modules.get("multilevel-tokens").active) {
-				let mltFlags = targetToken.data.flags["multilevel-tokens"];
-				if (mltFlags?.sscene) {
-					targetToken = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken);
-				}
-			}
 			
 			// Roll Dice so Nice dice
 			if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
@@ -342,6 +352,7 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 					templateId: workflow.templateId, 
 					templateUuid: workflow.templateUuid
 				}
+
 				let j = 0;
 				for (let i = 0; i < numHitAttacks; i++) {
 					if (j < tokenAttackList.length) {
@@ -424,7 +435,57 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 				}
 			}	
 		}
-	}
+	} // else if (midi_QOL_Active && !game.settings.get(moduleName,"onUseMacroOnlyOnHits") && game.settings.get(moduleName, "enableMidiOnUseMacro") && getProperty(weaponData, "data.flags.midi-qol.onUseMacroName")) {
+		
+	// 	await new Promise(resolve => setTimeout(resolve, 300));
+	// 	let workflow = new MidiQOL.Workflow(weaponData.actor,weaponData,game.user,[],{});
+	// 	const macroData = {
+	// 		actor: weaponData.actor.data,
+	// 		actorUuid: weaponData.actor.uuid,
+	// 		targets: targetToken ? [targetToken] : [],
+	// 		hitTargets: targetToken ? [targetToken] : [],
+	// 		damageRoll: null,
+	// 		damageRollHTML: null,
+	// 		attackRoll: successfulAttackRolls[0],
+	// 		attackTotal: 0,
+	// 		itemCardId: null,
+	// 		isCritical: false,
+	// 		isFumble: false,
+	// 		spellLevel: 0,
+	// 		powerLevel: 0,
+	// 		damageTotal: 0,
+	// 		damageDetail: [],
+	// 		damageList: [],
+	// 		otherDamageTotal: 0,
+	// 		otherDamageDetail: [],
+	// 		otherDamageList: [{damage: 0, type: ""}],
+	// 		rollOptions: {advantage: data.withAdvantage, disadvantage: data.withDisadvantage, versatile: isVersatile, fastForward: true},
+	// 		advantage: data.withAdvantage,
+	// 		disadvantage: data.withDisadvantage,
+	// 		event: null,
+	// 		uuid: workflow.uuid,
+	// 		rollData: weaponData.actor.getRollData(),
+	// 		tag: "OnUse",
+	// 		concentrationData: getProperty(weaponData.actor.data.flags, "midi-qol.concentration-data"),
+	// 		templateId: workflow.templateId,
+	// 		templateUuid: workflow.templateUuid
+	// 	}
+	// 	let availableTokens = data.selectedTokenIds.filter(t => (canvas.tokens.get(t.tokenId).actor.id === weaponData.actor.id));
+	// 	let j = 0;
+	// 	for (let i = 0; i < availableAttacks; i++) {
+	// 		if (j < availableTokens.length - 1) {
+	// 			j = i;
+	// 		} else {
+	// 			j = availableTokens.length - 1;
+	// 		}
+	// 		if (j < availableTokens.length) {
+	// 			macroData.tokenId = availableTokens[j].tokenId;
+	// 			macroData.tokenUuid = availableTokens[j].tokenUuid;
+	// 			await callMidiMacro(weaponData, macroData);		
+	// 		}
+	// 	}
+	// }
+
 	// Allow DSN 3d dice to be rolled again
 	if (game.user.isGM) await game.settings.set(moduleName, "hiddenDSNactiveFlag", true);
 }

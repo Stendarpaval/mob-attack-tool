@@ -241,17 +241,18 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 				templateId: workflow.templateId, 
 				templateUuid: workflow.templateUuid
 			}
+
 			let j = 0;
-				for (let i = 0; i < numHitAttacks; i++) {
-					if (j < tokenAttackList.length) {
-						j = i;
-					} else {
-						j = tokenAttackList.length - 1;
-					}
-					macroData.tokenId = tokenAttackList[j].tokenId;
-					macroData.tokenUuid = tokenAttackList[j].tokenUuid;
-					await callMidiMacro(weaponData, macroData);	
+			for (let i = 0; i < numHitAttacks; i++) {
+				if (j < tokenAttackList.length) {
+					j = i;
+				} else {
+					j = tokenAttackList.length - 1;
 				}
+				macroData.tokenId = tokenAttackList[j].tokenId;
+				macroData.tokenUuid = tokenAttackList[j].tokenUuid;
+				await callMidiMacro(weaponData, macroData);	
+			}
 		}
 		Hooks.call("midi-qol.DamageRollComplete", workflow);
 
