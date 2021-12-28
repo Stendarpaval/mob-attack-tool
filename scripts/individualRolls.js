@@ -69,7 +69,7 @@ export async function rollMobAttackIndividually(data) {
 				// Check settings for rolling 3d dice from Dice So Nice
 				if (game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls")) {
 					if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) {
-						if (!game.settings.get(moduleName, "hideDSNAttackRoll") || !game.user.isGM) game.dice3d.showForRoll(attackRoll);
+						if (!game.settings.get(moduleName, "hideDSNAttackRoll") || !game.user.isGM) game.dice3d.showForRoll(attackRoll, game.user, game.settings.get("core", "rollMode") === 'publicroll');
 					}
 				}
 

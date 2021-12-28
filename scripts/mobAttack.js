@@ -13,8 +13,9 @@ Hooks.once("init", () => {
 	initSettings();
 	initMobAttackTool();
 
-	console.log("Mob Attack Tool | Wrapping rollInitiative...");
-	libWrapper.register(moduleName, "Combat.prototype.rollInitiative", matRollInitiative, "OVERRIDE");
+	// The lines below are commented out to restore combat tracker functionality in V9
+	// console.log("Mob Attack Tool | Wrapping rollInitiative...");
+	// libWrapper.register(moduleName, "Combat.prototype.rollInitiative", matRollInitiative, "OVERRIDE");
 
 	const dialogs = new Map();
 	const storedHooks = {};
