@@ -44,6 +44,8 @@ export async function matRollInitiative(ids, {formula=null, updateTurn=true, mes
 
 		// Produce an initiative roll for the Combatant
 		const roll = combatant.getInitiativeRoll(formula);
+		// Check for V9+
+		if (String(game.version).startsWith("9.")) await roll.evaluate({async: true});
 		updates.push({_id: id, initiative: roll.total});
 
 		// Construct chat message data
@@ -59,7 +61,7 @@ export async function matRollInitiative(ids, {formula=null, updateTurn=true, mes
 		}, messageOptions);
 		const chatData = await roll.toMessage(messageData, {
 			create: false,
-			rollMode: combatant.hidden && (rollMode === "roll") ? "gmroll" : rollMode
+			rollMode: combatant.hidden && (["roll", "publicroll"].includes(rollMode)) ? "gmroll" : rollMode
 		});
 		// Play 1 sound for the whole rolled set
 		if ( i > 0 ) chatData.sound = null;
@@ -118,7 +120,7 @@ export async function matRollInitiative(ids, {formula=null, updateTurn=true, mes
 	}
 
 	// Ensure the turn order remains with the same combatant
-	if ( updateTurn ) {
+	if ( updateTurn && currentId ) {
 		await this.update({turn: this.turns.findIndex(t => t.id === currentId)});
 	}
 
@@ -198,7 +200,7 @@ export async function rollGroupInitiative(creatures) {
 	};
 
 	// roll initiative for group leaders only
-	await this.rollInitiative(leaderIDs, {messageOptions});
+	await this.matRollInitiative(leaderIDs, {messageOptions});
 
 	// prepare others in the group
 	let groupUpdates;

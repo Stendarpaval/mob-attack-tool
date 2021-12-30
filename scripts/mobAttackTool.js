@@ -542,7 +542,8 @@ export class MobAttackDialog extends FormApplication {
 					},
 					default: "yes"
 				}).render(true);
-			}	
+			}
+			ui.combat?.render(true);
 		})
 
 		// select a previously saved mob and optionally delete one or reset all mobs
@@ -603,6 +604,7 @@ export class MobAttackDialog extends FormApplication {
 									await game.settings.set(moduleName,'hiddenMobName',mobSelected);
 								}
 								if (game.combat) await game.combat.update();
+								ui.combat?.render(true);
 								resolve(mobSelected);
 							}
 						}

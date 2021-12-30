@@ -150,12 +150,16 @@ Hooks.on('diceSoNiceRollStart', (messageId, context) => {
 Hooks.on("renderCombatTracker", async ( app, html, options ) => {
 	let combat = options.combat;
 	if (!combat) return;
-	
-	if (!combat.originalRollNPC) {
-		combat.originalRollNPC = combat.rollNPC;	
+
+	if (!combat.matRollInitiative) {
+		combat.matRollInitiative = matRollInitiative.bind(combat);
 	}
-	if (!combat.originalRollAll) {
-		combat.originalRollAll = combat.rollAll;	
+
+	if (!combat.MAToriginalRollNPC) {
+		combat.MAToriginalRollNPC = combat.rollNPC;	
+	}
+	if (!combat.MAToriginalRollAll) {
+		combat.MAToriginalRollAll = combat.rollAll;	
 	}
 
 	if (game.settings.get(moduleName, "enableMobInitiative")) {	
@@ -163,11 +167,11 @@ Hooks.on("renderCombatTracker", async ( app, html, options ) => {
 		combat.rollAll = rollAll.bind(combat);	
 	} else {
 		// reset the methods
-		if (combat.originalRollNPC) {
-			combat.rollNPC = combat.originalRollNPC;
+		if (combat.MAToriginalRollNPC) {
+			combat.rollNPC = combat.MAToriginalRollNPC;
 		}
-		if (combat.originalRollAll) {
-			combat.rollAll = combat.originalRollAll;
+		if (combat.MAToriginalRollAll) {
+			combat.rollAll = combat.MAToriginalRollAll;
 		}
 	}
 });
