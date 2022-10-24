@@ -154,14 +154,14 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 		} else {
 			let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
 			for (let diceFormula of diceFormulas) {
-				let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+				let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.system.abilities[weaponData.abilityMod].mod});
 				await damageRoll.alter(numHitAttacks, 0, {multiplyNumeric: true});
 				await mobAttackRoll.addField(["damage", {formula: damageRoll.formula, damageType: damageTypes[diceFormulas.indexOf(diceFormula)], title: `${game.i18n.localize("Damage")} - ${damageTypes[diceFormulas.indexOf(diceFormula)]}`, isCrit: false}]);
 			}
 		}
-		if (weaponData.data.data.consume.type === "ammo") {
+		if (weaponData.system.consume.type === "ammo") {
 			try {
-				await mobAttackRoll.addField(["ammo",{name: weaponData.actor.items.get(weaponData.data.data.consume.target).name}]);
+				await mobAttackRoll.addField(["ammo",{name: weaponData.actor.items.get(weaponData.system.consume.target).name}]);
 				await mobAttackRoll.toMessage();
 			} catch (error) {
 				console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
@@ -178,7 +178,7 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 		let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
 		let diceFormula = diceFormulas.join(" + ");
 		let damageType = damageTypes.join(", ");
-		let damageRoll = new Roll(diceFormula,{mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+		let damageRoll = new Roll(diceFormula,{mod: weaponData.actor.system.abilities[weaponData.abilityMod].mod});
 		await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
 
 		if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
@@ -269,7 +269,7 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 			let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
 			let diceFormula = diceFormulas.join(" + ");
 			let damageType = damageTypes.join(", ");
-			let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod})
+			let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.system.abilities[weaponData.abilityMod].mod})
 			await damageRoll.alter(numHitAttacks, 0, {multiplyNumeric: true});
 			damageRoll = await damageRoll.evaluate({async: true});
 			await damageRoll.toMessage(

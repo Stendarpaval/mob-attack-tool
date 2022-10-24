@@ -248,7 +248,7 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 				if (midi_QOL_Active && data.targetAC > 0) await mobAttackRoll.addField(["attack", {formula: "0d0 + " + (data.targetAC).toString(), title: game.i18n.localize("MAT.midiDamageLabel")}]);
 				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
 				for (let diceFormula of diceFormulas) {
-					let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+					let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.system.abilities[weaponData.abilityMod].mod});
 					let numDice = 0;
 					for (let term of damageRoll.terms.filter(t => t.number > 0 && t.faces > 0)) {
 						numDice += term.number;
@@ -257,9 +257,9 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 					await mobAttackRoll.addField(["damage", {formula: damageRoll.formula, damageType: damageTypes[diceFormulas.indexOf(diceFormula)], title: `${game.i18n.localize("Damage")} - ${damageTypes[diceFormulas.indexOf(diceFormula)]}`, isCrit: false}]);
 				}
 			}
-			if (weaponData.data.data.consume.type === "ammo") {
+			if (weaponData.system.consume.type === "ammo") {
 				try {
-					await mobAttackRoll.addField(["ammo", {name: weaponData.actor.items.get(weaponData.data.data.consume.target).name}]);	
+					await mobAttackRoll.addField(["ammo", {name: weaponData.actor.items.get(weaponData.system.consume.target).name}]);	
 					await mobAttackRoll.toMessage({speaker: {actor: weaponData.actor, token: weaponData.actor.getActiveTokens()[0], alias: weaponData.actor.getActiveTokens()[0].name}});
 				} catch (error) {
 					console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
@@ -276,7 +276,7 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 
 			let diceFormula = diceFormulas.join(" + ");
 			let damageType = damageTypes.join(", ");
-			let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod});
+			let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.system.abilities[weaponData.abilityMod].mod});
 			
 			// Add critical damage dice
 			let critDice = [], critDie;
@@ -388,7 +388,7 @@ export async function processIndividualDamageRolls(data, weaponData, finalAttack
 				let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
 				let diceFormula = diceFormulas.join(" + ");
 				let damageType = damageTypes.join(", ");
-				let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.data.data.abilities[weaponData.abilityMod].mod})
+				let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.system.abilities[weaponData.abilityMod].mod})
 
 				// Add critical damage dice
 				let critDice = [], critDie;

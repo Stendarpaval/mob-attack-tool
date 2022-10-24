@@ -111,12 +111,12 @@ export class MobAttackDialog extends FormApplication {
 			if (this.targetToken.actor === null && game.modules.get("multilevel-tokens").active) {
 				let mltFlags = this.targetToken.data.flags["multilevel-tokens"];
 				if (mltFlags?.sscene) {
-					this.targetAC = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken).actor.data.data.attributes.ac.value;
+					this.targetAC = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken).actor.system.attributes.ac.value;
 				} else {
-					this.targetAC = canvas.tokens.get(mltFlags.stoken).actor.data.data.attributes.ac.value;
+					this.targetAC = canvas.tokens.get(mltFlags.stoken).actor.system.attributes.ac.value;
 				}
 			} else {
-				this.targetAC = this.targetToken.actor.data.data.attributes.ac.value;
+				this.targetAC = this.targetToken.actor.system.attributes.ac.value;
 			}
 			this.numTargets = this.targetTokens.length;
 		}
