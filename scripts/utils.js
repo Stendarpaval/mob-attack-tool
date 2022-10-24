@@ -130,7 +130,7 @@ export async function getTargetData(monsters) {
 		} else {
 			targetAC = targetToken?.actor.system.attributes.ac.value;
 		}
-		let targetImg = targetToken?.img ?? "icons/svg/mystery-man.svg";
+		let targetImg = targetToken?.document.texture.src ?? "icons/svg/mystery-man.svg";
 		if (VideoHelper.hasVideoExtension(targetImg)) {
 			targetImg = await game.video.createThumbnail(targetImg, {width: 100, height: 100});
 		}
