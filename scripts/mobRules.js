@@ -127,52 +127,13 @@ export async function rollMobAttack(data) {
 
 export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVersatile, tokenAttackList, targetId) {
 
-	// Check for betterrolls5e and midi-qol
-	let betterrollsActive = false;
-	if (game.modules.get("betterrolls5e")?.active && game.settings.get(moduleName, "enableBetterRolls")) betterrollsActive = true;
+	// Check for midi-qol
 	let midi_QOL_Active = false;
 	if (game.modules.get("midi-qol")?.active && game.settings.get(moduleName, "enableMidi")) midi_QOL_Active = true;
 
 	let showDamageRolls = game.user.getFlag(moduleName,"showIndividualDamageRolls") ?? game.settings.get(moduleName,"showIndividualDamageRolls");
 
-	// betterrolls5e active
-	if (betterrollsActive) {
-		let mobAttackRoll = BetterRolls.rollItem(weaponData, {},
-			[
-				["header"],
-				["desc"]
-			]
-		);
-		if (midi_QOL_Active) await mobAttackRoll.addField(["attack", {formula: "0d0 + " + (data.targetAC).toString(), title: game.i18n.localize("MAT.midiDamageLabel")}]);
-		
-		// Add damage fields from each successful hit to the same card
-		let showAttackRolls = game.user.getFlag(moduleName,"showIndividualAttackRolls") ?? game.settings.get(moduleName,"showIndividualAttackRolls");
-		if (showAttackRolls) {
-			for (let i = 0; i < numHitAttacks; i++) {
-				await mobAttackRoll.addField(["damage",{index: "all"}]);
-			}
-		} else {
-			let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
-			for (let diceFormula of diceFormulas) {
-				let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.system.abilities[weaponData.abilityMod].mod});
-				await damageRoll.alter(numHitAttacks, 0, {multiplyNumeric: true});
-				await mobAttackRoll.addField(["damage", {formula: damageRoll.formula, damageType: damageTypes[diceFormulas.indexOf(diceFormula)], title: `${game.i18n.localize("Damage")} - ${damageTypes[diceFormulas.indexOf(diceFormula)]}`, isCrit: false}]);
-			}
-		}
-		if (weaponData.system.consume.type === "ammo") {
-			try {
-				await mobAttackRoll.addField(["ammo",{name: weaponData.actor.items.get(weaponData.system.consume.target).name}]);
-				await mobAttackRoll.toMessage();
-			} catch (error) {
-				console.error("Mob Attack Tool | There was an error while trying to add an ammo field (Better Rolls):",error);
-				ui.notifications.error(game.i18n.format("MAT.ammoError", {weaponName: weaponData.name}));
-			}
-		} else {
-			await mobAttackRoll.toMessage();
-		}
-
-	// midi-qol is active,  betterrolls5e is not active
-	} else if (midi_QOL_Active) {
+	if (midi_QOL_Active) {
 		await new Promise(resolve => setTimeout(resolve, 100));
 
 		let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
@@ -256,7 +217,7 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 		}
 		Hooks.call("midi-qol.DamageRollComplete", workflow);
 
-	// neither midi-qol or betterrolls5e active
+	// midi-qol not active
 	} else {
 		if (showDamageRolls) {
 			await new Promise(resolve => setTimeout(resolve, 100));	

@@ -390,13 +390,6 @@ export async function prepareMobAttack(html, selectedTokenIds, weapons, availabl
 		}
 	}
 
-	// End the turn of mob attackers grouped together in initiative
-	let endMobTurn = html.find(`input[name="endMobTurn"]`)[0]?.checked ?? false;
-
-	// Remember what user chose last time
-	await game.user.setFlag(moduleName,"endMobTurnValue",endMobTurn);
-
-
 	// Bundle data together
 	let mobAttackData = {
 		targets,
@@ -409,7 +402,6 @@ export async function prepareMobAttack(html, selectedTokenIds, weapons, availabl
 		withDisadvantage,
 		rollTypeValue,
 		rollTypeMessage,
-		endMobTurn,
 		monsters,
 		weaponLocators
 	};

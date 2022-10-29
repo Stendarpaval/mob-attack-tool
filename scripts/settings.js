@@ -34,14 +34,6 @@ const matSettings = {
 		default: true,
 		type: Boolean
 	},
-	"enableBetterRolls": {
-		name: "SETTINGS.MAT.enableBetterRolls",
-		hint: "SETTINGS.MAT.enableBetterRollsHint",
-		config: false,
-		scope: "world",
-		default: true,
-		type: Boolean
-	},
 	"showIndividualAttackRolls": {
 		name: "SETTINGS.MAT.showIndividualAttackRolls",
 		hint: "SETTINGS.MAT.showIndividualAttackRollsHint",
@@ -86,14 +78,6 @@ const matSettings = {
 			1: "SETTINGS.MAT.autoDetectOnly",
 			2: "SETTINGS.MAT.autoDetectAndSelect"
 		}
-	},
-	"endMobTurn": {
-		name: "SETTINGS.MAT.endMobTurn",
-		hint: "SETTINGS.MAT.endMobTurnHint",
-		config: true,
-		scope: "world",
-		default: true,
-		type: Boolean
 	},
 	"autoSelectMobCombatants": {
 		name: "SETTINGS.MAT.autoSelectMobCombatants",
@@ -253,22 +237,6 @@ const matSettings = {
 		scope: "world",
 		config: false,
 		default: true,
-		type: Boolean
-	},
-	"enableMobInitiative": {
-		name: "SETTINGS.MAT.enableMobInitiative",
-		hint: "SETTINGS.MAT.enableMobInitiativeHint",
-		scope: "world",
-		config: false,
-		default: false,
-		type: Boolean
-	},
-	"groupMobInitiative": {
-		name: "SETTINGS.MAT.groupMobInitiative",
-		hint: "SETTINGS.MAT.groupMobInitiativeHint",
-		scope: "world",
-		config: false,
-		default: false,
 		type: Boolean
 	},
 	"hiddenDSNactiveFlag": {
@@ -451,14 +419,6 @@ class RollSettingsMenu extends FormApplication {
 						isCheckbox: true,
 						client: game.user.isGM
 					},
-					enableBetterRolls: {
-						name: matSettings.enableBetterRolls.name,
-						hint: matSettings.enableBetterRolls.hint,
-						value: game.settings.get(moduleName,"enableBetterRolls"),
-						id: "enableBetterRolls",
-						isCheckbox: true,
-						client: game.user.isGM
-					},
 					enableDiceSoNice: {
 						name: matSettings.enableDiceSoNice.name,
 						hint: matSettings.enableDiceSoNice.hint,
@@ -480,22 +440,6 @@ class RollSettingsMenu extends FormApplication {
 						hint: matSettings.autoSaveCTGgroups.hint,
 						value: game.settings.get(moduleName,"autoSaveCTGgroups"),
 						id: "autoSaveCTGgroups",
-						isCheckbox: true,
-						client: game.user.isGM
-					},
-					enableMobInitiative: {
-						name: matSettings.enableMobInitiative.name,
-						hint: matSettings.enableMobInitiative.hint,
-						value: game.settings.get(moduleName,"enableMobInitiative"),
-						id: "enableMobInitiative",
-						isCheckbox: true,
-						client: game.user.isGM
-					},
-					groupMobInitiative: {
-						name: matSettings.groupMobInitiative.name,
-						hint: matSettings.groupMobInitiative.hint,
-						value: game.settings.get(moduleName,"groupMobInitiative"),
-						id: "groupMobInitiative",
 						isCheckbox: true,
 						client: game.user.isGM
 					},
