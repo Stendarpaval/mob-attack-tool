@@ -2,7 +2,6 @@ import { initSettings } from "./settings.js";
 import { initMobAttackTool, MobAttackDialog } from "./mobAttackTool.js";
 import { MobAttacks } from "./mobAttackTool.js";
 import { rollNPC, rollAll, matRollInitiative } from "./group-initiative/groupInitiative.js";
-import { libWrapper } from "./lib/shim.js";
 
 export const moduleName = "mob-attack-tool";
 
@@ -12,10 +11,6 @@ Hooks.once("init", () => {
 
 	initSettings();
 	initMobAttackTool();
-
-	// The lines below are commented out to restore combat tracker functionality in V9
-	// console.log("Mob Attack Tool | Wrapping rollInitiative...");
-	// libWrapper.register(moduleName, "Combat.prototype.rollInitiative", matRollInitiative, "OVERRIDE");
 
 	const dialogs = new Map();
 	const storedHooks = {};
