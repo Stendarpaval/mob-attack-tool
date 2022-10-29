@@ -30,8 +30,11 @@
 			{"id": "dnd5e",
 			"type": "system"
 			}
-
-		]
+		],
+		"requires":[{
+			"id": "lib-wrapper",
+			"type": "module"
+		}]
 	},
 	"esmodules": [
 		"/scripts/mobAttack.js"
