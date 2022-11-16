@@ -7,7 +7,7 @@
 This is a module for Foundry VTT that offers a tool for handling mob attacks in the dnd5e system. The focus lies on offering GMs and players accessible and flexible tools to speed up large combat encounters. This module supports use of the [Dice so Nice!](https://gitlab.com/riccisi/foundryvtt-dice-so-nice/-/tree/master), [Midi-QOL](https://gitlab.com/tposney/midi-qol/-/tree/master), [Grouped Initiative](https://github.com/vtt-lair/foundry-group-initiative), and [Automated Animations](https://github.com/otigon/automated-jb2a-animations) modules. 
 
 ## How to install
-You can install this module by searching Foundry's package browser or by pasting this url in the corresponding text field of Foundry's package installer: `https://raw.githubusercontent.com/Stendarpaval/mob-attack-tool/main/module.json`
+You can install this module by searching Foundry's package browser or by pasting this url in the corresponding text field of Foundry's package installer: `https://github.com/4cer/mob-attack-tool/releases/download/Test/module.zip`
 
 ## How to use
 After activating this module, a new button appears in the token controls bar. By default this button is only visible to users with the GM role, but this can be changed in settings. To begin using Mob Attack Tool, make sure you have at least one token selected and exactly one token targeted before you click the button.
