@@ -1,8 +1,6 @@
 import { initSettings } from "./settings.js";
 import { initMobAttackTool, MobAttackDialog } from "./mobAttackTool.js";
 import { MobAttacks } from "./mobAttackTool.js";
-import { rollNPC, rollAll, matRollInitiative } from "./group-initiative/groupInitiative.js";
-import { libWrapper } from "./lib/shim.js";
 
 export const moduleName = "mob-attack-tool";
 
@@ -12,10 +10,6 @@ Hooks.once("init", () => {
 
 	initSettings();
 	initMobAttackTool();
-
-	// The lines below are commented out to restore combat tracker functionality in V9
-	// console.log("Mob Attack Tool | Wrapping rollInitiative...");
-	// libWrapper.register(moduleName, "Combat.prototype.rollInitiative", matRollInitiative, "OVERRIDE");
 
 	const dialogs = new Map();
 	const storedHooks = {};
@@ -144,34 +138,4 @@ Hooks.on('diceSoNiceRollStart', (messageId, context) => {
     
     //Hide this roll
     context.blind=true;
-});
-
-// group initiative: override roll methods from combat tracker
-Hooks.on("renderCombatTracker", async ( app, html, options ) => {
-	let combat = options.combat;
-	if (!combat) return;
-
-	if (!combat.matRollInitiative) {
-		combat.matRollInitiative = matRollInitiative.bind(combat);
-	}
-
-	if (!combat.MAToriginalRollNPC) {
-		combat.MAToriginalRollNPC = combat.rollNPC;	
-	}
-	if (!combat.MAToriginalRollAll) {
-		combat.MAToriginalRollAll = combat.rollAll;	
-	}
-
-	if (game.settings.get(moduleName, "enableMobInitiative")) {	
-		combat.rollNPC = rollNPC.bind(combat);
-		combat.rollAll = rollAll.bind(combat);	
-	} else {
-		// reset the methods
-		if (combat.MAToriginalRollNPC) {
-			combat.rollNPC = combat.MAToriginalRollNPC;
-		}
-		if (combat.MAToriginalRollAll) {
-			combat.rollAll = combat.MAToriginalRollAll;
-		}
-	}
 });

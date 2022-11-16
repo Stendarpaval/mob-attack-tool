@@ -17,7 +17,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		}
 
 		// Find Multiattack description
-		let desc = actorData.items.contents.filter(i => i.name.startsWith("Multiattack"))[0].data.data.description.value;
+		let desc = actorData.items.contents.filter(i => i.name.startsWith("Multiattack"))[0].system.description.value;
 		if (desc.endsWith(".</p>")) {
 			desc = desc.slice(0,-5);
 		}
@@ -68,12 +68,12 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		
 		if (remainingWords.length < 3) {
 			if (attackType === `melee`) {
-				if (![`mwak`, `msak`].includes(weaponData.data.data.actionType)) {
+				if (![`mwak`, `msak`].includes(weaponData.system.actionType)) {
 					attackType = `choose`;
 					numAttacksWeapon = 1;
 				}
 			} else if (attackType === `ranged`) {
-				if (![`rwak`, `rsak`].includes(weaponData.data.data.actionType)) {
+				if (![`rwak`, `rsak`].includes(weaponData.system.actionType)) {
 					attackType = `choose`;
 					numAttacksWeapon = 1;
 				}
@@ -130,7 +130,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 			} else if (attackType === `ranged`) {
 				typeArray = [`simpleR`, `martialR`];
 			}
-			numWeaponsInventory = actorData.items.filter(w => typeArray.includes(w.data.data.weaponType)).length;
+			numWeaponsInventory = actorData.items.filter(w => typeArray.includes(w.system.weaponType)).length;
 		}
 
 		// either return the specific or total number of multiattacks 
@@ -159,7 +159,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 				multiattack = [getScalingFactor(weaponData), false];
 			}	
 		} else {
-			let actorLevel = actorData.data.data.details.level;
+			let actorLevel = actorData.system.details.level;
 			if (actorLevel < 11) {
 				multiattack = [2, false];
 			} else if (11 <= actorLevel && actorLevel < 20) {

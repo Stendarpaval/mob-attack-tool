@@ -111,12 +111,12 @@ export class MobAttackDialog extends FormApplication {
 			if (this.targetToken.actor === null && game.modules.get("multilevel-tokens").active) {
 				let mltFlags = this.targetToken.data.flags["multilevel-tokens"];
 				if (mltFlags?.sscene) {
-					this.targetAC = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken).actor.data.data.attributes.ac.value;
+					this.targetAC = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken).actor.system.attributes.ac.value;
 				} else {
-					this.targetAC = canvas.tokens.get(mltFlags.stoken).actor.data.data.attributes.ac.value;
+					this.targetAC = canvas.tokens.get(mltFlags.stoken).actor.system.attributes.ac.value;
 				}
 			} else {
-				this.targetAC = this.targetToken.actor.data.data.attributes.ac.value;
+				this.targetAC = this.targetToken.actor.system.attributes.ac.value;
 			}
 			this.numTargets = this.targetTokens.length;
 		}
@@ -247,8 +247,6 @@ export class MobAttackDialog extends FormApplication {
 			armorClassMod: (game.user.getFlag(moduleName,"persistACmod") ?? game.settings.get(moduleName,"persistACmod")) ? game.settings.get(moduleName,"savedArmorClassMod") : this.armorClassMod,
 			monsters: this.monsters,
 			selectRollType: game.settings.get(moduleName,"askRollType"),
-			endMobTurn: game.settings.get(moduleName,"endMobTurn"),
-			endMobTurnValue: (game.user.getFlag(moduleName,"endMobTurnValue") ? "checked" : "") ?? "",
 			hiddenCollapsibleName: this.collapsibleName,
 			hiddenCollapsibleCSS: this.collapsibleCSS,
 			collapsiblePlusMinus: this.collapsiblePlusMinus,
@@ -808,7 +806,6 @@ export class MobAttackDialog extends FormApplication {
 				this.collapsiblePlusMinus = "plus";
 				this.collapsibleCSS = "mat-collapsible-content-closed";
 			}
-			await game.user.setFlag(moduleName,"endMobTurnValue", html.find(`input[name="endMobTurn"]`)[0]?.checked ?? false);
 			let rollTypeOptions = {advantage: "", normal: "", disadvantage: ""};
 			rollTypeOptions[html.find("[name=rollType]")[0]?.value ?? "normal"] = "selected";
 			this.rollTypeSelection = rollTypeOptions;
