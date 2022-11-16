@@ -45,6 +45,6 @@
     "styles": [
         "/styles/mob-attack-tool.css"
     ],
-    "manifest": "https://github.com/4cer/mob-attack-tool/releases/latest/download/module.json",
+    "manifest": "https://raw.githubusercontent.com/4cer/mob-attack-tool/v10-draft/module.json",
     "download": "https://github.com/4cer/mob-attack-tool/releases/download/Test/module.zip"
 }
