@@ -20,7 +20,7 @@
         }
     ],
     "url": "https://github.com/4cer/mob-attack-tool",
-    "version": "Test",
+    "version": "0.4.0",
     "compatibility": {
         "minimum": "10",
         "verified": "10.288"
