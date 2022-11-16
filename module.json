@@ -1,47 +1,50 @@
 {
-	"id": "mob-attack-tool",
-	"title": "Mob Attack Tool",
-	"description": "A module for dnd5e that adds support for Mob Attacks.",
-	"authors": [
-		{
-			"name": "Stendarpaval (Lupusmalus)"
-		}
-	],
-	"languages": [
-		{
-			"lang": "en",
-			"name": "English",
-			"path": "lang/en.json"
-		},
-		{
-			"lang": "ko",
-			"name": "Korean",
-			"path": "lang/ko.json"
-		}
-	],
-	"url": "https://github.com/Stendarpaval/mob-attack-tool",
-	"version": "0.4.0-v10_draft",
-	"compatibility": {
- 		"minimum": "10",
-		"verified": "10.288"
-	},
-	"relationships": {
-		"systems": [
-			{"id": "dnd5e",
-			"type": "system"
-			}
-		],
-		"requires":[{
-			"id": "lib-wrapper",
-			"type": "module"
-		}]
-	},
-	"esmodules": [
-		"/scripts/mobAttack.js"
-	],
-	"styles": [
-		"/styles/mob-attack-tool.css"
-	],
-	"manifest": "https://raw.githubusercontent.com/Stendarpaval/mob-attack-tool/main/module.json",
-	"download": "https://github.com/Stendarpaval/mob-attack-tool/releases/download/0.3.14/module.zip"
+    "id": "mob-attack-tool",
+    "title": "Mob Attack Tool",
+    "description": "A module for dnd5e that adds support for Mob Attacks.",
+    "authors": [
+        {
+            "name": "Stendarpaval (Lupusmalus)"
+        }
+    ],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "lang/en.json"
+        },
+        {
+            "lang": "ko",
+            "name": "Korean",
+            "path": "lang/ko.json"
+        }
+    ],
+    "url": "https://github.com/4cer/mob-attack-tool",
+    "version": "Test",
+    "compatibility": {
+        "minimum": "10",
+        "verified": "10.288"
+    },
+    "relationships": {
+        "systems": [
+            {
+                "id": "dnd5e",
+                "type": "system"
+            }
+        ],
+        "requires": [
+            {
+                "id": "lib-wrapper",
+                "type": "module"
+            }
+        ]
+    },
+    "esmodules": [
+        "/scripts/mobAttack.js"
+    ],
+    "styles": [
+        "/styles/mob-attack-tool.css"
+    ],
+    "manifest": "https://github.com/4cer/mob-attack-tool/releases/latest/download/module.json",
+    "download": "https://github.com/4cer/mob-attack-tool/releases/download/Test/module.zip"
 }
