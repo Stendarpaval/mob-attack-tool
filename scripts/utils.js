@@ -67,7 +67,7 @@ export async function callMidiMacro(item, midiMacroData) {
 
 
 export function checkTarget() {
-	let targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
+	let targetToken = canvas.tokens.placeables.find(t => t.isTargeted);
 	if (!targetToken && game.settings.get(moduleName, "mobRules") === 0) {
 		ui.notifications.warn(game.i18n.localize("MAT.targetValidACWarning"));
 		return false;
@@ -77,7 +77,7 @@ export function checkTarget() {
 
 
 export async function getTargetData(monsters) {
-	let targetTokens = canvas.tokens.objects.children.filter(isTargeted);
+	let targetTokens = canvas.tokens.placeables.filter(t => t.isTargeted);
 	for (let i = 0; i < targetTokens.length; i++) {
 		if (targetTokens[i].actor === null && game.modules.get("multilevel-tokens").active) {
 			let mltFlags = targetTokens[i].flags["multilevel-tokens"];

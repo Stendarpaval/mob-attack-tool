@@ -95,7 +95,7 @@ export class MobAttackDialog extends FormApplication {
 		// Show weapon options per selected token type
 		let mobList = game.settings.get(moduleName,"hiddenMobList");
 
-		this.targetTokens = canvas.tokens.objects.children.filter(isTargeted); 
+		this.targetTokens = canvas.tokens.placeables.filter(t => t.isTargeted);
 		for (let i = 0; i < this.targetTokens.length; i++) {
 			if (this.targetTokens[i].actor === null && game.modules.get("multilevel-tokens").active) {
 				let mltFlags = this.targetTokens[i].data.flags["multilevel-tokens"];
@@ -105,7 +105,7 @@ export class MobAttackDialog extends FormApplication {
 				}
 			}
 		}
-		this.targetToken = canvas.tokens.objects.children.filter(isTargeted)[0];
+		this.targetToken = canvas.tokens.placeables.find(t => t.isTargeted);
 		this.numTargets = 0;
 		if (this.targetToken) {
 			if (this.targetToken.actor === null && game.modules.get("multilevel-tokens").active) {
