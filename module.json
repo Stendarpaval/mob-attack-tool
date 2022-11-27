@@ -5,6 +5,12 @@
     "authors": [
         {
             "name": "Stendarpaval (Lupusmalus)"
+        },
+        {
+            "name": "Daft-Develop"
+        },
+        {
+            "name": "4cer"
         }
     ],
     "languages": [
@@ -19,8 +25,8 @@
             "path": "lang/ko.json"
         }
     ],
-    "url": "https://github.com/4cer/mob-attack-tool",
-    "version": "0.4.0",
+    "url": "https://github.com/daft-develop/mob-attack-tool",
+    "version": "0.4.1",
     "compatibility": {
         "minimum": "10",
         "verified": "10.290"
@@ -45,6 +51,6 @@
     "styles": [
         "/styles/mob-attack-tool.css"
     ],
-    "manifest": "https://raw.githubusercontent.com/4cer/mob-attack-tool/master/module.json",
-    "download": "https://github.com/4cer/mob-attack-tool/releases/download/0.4.0/module.zip"
+    "manifest": "https://raw.githubusercontent.com/daft-develop/mob-attack-tool/master/module.json",
+    "download": "https://github.com/daft-develop/mob-attack-tool/releases/download/0.4.1/module.zip"
 }
