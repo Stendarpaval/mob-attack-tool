@@ -1,56 +1,58 @@
 {
-    "id": "mob-attack-tool",
-    "title": "Mob Attack Tool",
-    "description": "A module for dnd5e that adds support for Mob Attacks.",
-    "authors": [
-        {
-            "name": "Stendarpaval (Lupusmalus)"
-        },
-        {
-            "name": "Daft-Develop"
-        },
-        {
-            "name": "4cer"
-        }
-    ],
-    "languages": [
-        {
-            "lang": "en",
-            "name": "English",
-            "path": "lang/en.json"
-        },
-        {
-            "lang": "ko",
-            "name": "Korean",
-            "path": "lang/ko.json"
-        }
-    ],
-    "url": "https://github.com/daft-develop/mob-attack-tool",
-    "version": "0.4.1",
-    "compatibility": {
-        "minimum": "10",
-        "verified": "10.290"
+  "id": "mob-attack-tool",
+  "title": "Mob Attack Tool",
+  "description": "A module for dnd5e that adds support for Mob Attacks.",
+  "authors": [
+    {
+      "name": "Stendarpaval (Lupusmalus)"
     },
-    "relationships": {
-        "systems": [
-            {
-                "id": "dnd5e",
-                "type": "system"
-            }
-        ],
-        "requires": [
-            {
-                "id": "lib-wrapper",
-                "type": "module"
-            }
-        ]
+    {
+      "name": "Daft-Develop"
     },
-    "esmodules": [
-        "/scripts/mobAttack.js"
+    {
+      "name": "4cer"
+    }
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json",
+      "flags": {}
+    },
+    {
+      "lang": "ko",
+      "name": "Korean",
+      "path": "lang/ko.json",
+      "flags": {}
+    }
+  ],
+  "url": "https://github.com/daft-develop/mob-attack-tool",
+  "version": "0.5.0",
+  "compatibility": {
+    "minimum": "10",
+    "verified": "11"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system"
+      }
     ],
-    "styles": [
-        "/styles/mob-attack-tool.css"
-    ],
-    "manifest": "https://raw.githubusercontent.com/daft-develop/mob-attack-tool/master/module.json",
-    "download": "https://github.com/daft-develop/mob-attack-tool/releases/download/0.4.1/module.zip"
+    "requires": [
+      {
+        "id": "lib-wrapper",
+        "type": "module"
+      }
+    ]
+  },
+  "esmodules": [
+    "/scripts/mobAttack.js"
+  ],
+  "styles": [
+    "/styles/mob-attack-tool.css"
+  ],
+  "manifest": "https://raw.githubusercontent.com/daft-develop/mob-attack-tool/master/module.json",
+  "download": "https://github.com/daft-develop/mob-attack-tool/releases/download/0.4.1/module.zip"
 }
