@@ -1,12 +1,6 @@
 import { moduleName } from "./mobAttack.js";
 import { getMultiattackFromActor } from "./multiattack.js";
 
-
-String.prototype.capitalize = function() {
-	return this.charAt(0).toUpperCase() + this.slice(1);
-}
-
-
 // This is based in large part on midi-qol's callMacro method
 export async function callMidiMacro(item, midiMacroData) {
 	const macroName = getProperty(item, "data.flags.midi-qol.onUseMacroName");
