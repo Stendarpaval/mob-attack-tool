@@ -8,12 +8,15 @@
 	<tbody>
 		{{#each this}}
 		<tr>
-			<td>{{this.weaponName}} (+{{this.finalAttackBonus}}{{this.rollTypeMessage}} to hit)</td> 
+			<td>{{this.weaponName}} (+{{this.finalAttackBonus}}{{this.rollTypeMessage}} to hit)</td>
 			<td><em>{{this.targetACtext}}</em></td>
 		</tr>
 		<tr class="mat-mob-rules-line">
 			<td>{{this.availableAttacks}} Attack{{this.sOrNot}} vs {{this.attackersNeeded}} Needed:</td>
-			<td style="display:inline-block; vertical-align:middle; line-height: normal;">{{numHitAttacks}}{{pluralOrNot}}{{#if this.displayTarget}} <img class="mat-target-icon" src="{{this.targetImg}}" title="Target" width="25" height="25" data-item-id="{{this.targetId}}" style="display:inline-block; vertical-align:middle; line-height: normal;">{{/if}}</td>
+			<td style="display:inline-block; vertical-align:middle; line-height: normal;">
+				{{numHitAttacks}}{{pluralOrNot}}{{#if this.displayTarget}} <img class="mat-target-icon"
+					src="{{this.targetImg}}" title="Target" width="25" height="25" data-item-id="{{this.targetId}}"
+					style="display:inline-block; vertical-align:middle; line-height: normal;">{{/if}}</td>
 		</tr>
 		{{/each}}
 	</tbody>

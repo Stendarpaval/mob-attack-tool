@@ -4,7 +4,6 @@ import { MobAttacks } from "./mobAttackTool.js";
 
 export const moduleName = "mob-attack-tool";
 
-
 Hooks.once("init", () => {
 	console.log("Mob Attack Tool | Adding Mob Attack Tool.");
 
@@ -21,7 +20,6 @@ Hooks.once("init", () => {
 		storedHooks
 	}
 })
-
 
 Hooks.on("ready", async () => {
 	window.MobAttacks = MobAttacks();
@@ -67,7 +65,7 @@ Hooks.on("controlToken", async () => {
 	if (mobDialog) {
 		if (mobDialog.rendered && !mobDialog.currentlySelectingTokens) {
 			await game.settings.set(moduleName, "hiddenChangedMob", false);
-			let mobList = game.settings.get(moduleName,"hiddenMobList");
+			let mobList = game.settings.get(moduleName, "hiddenMobList");
 			if (canvas.tokens.controlled.length !== 0 || Object.keys(mobList).length !== 0) {
 				mobDialog.render();
 			}
@@ -82,7 +80,7 @@ Hooks.on("targetToken", async () => {
 	if (mobDialog) {
 		if (mobDialog.rendered) {
 			// await game.settings.set(moduleName, "hiddenChangedMob", false);
-			let mobList = game.settings.get(moduleName,"hiddenMobList");
+			let mobList = game.settings.get(moduleName, "hiddenMobList");
 			if (canvas.tokens.controlled.length !== 0 || Object.keys(mobList).length !== 0) {
 				mobDialog.render();
 			}
@@ -98,7 +96,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 	if (thisCombat.data.combatants.length === 0) return;
 	if (!game.user.isGM && game.combat.combatant.players.filter(p => p.id === game.user.id).length === 0) return;
 
-	const mobList = game.settings.get("mob-attack-tool","hiddenMobList");
+	const mobList = game.settings.get("mob-attack-tool", "hiddenMobList");
 	const nextTurn = combat.turns[changed.turn];
 	const nextTokenId = nextTurn.data.tokenId;
 	let nextMobName = "";
@@ -109,7 +107,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 		}
 	}
 	if (nextMobName === "") return;
-	
+
 	const dialogId = game.settings.get(moduleName, "currentDialogId");
 	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
 
@@ -122,7 +120,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 	canvas.tokens.releaseAll();
 	for (let tokenId of mobList[nextMobName].selectedTokenIds) {
 		if (canvas.tokens.placeables.filter(t => t.id === tokenId).length > 0) {
-			canvas.tokens.get(tokenId).control({releaseOthers: false})	
+			canvas.tokens.get(tokenId).control({ releaseOthers: false })
 		}
 	}
 	if (mobDialog) {
@@ -135,7 +133,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 //  Hide DSN 3d dice
 Hooks.on('diceSoNiceRollStart', (messageId, context) => {
 	if (game.settings.get(moduleName, "hiddenDSNactiveFlag")) return;
-    
-    //Hide this roll
-    context.blind=true;
+
+	//Hide this roll
+	context.blind = true;
 });

@@ -1,12 +1,15 @@
 <div class="mat-weapon-label">
 	<label class="mat-label mat-col1">
-		<input type="number" title="{{localize 'MAT.numAttacksTitle'}}" name="{{numAttacksName}}" width="20" min="1" value="{{numAttack}}"/>
+		<input type="number" title="{{localize 'MAT.numAttacksTitle'}}" name="{{numAttacksName}}" width="20" min="1"
+			value="{{numAttack}}" />
 	</label>
 	<label class="mat-label mat-col2">
-		<img class="mat-weapon-icon" src="{{weaponImg}}" title="Open {{weaponNameImg}} sheet" width="30" height="30" data-item-id="{{weaponId}}">
+		<img class="mat-weapon-icon" src="{{weaponImg}}" title="Open {{weaponNameImg}} sheet" width="30" height="30"
+			data-item-id="{{weaponId}}">
 	</label>
 	<label class="mat-label mat-col3 mat-weapon-name">{{weaponName}}</label>
 	<label class="hint mat-label mat-col4">+{{weaponAttackBonus}} {{localize 'MAT.toHit'}}</label>
 	<label class="hint mat-label mat-col5 mat-damage-text">{{{weaponDamageText}}}</label>
-	<input class="mat-label mat-col6" title="{{localize 'MAT.useWeaponTitle'}}" type="checkbox" name="{{useButtonName}}" {{{useButtonValue}}}/>
+	<input class="mat-label mat-col6" title="{{localize 'MAT.useWeaponTitle'}}" type="checkbox" name="{{useButtonName}}"
+		{{{useButtonValue}}} />
 </div>

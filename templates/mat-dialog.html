@@ -1,95 +1,107 @@
 {{! This partial is based on the foundry settings partial}}
 {{#*inline "settingPartial"}}
-	<div class="form-group">
-		<label>{{localize this.name}}</label>
-		<div class="form-fields">
-			{{#if this.isCheckbox}}
-				<input type="checkbox" name="{{this.id}}" data-dtype="Boolean" {{checked this.value}} {{#if this.disabled}}disabled{{/if}}/>
-			{{else if this.isSelect}}
-				<select name="{{this.id}}">
-					{{#select this.value}}
-						{{#each this.choices as |name k|}}
-							<option value="{{k}}">{{localize name}}</option>
-						{{/each}}
-					{{/select}}
-				</select>
-			{{else if this.isRange}}
-				<input type="range" name="{{this.id}}" data-dtype="Number" value="{{ this.value }}"
-					min="{{ this.range.min }}" max="{{ this.range.max }}" step="{{ this.range.step }}" />
-				<span class="range-value">{{this.value}}</span>
-			{{else if this.isColor}}
-				<input type="color" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
-			{{else if this.isNumber}}
-				<input type="number" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
-			{{else}}
-				<input type="text" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
-			{{/if}}
-		</div>
-		<p class="notes">{{localize this.hint}}</p>
+<div class="form-group">
+	<label>{{localize this.name}}</label>
+	<div class="form-fields">
+		{{#if this.isCheckbox}}
+		<input type="checkbox" name="{{this.id}}" data-dtype="Boolean" {{checked this.value}} {{#if
+			this.disabled}}disabled{{/if}} />
+		{{else if this.isSelect}}
+		<select name="{{this.id}}">
+			{{#select this.value}}
+			{{#each this.choices as |name k|}}
+			<option value="{{k}}">{{localize name}}</option>
+			{{/each}}
+			{{/select}}
+		</select>
+		{{else if this.isRange}}
+		<input type="range" name="{{this.id}}" data-dtype="Number" value="{{ this.value }}" min="{{ this.range.min }}"
+			max="{{ this.range.max }}" step="{{ this.range.step }}" />
+		<span class="range-value">{{this.value}}</span>
+		{{else if this.isColor}}
+		<input type="color" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+		{{else if this.isNumber}}
+		<input type="number" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+		{{else}}
+		<input type="text" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+		{{/if}}
 	</div>
+	<p class="notes">{{localize this.hint}}</p>
+</div>
 {{/inline}}
 
 {{#*inline "formatMonster"}}
-	<div class="mat-monster-label">
-		<div class="mat-label mat-col1">
-			<label class="mat-label mat-num-group-monster">
-				<input type="number" class="mat-label mat-col1 numMonster" title="Number of {{this.actorName}}" name="{{this.actorId}}" width="20" min="1" value="{{this.amount}}" onClick="this.select();"/>
-				<label class="hint mat-label mat-col2 mat-num-buttons">
-					<a name="decreaseNumMonster" class="increaseNumMonster"><i class="fas fa-chevron-up"></i></a><br>
-					<a name="increaseNumMonster" class="decreaseNumMonster"><i class="fas fa-chevron-down"></i></a>
-				</label>
+<div class="mat-monster-label">
+	<div class="mat-label mat-col1">
+		<label class="mat-label mat-num-group-monster">
+			<input type="number" class="mat-label mat-col1 numMonster" title="Number of {{this.actorName}}"
+				name="{{this.actorId}}" width="20" min="1" value="{{this.amount}}" onClick="this.select();" />
+			<label class="hint mat-label mat-col2 mat-num-buttons">
+				<a name="decreaseNumMonster" class="increaseNumMonster"><i class="fas fa-chevron-up"></i></a><br>
+				<a name="increaseNumMonster" class="decreaseNumMonster"><i class="fas fa-chevron-down"></i></a>
 			</label>
-		</div>
-		<!-- <label class="mat-label mat-col1">{{this.actorAmount}}</label> -->
-		<label class="mat-label mat-col2">
-			<img class="mat-monster-icon mat-monster" src="{{actorImg}}" title="Open {{this.actorNameImg}} sheet" width="36" height="36" data-item-id="{{this.actorId}}">
 		</label>
-		<label class="mat-label mat-col3 mat-monster-name"><a class="mat-monster" data-item-id="{{this.actorId}}" title="Open {{this.actorName}} sheet">{{this.actorName}}</a></label>
 	</div>
-	{{#if this.multiattackDesc}}
-		<div class="hint">
-			<p>{{this.multiattackDesc}}</p>
-		</div>
-	{{/if}}
+	<!-- <label class="mat-label mat-col1">{{this.actorAmount}}</label> -->
+	<label class="mat-label mat-col2">
+		<img class="mat-monster-icon mat-monster" src="{{actorImg}}" title="Open {{this.actorNameImg}} sheet" width="36"
+			height="36" data-item-id="{{this.actorId}}">
+	</label>
+	<label class="mat-label mat-col3 mat-monster-name"><a class="mat-monster" data-item-id="{{this.actorId}}"
+			title="Open {{this.actorName}} sheet">{{this.actorName}}</a></label>
+</div>
+{{#if this.multiattackDesc}}
+<div class="hint">
+	<p>{{this.multiattackDesc}}</p>
+</div>
+{{/if}}
 {{/inline}}
 
 {{#*inline "formatWeapon"}}
-	<div class="mat-weapon-label">
-		<div class="mat-label mat-col1">
-			<label class="mat-label mat-num-group">
-				<input type="number" class="mat-label mat-col1 numAttack" title="{{localize 'MAT.numAttacksTitle'}}" name="{{this.numAttacksName}}" width="20" min="1" value="{{this.numAttack}}" onClick="this.select();"/>
-				<label class="hint mat-label mat-col2 mat-num-buttons">
-					<a name="decreaseNumAttack" class="increaseNumAttack"><i class="fas fa-chevron-up"></i></a><br>
-					<a name="increaseNumAttack" class="decreaseNumAttack"><i class="fas fa-chevron-down"></i></a>
-				</label>
+<div class="mat-weapon-label">
+	<div class="mat-label mat-col1">
+		<label class="mat-label mat-num-group">
+			<input type="number" class="mat-label mat-col1 numAttack" title="{{localize 'MAT.numAttacksTitle'}}"
+				name="{{this.numAttacksName}}" width="20" min="1" value="{{this.numAttack}}" onClick="this.select();" />
+			<label class="hint mat-label mat-col2 mat-num-buttons">
+				<a name="decreaseNumAttack" class="increaseNumAttack"><i class="fas fa-chevron-up"></i></a><br>
+				<a name="increaseNumAttack" class="decreaseNumAttack"><i class="fas fa-chevron-down"></i></a>
 			</label>
-		</div>
-		<label class="mat-label mat-col2">
-			<img class="mat-weapon-icon mat-weapon" src="{{this.weaponImg}}" title="Open {{this.weaponNameImg}} sheet" width="30" height="30" data-item-id="{{this.weaponId}}">
 		</label>
-		<div class="mat-label mat-col3 mat-weapon" title="Open {{this.weaponName}} sheet" data-item-id="{{this.weaponId}}">
-			<a class="mat-weapon-name-label">
-				<label class="mat-label mat-col1 mat-weapon-name" title="Open {{this.weaponName}} sheet">{{this.weaponName}}</label>
-				<label class="hint mat-label mat-col2 mat-attack-bonus" title="Open {{this.weaponName}} sheet">+{{this.weaponAttackBonus}} {{localize 'MAT.toHit'}}</label>
-				<label class="hint mat-label mat-col3 mat-weapon-range" title="Open {{this.weaponName}} sheet">{{this.weaponRange}}</label>
-				<label class="hint mat-label mat-col4 mat-damage-text" title="Open {{this.weaponName}} sheet">{{{this.weaponDamageText}}}</label>
-			</a>
-		</div>
-		<input class="mat-label mat-col4 useWeapon" title="{{localize 'MAT.useWeaponTitle'}}" type="checkbox" name="{{this.useButtonName}}" {{{this.useButtonValue}}}/>
 	</div>
+	<label class="mat-label mat-col2">
+		<img class="mat-weapon-icon mat-weapon" src="{{this.weaponImg}}" title="Open {{this.weaponNameImg}} sheet"
+			width="30" height="30" data-item-id="{{this.weaponId}}">
+	</label>
+	<div class="mat-label mat-col3 mat-weapon" title="Open {{this.weaponName}} sheet" data-item-id="{{this.weaponId}}">
+		<a class="mat-weapon-name-label">
+			<label class="mat-label mat-col1 mat-weapon-name"
+				title="Open {{this.weaponName}} sheet">{{this.weaponName}}</label>
+			<label class="hint mat-label mat-col2 mat-attack-bonus"
+				title="Open {{this.weaponName}} sheet">+{{this.weaponAttackBonus}} {{localize 'MAT.toHit'}}</label>
+			<label class="hint mat-label mat-col3 mat-weapon-range"
+				title="Open {{this.weaponName}} sheet">{{this.weaponRange}}</label>
+			<label class="hint mat-label mat-col4 mat-damage-text"
+				title="Open {{this.weaponName}} sheet">{{{this.weaponDamageText}}}</label>
+		</a>
+	</div>
+	<input class="mat-label mat-col4 useWeapon" title="{{localize 'MAT.useWeaponTitle'}}" type="checkbox"
+		name="{{this.useButtonName}}" {{{this.useButtonValue}}} />
+</div>
 {{/inline}}
 
 
 <form id="mobattack-tool-test" class="mat-dialog-content" autocomplete="off">
 	<nav class="sheet-tabs tabs">
 		<a class="item active" data-tab="weapons"><i class="fas fa-fist-raised"></i> {{localize 'Weapon Options'}}</a>
-		<a class="item" data-tab="targets"><i class="fas fa-crosshairs"></i> {{localize 'Targets'}} ({{this.numTargets}})</a>
+		<a class="item" data-tab="targets"><i class="fas fa-crosshairs"></i> {{localize 'Targets'}}
+			({{this.numTargets}})</a>
 	</nav>
 	<hr>
 	<section class="content">
 		<div class="form-group">
 			<label>
-				 {{localize 'MAT.mobNameDialog'}}:
+				{{localize 'MAT.mobNameDialog'}}:
 			</label>
 			<div class="form-fields">
 				<label>
@@ -97,16 +109,18 @@
 						<i class="fas fa-arrow-left"></i>
 					</a>
 				</label>
-				<input type="text" name="mobName" class="MAT-mobName" value="{{mobName}}" onClick="this.select();"/>
+				<input type="text" name="mobName" class="MAT-mobName" value="{{mobName}}" onClick="this.select();" />
 				<label>
-					 <a class="nextMob" title="{{localize 'Switch to next saved mob'}}">
+					<a class="nextMob" title="{{localize 'Switch to next saved mob'}}">
 						<i class="fas fa-arrow-right"></i>
 					</a>
 				</label>
-				<button type="button" title="{{localize 'MAT.saveMobButtonTitle'}}" name="saveMob" class="saveMobButton">
+				<button type="button" title="{{localize 'MAT.saveMobButtonTitle'}}" name="saveMob"
+					class="saveMobButton">
 					<i class="far fa-save"></i>
 				</button>
-				<button type="button" title="{{localize 'MAT.selectMobButtonTitle'}}" name="selectMob" class="selectMobButton">
+				<button type="button" title="{{localize 'MAT.selectMobButtonTitle'}}" name="selectMob"
+					class="selectMobButton">
 					<i class="fas fa-file-import fa-fw"></i>
 				</button>
 			</div>
@@ -115,25 +129,30 @@
 	<hr>
 	<section id="mobDialog-tabs" class="content">
 		<div class="tab active" data-tab="weapons">
-			<p class="hint">{{localize 'MAT.dialogNumSelected'}} <strong>{{numSelected}}</strong> token{{pluralTokensOrNot}}. {{localize 'MAT.totalNumberOfAttacks'}}: <strong>{{this.numTotalAttacks}}</strong>.</p>
-			<p class="hint">{{localize 'MAT.averageDamageIfAllAttacksHit'}}: <strong>{{this.totalAverageDamage}}</strong> {{localize 'MAT.pointsOfDamage'}}.</p>
+			<p class="hint">{{localize 'MAT.dialogNumSelected'}} <strong>{{numSelected}}</strong>
+				token{{pluralTokensOrNot}}. {{localize 'MAT.totalNumberOfAttacks'}}:
+				<strong>{{this.numTotalAttacks}}</strong>.</p>
+			<p class="hint">{{localize 'MAT.averageDamageIfAllAttacksHit'}}:
+				<strong>{{this.totalAverageDamage}}</strong> {{localize 'MAT.pointsOfDamage'}}.</p>
 			<div name="mobListOptions">
 				<hr>
 				{{#each this.monsters}}
-					{{#with this}}
-						{{> formatMonster}}
-					{{/with}}
-					<div style="border:2px groove #eeede0; padding: 3px; margin-bottom: 0.5em;">
+				{{#with this}}
+				{{> formatMonster}}
+				{{/with}}
+				<div style="border:2px groove #eeede0; padding: 3px; margin-bottom: 0.5em;">
 					{{#each this.weapons}}
-						{{#with this}}
-							{{> formatWeapon}}
-						{{/with}}
+					{{#with this}}
+					{{> formatWeapon}}
+					{{/with}}
 					{{/each}}
-					</div>
+				</div>
 				{{/each}}
 			</div>
 			<hr>
-			<a class="mat-collapsible"><h4><i class="far fa-{{this.collapsiblePlusMinus}}-square"></i> {{this.hiddenCollapsibleName}}<h4></a>
+			<a class="mat-collapsible">
+				<h4><i class="far fa-{{this.collapsiblePlusMinus}}-square"></i> {{this.hiddenCollapsibleName}}<h4>
+			</a>
 			<div class="{{this.hiddenCollapsibleCSS}}">
 				{{#if selectRollType}}
 				<div class="mat-rolltype">
@@ -141,14 +160,16 @@
 					<select class="mat-label mat-col2" name="rollType">
 						<option value="advantage" {{this.rollTypeSelection.advantage}}>{{localize 'Advantage'}}</option>
 						<option value="normal" {{this.rollTypeSelection.normal}}>{{localize 'Normal'}}</option>
-						<option value="disadvantage" {{this.rollTypeSelection.disadvantage}}>{{localize 'Disadvantage'}}</option>
+						<option value="disadvantage" {{this.rollTypeSelection.disadvantage}}>{{localize 'Disadvantage'}}
+						</option>
 					</select>
 				</div>
-				
+
 				{{/if}}
 				<div class="mat-macro-export">
 					<label class="mat-label mat-col1">{{localize 'MAT.exportToMacro'}}: </label>
-					<button type="button" class="mat-label exportMobAttack" name="exportMobAttack" title="{{localize 'Export Mob Attack to Macro'}}">
+					<button type="button" class="mat-label exportMobAttack" name="exportMobAttack"
+						title="{{localize 'Export Mob Attack to Macro'}}">
 						<i class="fas fa-folder"></i>
 						<label> Export</label>
 					</button>
@@ -156,27 +177,35 @@
 			</div>
 		</div>
 		<div class="tab" data-tab="targets">
-			{{#if this.multipleTargets}}<p class="hint">{{localize 'MAT.clickDragAttackIconsTargets'}}</p><hr>{{/if}}
+			{{#if this.multipleTargets}}<p class="hint">{{localize 'MAT.clickDragAttackIconsTargets'}}</p>
+			<hr>{{/if}}
 			{{#each this.targets}}
-				{{#with this}}
-				<div class="mat-target-label">
-					<label class="mat-label mat-col1">
-						<img class="mat-target-icon" src="{{this.targetImg}}" title="Targeted token" width="54" height="54" data-item-id="{{this.targetId}}" data-target-index="{{this.targetIndex}}">
-					</label>
-					<div class="mat-label mat-col2">
-						{{#if this.isGM}}{{this.targetImgName}}{{/if}}
-						<p class="hint">{{localize 'MAT.thisTarget'}}{{#if this.isGM}}{{this.targetACtext}} <strong>{{this.targetAC}}</strong> {{localize 'and'}}{{/if}} {{localize 'MAT.willBeAttacked'}} <strong>{{this.targetTotalNumAttacks}}</strong> {{localize 'MAT.times'}}.<br>{{localize 'MAT.averageDamageIfAllAttacksHit'}}: <strong>{{this.targetTotalAverageDamage}}</strong> {{localize 'MAT.pointsOfDamage'}}.</p>
-						<div class="mat-attacks-on-target-box">
-							{{#each this.weapons}}
-								<label class="mat-label target-attack-box">
-									<img class="mat-weapon-icon mat-weapon " src="{{this.weaponImg}}" title="Open {{this.weaponNameImg}} ({{this.weaponActorName}}) sheet" width="30" height="30" data-item-id="{{this.weaponId}}">
-								</label>
-							{{/each}}
-						</div>
+			{{#with this}}
+			<div class="mat-target-label">
+				<label class="mat-label mat-col1">
+					<img class="mat-target-icon" src="{{this.targetImg}}" title="Targeted token" width="54" height="54"
+						data-item-id="{{this.targetId}}" data-target-index="{{this.targetIndex}}">
+				</label>
+				<div class="mat-label mat-col2">
+					{{#if this.isGM}}{{this.targetImgName}}{{/if}}
+					<p class="hint">{{localize 'MAT.thisTarget'}}{{#if this.isGM}}{{this.targetACtext}}
+						<strong>{{this.targetAC}}</strong> {{localize 'and'}}{{/if}} {{localize 'MAT.willBeAttacked'}}
+						<strong>{{this.targetTotalNumAttacks}}</strong> {{localize 'MAT.times'}}.<br>{{localize
+						'MAT.averageDamageIfAllAttacksHit'}}: <strong>{{this.targetTotalAverageDamage}}</strong>
+						{{localize 'MAT.pointsOfDamage'}}.</p>
+					<div class="mat-attacks-on-target-box">
+						{{#each this.weapons}}
+						<label class="mat-label target-attack-box">
+							<img class="mat-weapon-icon mat-weapon " src="{{this.weaponImg}}"
+								title="Open {{this.weaponNameImg}} ({{this.weaponActorName}}) sheet" width="30"
+								height="30" data-item-id="{{this.weaponId}}">
+						</label>
+						{{/each}}
 					</div>
 				</div>
-				<hr>
-				{{/with}}
+			</div>
+			<hr>
+			{{/with}}
 			{{/each}}
 			<!-- <div class="form-group">
 				<img class="mat-monster-icon" src="{{targetImg}}" title="Open {{targetImgName}} sheet" width="36" height="36" data-item-id="{{targetId}}">
@@ -188,7 +217,7 @@
 			<div class="form-group">
 				<label>{{localize 'MAT.acMod'}}:</label>
 				<div class="form-fields">
-					<input type="number" name="armorClassMod" value="{{armorClassMod}}"/>
+					<input type="number" name="armorClassMod" value="{{armorClassMod}}" />
 					<button type="button" name="increaseACmod" class="increaseACmod">
 						<i class="fas fa-plus"></i>
 					</button>
@@ -202,9 +231,8 @@
 	</section>
 	<hr>
 	<footer class="sheet-footer flexrow">
-		<button type="submit" class= "executeMobAttack" name="executeMobAttack" autofocus>
+		<button type="submit" class="executeMobAttack" name="executeMobAttack" autofocus>
 			<i class="fas fa-fist-raised"></i> {{localize 'MAT.mobAttack'}}
 		</button>
 	</footer>
 </form>
-

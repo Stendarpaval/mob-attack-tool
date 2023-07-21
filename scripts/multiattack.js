@@ -1,13 +1,13 @@
 import { getScalingFactor } from "./utils.js";
 
 export function getMultiattackFromActor(weaponName, actorData, weapons, options) {
-	
+
 	// If attacker has only one weapon and no multiattack, autoselect it
 	let multiattack = [1, Object.keys(weapons).length === 1];
 	let weaponData = actorData.items.getName(weaponName);
 
 	// Otherwise, find out details about multiattack
-	let dictStrNum = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10};
+	let dictStrNum = { "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10 };
 	if (actorData.items.contents.filter(i => i.name.startsWith("Multiattack")).length > 0) {
 		// Check for eldritch blast
 		if (weaponData.type === "spell") {
@@ -19,14 +19,14 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		// Find Multiattack description
 		let desc = actorData.items.contents.filter(i => i.name.startsWith("Multiattack"))[0].system.description.value;
 		if (desc.endsWith(".</p>")) {
-			desc = desc.slice(0,-5);
+			desc = desc.slice(0, -5);
 		}
 
 		// Strip description of html tags
 		desc = desc.replace(/(<([^>]+)>)/gi, "");
 
 		// Remove &nbsp; and trailing whitespaces
-		desc = desc.replace(/&nbsp;/g," ").trim();
+		desc = desc.replace(/&nbsp;/g, " ").trim();
 
 		// First split multiattack description in general and specific parts
 		let attackIndex = desc.indexOf(`attack`);
@@ -36,7 +36,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 			if (desc.indexOf(`ranged attacks`) !== -1) {
 				attackType = `choose`;
 			} else {
-				attackType = `melee`;	
+				attackType = `melee`;
 			}
 		} else if (desc.indexOf(`ranged attacks`) !== -1) {
 			attackIndex = desc.indexOf(`ranged attacks`);
@@ -47,7 +47,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		}
 
 		// Split up description into words for analysis
-		let initialWords = desc.slice(0,attackIndex).split(" ");
+		let initialWords = desc.slice(0, attackIndex).split(" ");
 
 		// Then detect overall number of multiattack attacks
 		let numAttacksTotal = 0;
@@ -56,7 +56,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 			if (dictStrNum[word]) {
 				if (attackType !== ``) {
 					numAttacksWeapon = dictStrNum[word];
-				} 
+				}
 				numAttacksTotal = dictStrNum[word];
 				break;
 			}
@@ -65,7 +65,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 		// Next detect specific number of attacks of this weapon
 		// (This is the complicated / messy part.)
 		let remainingWords = desc.slice(attackIndex + attackType.length + 8).split(" ").reverse();
-		
+
 		if (remainingWords.length < 3) {
 			if (attackType === `melee`) {
 				if (![`mwak`, `msak`].includes(weaponData.system.actionType)) {
@@ -88,21 +88,21 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 
 			// homogenize words to simplify detection
 			word = word.toLowerCase();
-			let interpunction = [",",".",":"];
+			let interpunction = [",", ".", ":"];
 			for (let ip of interpunction) {
-				if (word.endsWith(ip)) word = word.slice(0,word.indexOf(ip));	
+				if (word.endsWith(ip)) word = word.slice(0, word.indexOf(ip));
 			}
-			
+
 			// check if description ends with 'twice' (a rare exception)
 			if (word === "twice") {
 				twiceAtEnd = true;
 			}
 
 			// detect weapon
-			if (weaponName.toLowerCase().split(" ").includes(word) || `${weaponName.toLowerCase()}s`.split(" ").includes(word)) {	
+			if (weaponName.toLowerCase().split(" ").includes(word) || `${weaponName.toLowerCase()}s`.split(" ").includes(word)) {
 				weaponDetected = true;
 			}
-			
+
 			// detect possibility of choosing what kind of multiattack to use
 			const optionKeywordsSingle = [`or`, `alternatively`, `instead`, `while`];
 			if (weaponDetected) {
@@ -115,7 +115,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 				}
 			}
 
-			// match text number to actual value for number of attacks	
+			// match text number to actual value for number of attacks
 			if (weaponDetected && dictStrNum[word]) {
 				numAttacksWeapon = dictStrNum[word];
 				break;
@@ -133,7 +133,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 			numWeaponsInventory = actorData.items.filter(w => typeArray.includes(w.system.weaponType)).length;
 		}
 
-		// either return the specific or total number of multiattacks 
+		// either return the specific or total number of multiattacks
 		if (numAttacksTotal !== 0) {
 			if (numAttacksWeapon !== 0) {
 				multiattack = [(numWeaponsInventory === numAttacksWeapon && numWeaponsInventory === numAttacksTotal) ? 1 : numAttacksWeapon, (attackType !== `choose`) ? true : false];
@@ -142,7 +142,7 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 			}
 		}
 
-	// for actors with the Extra Attack item
+		// for actors with the Extra Attack item
 	} else if (actorData.items.getName("Extra Attack") !== undefined) {
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
@@ -152,12 +152,12 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 			multiattack = [2, false];
 		}
 
-	// for fighters
+		// for fighters
 	} else if (actorData.items.getName("Extra Attack (Fighter)") !== undefined) {
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
 				multiattack = [getScalingFactor(weaponData), false];
-			}	
+			}
 		} else {
 			let actorLevel = actorData.system.details.level;
 			if (actorLevel < 11) {
@@ -169,12 +169,12 @@ export function getMultiattackFromActor(weaponName, actorData, weapons, options)
 			}
 		}
 
-	// for actors without multiattack
+		// for actors without multiattack
 	} else {
 		if (weaponData.type === "spell") {
 			if (weaponName === "Eldritch Blast") {
 				multiattack = [getScalingFactor(weaponData), false];
-			}	
+			}
 		}
 	}
 

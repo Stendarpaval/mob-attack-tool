@@ -1,9 +1,11 @@
 # Examples
-Here follow some examples of how to use Mob Attack Tool, along with screenshots. 
+
+Here follow some examples of how to use Mob Attack Tool, along with screenshots.
 
 <strong>Note: The screenshots in this article are rather outdated, since they were made using Mob Attack Tool v0.1.18.</strong>
 
 ##### Table of Contents
+
 * [Basic use case](#basic-use-case)
 * [Module Settings](#module-settings)
   * [Use mob rules or roll individually](#use-mob-rules-or-roll-individually)
@@ -14,6 +16,7 @@ Here follow some examples of how to use Mob Attack Tool, along with screenshots.
 * [Export to macro](#export-to-macro)
 
 ## Basic use case
+
 In order to use Mob Attack Tool, you first need to target an enemy and then select the tokens that make up the mob, as shown below.
 
 <details>
@@ -30,9 +33,10 @@ Next, you click the "Mob Attack" button, indicated by the red arrow in the pictu
   <img width="1185" alt="screenshot_mat_3_mob_attack_dialog" src="https://user-images.githubusercontent.com/17188192/113690951-3fa1df80-96cc-11eb-8491-0bcf76555866.png">
 </details>
 
-Now you can hit Enter or click the "Mob Attack" button at the bottom of the dialog window to execute the mob attack. The way mob attacks are executed depends on which module settings are used, and whether you use the Better Rolls for 5e and/or Midi-QOL modules. 
+Now you can hit Enter or click the "Mob Attack" button at the bottom of the dialog window to execute the mob attack. The way mob attacks are executed depends on which module settings are used, and whether you use the Better Rolls for 5e and/or Midi-QOL modules.
 
 ## Module settings
+
 Mob Attack Tool's settings of version 0.1.18 should look like this:
 
 <details>
@@ -41,9 +45,10 @@ Mob Attack Tool's settings of version 0.1.18 should look like this:
   <img width="597" alt="screenshot_mat_17_settings_1" src="https://user-images.githubusercontent.com/17188192/113692034-64e31d80-96cd-11eb-8299-0b654b2c8be9.png">
 </details>
 
-Most settings have descriptions that speak for themselves, but the two settings that have the largest impact on Mob Attack Tool's behavior are **Use mob rules or roll individually** and **Show individual attack rolls**. 
+Most settings have descriptions that speak for themselves, but the two settings that have the largest impact on Mob Attack Tool's behavior are **Use mob rules or roll individually** and **Show individual attack rolls**.
 
 ### Use mob rules or roll individually
+
 If you set this to mob rules, then Mob Attack Tool will evaluate how many attacks hit the target based on the "Handling Mobs" rules on page 250 of the Dungeon Master's Guide. If it is set to "Individual Attack Rolls", then Mob Attack Tool will roll individual attack rolls for each mob attacker.
 
 Below you can see what a mob attack looks like when using the "Mob Rules", with both Better Rolls for 5e and Midi-QOL active.
@@ -63,6 +68,7 @@ Likewise in the image below you can see what it looks like when using "Individua
 </details>
 
 ### Show individual attack rolls
+
 If the previous setting is set to "Individual Attack Rolls", then Mob Attack Tool will only show these attack rolls if this setting is enabled. To save some chat log space, only attack rolls that would hit the target are shown. And even if this setting is disabled, then at least a single attack roll matching the target's AC is shown when using Better Rolls for 5e. This is currently necessary in order to trigger Midi-QOL's damage automation.
 
 When using Better Rolls for 5e, the attack rolls have strange dice formula such as "0d0 +  17". This is also part of a workaround. Natural 20s and natural 1s are detected as usual. Support for crit thresholds lower than 20 is an upcoming feature.
@@ -76,6 +82,7 @@ Below you can see how individual attack rolls are displayed when this setting is
 </details>
 
 ## Without Better Rolls for 5e
+
 I'm aware that Better Rolls for 5e and Midi-QOL don't always work perfectly together, and thus there are people who only use one of either. If only Better Rolls for 5e is active, then the results look identical minus the "HP Updated" chat message.
 
 If only Midi-QOL is active and you're using the "Individual Attack Rolls" setting, then a mob attack would look like what is shown below.
@@ -89,6 +96,7 @@ If only Midi-QOL is active and you're using the "Individual Attack Rolls" settin
 In the image above you can see that both attack rolls were critical hits, but all damage formulas were condensed into a single formula. This saves quite a lot of chat log space. Unfortunately, as of now Mob Attack Tool does not support showing individual attack rolls when only Midi-QOL is active. I'll try to include it in a later release.
 
 ## Without Better Rolls for 5e or Midi-QOL
+
 Of course, you can also use Mob Attack Tool without either of these modules. If "Show individual attack rolls" is disabled, then a mob attack that uses "Individual Attack Rolls" would appear as shown in the image below.
 
 <details>
@@ -136,7 +144,8 @@ Next you hit "Mob Attack" and the attacks are rolled, first the skeleton's and t
 Please note that Mob Attack Tool currently only looks at the actor id when skipping turns. If you have a complicated combat encounter where there are friendly and enemy mobs of archers, then make sure that friendly and enemy archer tokens are linked to different actors in order for this function not to accidentally skip their turns as well.
 
 # Export to macro
-Selecting tokens can be cumbersome, especially if you need to select many of them and they sometimes have moved individually. Furthermore, some mobs will always do the same attacks, so why go through the entire dialog every time? 
+
+Selecting tokens can be cumbersome, especially if you need to select many of them and they sometimes have moved individually. Furthermore, some mobs will always do the same attacks, so why go through the entire dialog every time?
 
 Well, Mob Attack Tool makes life easier by allowing you to export mob attacks to macros. To do so, you need to check the "Export to Macro" option in the Mob Attack Dialog, as shown below.
 
@@ -162,4 +171,4 @@ Head on over to your macro directory, and you'll find it at the very bottom. If 
   <img width="1185" alt="screenshot_mat_16_macro_edit" src="https://user-images.githubusercontent.com/17188192/113698013-4cc2cc80-96d4-11eb-9b8e-281b9895c62c.png">
 </details>
 
-To use this macro, you only need to target a token and then you can run the macro. 
+To use this macro, you only need to target a token and then you can run the macro.

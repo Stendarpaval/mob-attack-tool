@@ -10,7 +10,7 @@
 	"MAT.lowAttackBonusOrSmallMob": "Attack bonus of {weaponName} is too low or there are not enough mob attackers to hit the target!",
 	"MAT.ammoError": "There was an error while trying to add an ammo field to this {weaponName} attack.",
 	"MAT.invalidDamageFormula": "{weaponDataName} does not have a valid damage formula and could not be rolled.",
-	
+
 	"MAT.dialogTargetArmorClassMessage": " has an AC of",
 	"MAT.dialogNumSelected": "You have selected",
 	"MAT.numAttacksTitle": "Number of Attacks",
