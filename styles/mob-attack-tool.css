@@ -1,5 +1,5 @@
 .mat-table {
-	width:100%;
+	width: 100%;
 }
 
 .mat-dialog-content {
@@ -7,43 +7,43 @@
 }
 
 .mat-mob-rules-line {
-	border-bottom:1px solid gray;
+	border-bottom: 1px solid gray;
 }
 
 .mat-midi-show-atk-lines {
-	border-bottom:1px solid gray;
+	border-bottom: 1px solid gray;
 }
 
 .mat-rolltype {
-	display:grid; 
-	grid-template-columns:360px 120px; 
-	margin:0px 0px 3px 0px;
-	column-gap:5px;
+	display: grid;
+	grid-template-columns: 360px 120px;
+	margin: 0px 0px 3px 0px;
+	column-gap: 5px;
 }
 
 .mat-macro-export {
-	display:grid; 
-	grid-template-columns:360px 120px; 
-	margin:0px 0px 3px 0px;
-	column-gap:5px;
+	display: grid;
+	grid-template-columns: 360px 120px;
+	margin: 0px 0px 3px 0px;
+	column-gap: 5px;
 }
 
 .mat-end-turn {
-	display:grid; 
-	grid-template-columns:455px 30px;
-	margin:0px 0px 3px 0px;
-	column-gap:5px;
+	display: grid;
+	grid-template-columns: 455px 30px;
+	margin: 0px 0px 3px 0px;
+	column-gap: 5px;
 }
 
 .mat-monster-label {
-	display:grid; 
-	grid-template-columns: 40px 36px 240px; 
-	column-gap:5px;
+	display: grid;
+	grid-template-columns: 40px 36px 240px;
+	column-gap: 5px;
 }
 
 
 .mat-target-label {
-	display:grid;
+	display: grid;
 	grid-template-columns: 13% 80.8%;
 	column-gap: 5px;
 }
@@ -54,16 +54,16 @@
 	flex-direction: row;
 	flex-wrap: wrap;
 	align-items: center;
-	border:2px groove #eeede0; 
-	padding: 3px; 
+	border: 2px groove #eeede0;
+	padding: 3px;
 	margin-bottom: 0.5em;
 	min-height: 44px;
 }
 
 .mat-mob-name-label-group {
-	display:grid; 
-	grid-template-columns: 36% 3% 40% 5% 7% 7%; 
-	column-gap:3px;
+	display: grid;
+	grid-template-columns: 36% 3% 40% 5% 7% 7%;
+	column-gap: 3px;
 }
 
 .mat-mob-name-label {
@@ -73,113 +73,114 @@
 }
 
 input[type="number"].numMonster {
-	text-align:center;
+	text-align: center;
 	/*background: rgba(0, 0, 0, 0.1);*/
 	/*border-radius: 6px;*/
 }
 
 input[type="number"].numAttack {
-	text-align:center;
+	text-align: center;
 }
 
 input[type="number"].numTable {
 	/*width: calc(25%);*/
-	text-align:center;
+	text-align: center;
 }
 
 .mat-weapon-label {
-	display:grid; 
-	grid-template-columns:9% 6% 76% 9%;
-	column-gap:5px;
+	display: grid;
+	grid-template-columns: 9% 6% 76% 9%;
+	column-gap: 5px;
 }
 
 .mat-weapon-name-label {
-	display:grid; 
-	grid-template-columns:120px 50px 60px 125px; 
-	column-gap:5px;	
+	display: grid;
+	grid-template-columns: 120px 50px 60px 125px;
+	column-gap: 5px;
 }
 
 .mat-num-group {
-	display:grid; 
-	grid-template-columns:30px 14px; 
-	column-gap:1px;
+	display: grid;
+	grid-template-columns: 30px 14px;
+	column-gap: 1px;
 }
 
 .mat-num-group-monster {
-	display:grid; 
-	grid-template-columns:25px 14px; 
-	column-gap:1px;
+	display: grid;
+	grid-template-columns: 25px 14px;
+	column-gap: 1px;
 }
 
 .mat-num-buttons {
-	text-align:center;
+	text-align: center;
 	cursor: pointer;
 }
 
-.decreaseNumAttack, .increaseNumAttack {
-	cursor: pointer;	
+.decreaseNumAttack,
+.increaseNumAttack {
+	cursor: pointer;
 }
 
 .mat-label {
-	align-self:center;
+	align-self: center;
 }
 
 .mat-label.mat-col1 {
-	grid-column-start:1; 
-	grid-column-end:1; 
+	grid-column-start: 1;
+	grid-column-end: 1;
 }
 
 .mat-label.mat-col2 {
-	grid-column-start:2; 
-	grid-column-end:2; 
+	grid-column-start: 2;
+	grid-column-end: 2;
 }
 
 .mat-label.mat-col3 {
-	grid-column-start:3;
-	grid-column-end:3;
+	grid-column-start: 3;
+	grid-column-end: 3;
 }
 
 .mat-label.mat-col4 {
-	grid-column-start:4;
-	grid-column-end:4;
+	grid-column-start: 4;
+	grid-column-end: 4;
 }
 
 .mat-label.mat-col5 {
-	grid-column-start:5;
-	grid-column-end:5;
+	grid-column-start: 5;
+	grid-column-end: 5;
 }
 
 .mat-label.mat-col6 {
-	grid-column-start:6;
-	grid-column-end:6;
+	grid-column-start: 6;
+	grid-column-end: 6;
 }
 
 .mat-label.mat-col7 {
-	grid-column-start:7;
-	grid-column-end:7;
+	grid-column-start: 7;
+	grid-column-end: 7;
 }
 
 .mat-monster-icon {
-	margin:0px 5px 0px 0px; 
-	border:none;
+	margin: 0px 5px 0px 0px;
+	border: none;
 	cursor: pointer;
 }
 
 .mat-weapon-icon {
-	margin:0px 5px 0px 0px; 
-	border:none;
+	margin: 0px 5px 0px 0px;
+	border: none;
 	cursor: pointer;
 }
 
 .mat-target-icon {
-	margin:0px 3px 0px 3px;
-	border:none;
+	margin: 0px 3px 0px 3px;
+	border: none;
 }
 
 .mat-monster-name {
-	text-overflow:ellipsis; 
-	white-space:nowrap; 
-	overflow:hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
 }
 
 .mat-monster {
@@ -191,33 +192,33 @@ input[type="number"].numTable {
 }
 
 .mat-weapon-name {
-	text-overflow:ellipsis; 
-	white-space:nowrap; 
-	overflow:hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
 	cursor: pointer;
 }
 
 .mat-attack-bonus {
-	text-align:center;
+	text-align: center;
 	cursor: pointer;
 }
 
 .mat-weapon-range {
-	white-space: pre-wrap; 
-	text-align:center;
+	white-space: pre-wrap;
+	text-align: center;
 	cursor: pointer;
 }
 
 .mat-damage-text {
-	white-space: pre-wrap; 
-	text-align:center;
+	white-space: pre-wrap;
+	text-align: center;
 	cursor: pointer;
 }
 
 .mat-collapsible {
 	cursor: pointer;
 	width: 100%;
-	margin:0px 0px 3px 0px;
+	margin: 0px 0px 3px 0px;
 }
 
 .mat-collapsible-content-closed {

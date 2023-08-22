@@ -1,7 +1,6 @@
 import { moduleName } from "./mobAttack.js";
 import { endGroupedMobTurn, getDamageFormulaAndType, calcD20Needed, calcAttackersNeeded, sendChatMessage, getAttackBonus, callMidiMacro } from "./utils.js";
 
-
 export async function rollMobAttack(data) {
 	// Temporarily disable DSN 3d dice from rolling, per settings
 	if (!game.settings.get(moduleName, "enableDiceSoNice") && game.user.isGM) {
@@ -10,37 +9,37 @@ export async function rollMobAttack(data) {
 
 	// Cycle through selected weapons
 	let attackData = [];
-	let messageData = {messages: {}};
+	let messageData = { messages: {} };
 	let isVersatile;
-	for ( let [key, value] of Object.entries(data.attacks) ) {
+	for (let [key, value] of Object.entries(data.attacks)) {
 		for (let j = 0; j < value.length; j++) {
 			isVersatile = false;
 			if (key.endsWith(`(${game.i18n.localize("Versatile")})`.replace(" ", "-"))) {
 				isVersatile = true;
-				key = key.slice(0,key.indexOf(` (${game.i18n.localize("Versatile")})`));
+				key = key.slice(0, key.indexOf(` (${game.i18n.localize("Versatile")})`));
 			}
 
 			let targetAC = data.targets.filter(t => t.targetId === value[j].targetId)[0]?.targetAC;
-			const weaponData = data.weapons[key]; 
+			const weaponData = data.weapons[key];
 			const actorName = weaponData.actor.name;
 			const finalAttackBonus = getAttackBonus(weaponData);
 			if (!data.withDisadvantage && data.event?.altKey) {
 				data.withAdvantage = true;
-				data.rollTypeValue = Math.floor(game.settings.get(moduleName,"rollTypeValue"));
-				data.rollTypeMessage = ` + ${data.rollTypeValue} [adv]`; 
+				data.rollTypeValue = Math.floor(game.settings.get(moduleName, "rollTypeValue"));
+				data.rollTypeMessage = ` + ${data.rollTypeValue} [adv]`;
 			} else if (!data.withAdvantage && (game.settings.get(moduleName, "disadvantageKeyBinding") === 0 ? data.event?.metaKey : data.event?.ctrlKey)) {
 				data.withDisadvantage = true;
-				data.rollTypeValue = -1 * Math.floor(game.settings.get(moduleName,"rollTypeValue"));
-				data.rollTypeMessage = ` - ${data.rollTypeValue} [adv]`; 
+				data.rollTypeValue = -1 * Math.floor(game.settings.get(moduleName, "rollTypeValue"));
+				data.rollTypeMessage = ` - ${data.rollTypeValue} [adv]`;
 			}
 			const d20Needed = calcD20Needed(finalAttackBonus, targetAC, data.rollTypeValue);
 			const attackersNeeded = calcAttackersNeeded(d20Needed);
 
 			// Check whether how many attackers can use this weapon
 			let availableAttacks = value[j]?.targetNumAttacks;
-			
+
 			if (availableAttacks / attackersNeeded >= 1) {
-				const numHitAttacks = Math.floor(availableAttacks/attackersNeeded);
+				const numHitAttacks = Math.floor(availableAttacks / attackersNeeded);
 				const pluralOrNot = ` ${game.i18n.localize((numHitAttacks === 1) ? "MAT.oneAttackSingular" : "MAT.multipleAttackPlural")}!`;
 				const sOrNot = ((numHitAttacks > 1) ? "s" : "");
 				const targetACtext = game.user.isGM ? `${game.i18n.localize("MAT.targetAC")} ${targetAC}` : ``;
@@ -54,7 +53,7 @@ export async function rollMobAttack(data) {
 				let attackToken;
 				let availableTokens = data.selectedTokenIds.filter(t => !tokenAttackList.includes(t));
 				for (let i = 0; i < numHitAttacks; i++) {
-					attackToken = availableTokens[Math.floor(Math.random()*availableTokens.length)];
+					attackToken = availableTokens[Math.floor(Math.random() * availableTokens.length)];
 					if (attackToken) tokenAttackList.push(attackToken);
 				}
 
@@ -99,7 +98,7 @@ export async function rollMobAttack(data) {
 
 				await new Promise(resolve => setTimeout(resolve, 250));
 			} else {
-				ui.notifications.warn(game.i18n.format("MAT.lowAttackBonusOrSmallMob",{weaponName: weaponData.name}));
+				ui.notifications.warn(game.i18n.format("MAT.lowAttackBonusOrSmallMob", { weaponName: weaponData.name }));
 			}
 		}
 	}
@@ -124,23 +123,22 @@ export async function rollMobAttack(data) {
 	}
 }
 
-
 export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks, isVersatile, tokenAttackList, targetId) {
 
 	// Check for midi-qol
 	let midi_QOL_Active = false;
 	if (game.modules.get("midi-qol")?.active && game.settings.get(moduleName, "enableMidi")) midi_QOL_Active = true;
 
-	let showDamageRolls = game.user.getFlag(moduleName,"showIndividualDamageRolls") ?? game.settings.get(moduleName,"showIndividualDamageRolls");
+	let showDamageRolls = game.user.getFlag(moduleName, "showIndividualDamageRolls") ?? game.settings.get(moduleName, "showIndividualDamageRolls");
 
 	if (midi_QOL_Active) {
 		await new Promise(resolve => setTimeout(resolve, 100));
 
-		let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
+		let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData, isVersatile);
 		let diceFormula = diceFormulas.join(" + ");
 		let damageType = damageTypes.join(", ");
-		let damageRoll = new Roll(diceFormula,{mod: weaponData.actor.system.abilities[weaponData.abilityMod].mod});
-		await damageRoll.alter(numHitAttacks,0,{multiplyNumeric: true}).roll();
+		let damageRoll = new Roll(diceFormula, { mod: weaponData.actor.system.abilities[weaponData.abilityMod].mod });
+		await damageRoll.alter(numHitAttacks, 0, { multiplyNumeric: true }).roll();
 
 		if (game.modules.get("dice-so-nice")?.active && game.settings.get(moduleName, "enableDiceSoNice")) game.dice3d.showForRoll(damageRoll);
 
@@ -151,16 +149,16 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 				targetToken = game.scenes.get(mltFlags.sscene).data.tokens.get(mltFlags.stoken);
 			}
 		}
-		
+
 		let workflow = new MidiQOL.DamageOnlyWorkflow(
-			weaponData.actor, 
+			weaponData.actor,
 			targetToken ?? undefined,
-			damageRoll.total, 
-			damageTypeLabels[0], 
+			damageRoll.total,
+			damageTypeLabels[0],
 			targetToken ? [targetToken] : [],
-			damageRoll, 
+			damageRoll,
 			{
-				flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})`, 
+				flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})`,
 				itemData: weaponData.data,
 				itemCardId: `new`
 			}
@@ -190,8 +188,8 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 				damageList: workflow.damageList,
 				otherDamageTotal: 0,
 				otherDamageDetail: workflow.otherDamageDetail,
-				otherDamageList: [{damage: damageRoll.total, type: damageTypes[0]}],
-				rollOptions: {advantage: data.withAdvantage, disadvantage: data.withDisadvantage, versatile: isVersatile, fastForward: true},
+				otherDamageList: [{ damage: damageRoll.total, type: damageTypes[0] }],
+				rollOptions: { advantage: data.withAdvantage, disadvantage: data.withDisadvantage, versatile: isVersatile, fastForward: true },
 				advantage: data.withAdvantage,
 				disadvantage: data.withDisadvantage,
 				event: null,
@@ -199,7 +197,7 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 				rollData: weaponData.actor.getRollData(),
 				tag: "OnUse",
 				concentrationData: getProperty(weaponData.actor.data.flags, "midi-qol.concentration-data"),
-				templateId: workflow.templateId, 
+				templateId: workflow.templateId,
 				templateUuid: workflow.templateUuid
 			}
 
@@ -212,27 +210,27 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 				}
 				macroData.tokenId = tokenAttackList[j].tokenId;
 				macroData.tokenUuid = tokenAttackList[j].tokenUuid;
-				await callMidiMacro(weaponData, macroData);	
+				await callMidiMacro(weaponData, macroData);
 			}
 		}
 		Hooks.call("midi-qol.DamageRollComplete", workflow);
 
-	// midi-qol not active
+		// midi-qol not active
 	} else {
 		if (showDamageRolls) {
-			await new Promise(resolve => setTimeout(resolve, 100));	
+			await new Promise(resolve => setTimeout(resolve, 100));
 			for (let i = 0; i < numHitAttacks; i++) {
-				await weaponData.rollDamage({"critical": false, "event": {"shiftKey": true}});	
-				await new Promise(resolve => setTimeout(resolve, 300));	
-			}	
+				await weaponData.rollDamage({ "critical": false, "event": { "shiftKey": true } });
+				await new Promise(resolve => setTimeout(resolve, 300));
+			}
 		} else {
 			// Condense the damage rolls.
-			let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData,isVersatile);
+			let [diceFormulas, damageTypes, damageTypeLabels] = getDamageFormulaAndType(weaponData, isVersatile);
 			let diceFormula = diceFormulas.join(" + ");
 			let damageType = damageTypes.join(", ");
-			let damageRoll = new Roll(diceFormula, {mod: weaponData.actor.system.abilities[weaponData.abilityMod].mod})
-			await damageRoll.alter(numHitAttacks, 0, {multiplyNumeric: true});
-			damageRoll = await damageRoll.evaluate({async: true});
+			let damageRoll = new Roll(diceFormula, { mod: weaponData.actor.system.abilities[weaponData.abilityMod].mod })
+			await damageRoll.alter(numHitAttacks, 0, { multiplyNumeric: true });
+			damageRoll = await damageRoll.evaluate({ async: true });
 			await damageRoll.toMessage(
 				{
 					flavor: `${weaponData.name} - ${game.i18n.localize("Damage Roll")} (${damageType})`
@@ -251,7 +249,7 @@ export async function processMobRulesDamageRolls(data, weaponData, numHitAttacks
 					j = tokenAttackList.length - 1;
 				}
 				if (tokenAttackList.length > 0) {
-					AutoAnimations.playAnimation(canvas.tokens.get(tokenAttackList[j].tokenId), [canvas.tokens.get(targetId)], weaponData);	
+					AutoAnimations.playAnimation(canvas.tokens.get(tokenAttackList[j].tokenId), [canvas.tokens.get(targetId)], weaponData);
 				}
 			}
 		}
