@@ -54,5 +54,5 @@
     "/styles/mob-attack-tool.css"
   ],
   "manifest": "https://raw.githubusercontent.com/daft-develop/mob-attack-tool/master/module.json",
-  "download": "https://github.com/daft-develop/mob-attack-tool/releases/download/0.4.1/module.zip"
+  "download": "https://github.com/daft-develop/mob-attack-tool/releases/latest/download/module.zip"
 }
