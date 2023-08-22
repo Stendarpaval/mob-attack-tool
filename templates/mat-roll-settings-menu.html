@@ -1,41 +1,45 @@
 {{! This partial is based on the foundry settings partial}}
 {{#*inline "settingPartial"}}
-	<div class="form-group">
-		<label style="flex-grow: 5;">{{localize this.name}}</label>
-		<div class="form-fields">
-			{{#if this.isCheckbox}}
-				<input type="checkbox" name="{{this.id}}" data-dtype="Boolean" {{checked this.value}} {{#if this.disabled}}disabled{{/if}} />
-			{{else if this.isSelect}}
-				<select name="{{this.id}}" >
-					{{#select this.value}}
-						{{#each this.choices as |name k|}}
-							<option value="{{k}}">{{localize name}}</option>
-						{{/each}}
-					{{/select}}
-				</select>
-			{{else if this.isRange}}
-				<input type="range" name="{{this.id}}" data-dtype="Number" value="{{ this.value }}"
-					min="{{ this.range.min }}" max="{{ this.range.max }}" step="{{ this.range.step }}" />
-				<span class="range-value">{{this.value}}</span>
-			{{else if this.isColor}}
-				<input type="color" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
-			{{else if this.isNumber}}
-				<input type="number" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
-			{{else}}
-				<input type="text" name="{{this.id}}" value="{{localize this.value}}" data-dtype="{{this.type}}" />
-			{{/if}}
-		</div>
-		<p class="notes">{{localize this.hint}}</p>
+<div class="form-group">
+	<label style="flex-grow: 5;">{{localize this.name}}</label>
+	<div class="form-fields">
+		{{#if this.isCheckbox}}
+		<input type="checkbox" name="{{this.id}}" data-dtype="Boolean" {{checked this.value}} {{#if
+			this.disabled}}disabled{{/if}} />
+		{{else if this.isSelect}}
+		<select name="{{this.id}}">
+			{{#select this.value}}
+			{{#each this.choices as |name k|}}
+			<option value="{{k}}">{{localize name}}</option>
+			{{/each}}
+			{{/select}}
+		</select>
+		{{else if this.isRange}}
+		<input type="range" name="{{this.id}}" data-dtype="Number" value="{{ this.value }}" min="{{ this.range.min }}"
+			max="{{ this.range.max }}" step="{{ this.range.step }}" />
+		<span class="range-value">{{this.value}}</span>
+		{{else if this.isColor}}
+		<input type="color" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+		{{else if this.isNumber}}
+		<input type="number" name="{{this.id}}" value="{{this.value}}" data-dtype="{{this.type}}" />
+		{{else}}
+		<input type="text" name="{{this.id}}" value="{{localize this.value}}" data-dtype="{{this.type}}" />
+		{{/if}}
 	</div>
+	<p class="notes">{{localize this.hint}}</p>
+</div>
 {{/inline}}
 
 <form class="flexcol" autocomplete="off">
 	<nav class="sheet-tabs tabs">
-		<a class="item active" data-tab="roll"><i class="fas fa-dice-d20"></i> {{localize 'SETTINGS.MAT.rollSettings'}}</a>
-		<a class="item" data-tab="multiattack"><i class="fas fa-fist-raised"></i> {{localize 'SETTINGS.MAT.multiattackSettings'}}</a>
+		<a class="item active" data-tab="roll"><i class="fas fa-dice-d20"></i> {{localize
+			'SETTINGS.MAT.rollSettings'}}</a>
+		<a class="item" data-tab="multiattack"><i class="fas fa-fist-raised"></i> {{localize
+			'SETTINGS.MAT.multiattackSettings'}}</a>
 		<a class="item" data-tab="targets"><i class="fas fa-crosshairs"></i> Targets</a>
 		{{#if isGM}}
-		<a class="item" data-tab="module"><i class="fas fa-cogs"></i> {{localize 'SETTINGS.MAT.moduleSpecificSettings'}}</a>
+		<a class="item" data-tab="module"><i class="fas fa-cogs"></i> {{localize
+			'SETTINGS.MAT.moduleSpecificSettings'}}</a>
 		<a class="item" data-tab="mobTable"><i class="fas fa-bars"></i> Custom Table</a>
 		{{/if}}
 	</nav>
@@ -47,7 +51,7 @@
 				<div class="form-group">
 					{{#with this}}
 					{{#if this.client}}
-						{{> settingPartial}}
+					{{> settingPartial}}
 					{{/if}}
 					{{/with}}
 				</div>
@@ -60,7 +64,7 @@
 				<div class="form-group">
 					{{#with this}}
 					{{#if this.client}}
-						{{> settingPartial}}
+					{{> settingPartial}}
 					{{/if}}
 					{{/with}}
 				</div>
@@ -73,7 +77,7 @@
 				<div class="form-group">
 					{{#with this}}
 					{{#if this.client}}
-						{{> settingPartial}}
+					{{> settingPartial}}
 					{{/if}}
 					{{/with}}
 				</div>
@@ -87,7 +91,7 @@
 				<div class="form-group">
 					{{#with this}}
 					{{#if this.client}}
-						{{> settingPartial}}
+					{{> settingPartial}}
 					{{/if}}
 					{{/with}}
 				</div>
@@ -99,7 +103,8 @@
 				<div class="form-group">
 					<label style="flex-grow: 5;">{{localize this.settings.mobTable.hiddenTableCheckBox.name}}</label>
 					<div class="form-fields">
-						<input type="checkbox" name="{{this.settings.mobTable.hiddenTableCheckBox.id}}" data-dtype="Boolean" {{checked this.settings.mobTable.hiddenTableCheckBox.value}} />
+						<input type="checkbox" name="{{this.settings.mobTable.hiddenTableCheckBox.id}}"
+							data-dtype="Boolean" {{checked this.settings.mobTable.hiddenTableCheckBox.value}} />
 					</div>
 					<p class="notes">{{localize this.settings.mobTable.hiddenTableCheckBox.hint}}</p>
 				</div>
@@ -119,13 +124,16 @@
 						{{#each this.settings.mobTable.hiddenTable.rows}}
 						<tr>
 							<td style="text-align:center;">
-								<input type="number" class="numTable" name="{{this.d20RollMinId}}" value="{{this.d20RollMinValue}}" min="1" max="20"/>
+								<input type="number" class="numTable" name="{{this.d20RollMinId}}"
+									value="{{this.d20RollMinValue}}" min="1" max="20" />
 							</td>
 							<td style="text-align:center;">
-								<input type="number" class="numTable" name="{{this.d20RollMaxId}}" value="{{this.d20RollMaxValue}}" min="1" max="20"/>
+								<input type="number" class="numTable" name="{{this.d20RollMaxId}}"
+									value="{{this.d20RollMaxValue}}" min="1" max="20" />
 							</td>
 							<td style="text-align:center; width: calc(50%);">
-								<input type="number" class="numTable" name="{{this.attackersNeededId}}" value="{{this.attackersNeededValue}}" min="1"/>
+								<input type="number" class="numTable" name="{{this.attackersNeededId}}"
+									value="{{this.attackersNeededValue}}" min="1" />
 							</td>
 						</tr>
 						{{/each}}
@@ -133,13 +141,16 @@
 				</table>
 			</div>
 			<div style="display:grid; grid-template-columns: 33% 33% 33%; column-gap:2px;">
-				<button type="button" name="addRow" class="MATaddRow" style="grid-column-start:1; grid-column-end:1; align-self:center">
+				<button type="button" name="addRow" class="MATaddRow"
+					style="grid-column-start:1; grid-column-end:1; align-self:center">
 					<i class="fas fa-plus"></i> {{localize 'MAT.addRow'}}
 				</button>
-				<button type="button" name="removeRow" class="MATremoveRow" {{#if removeRowDisabled}} disabled {{/if}} style="grid-column-start:2; grid-column-end:2; align-self:center">
+				<button type="button" name="removeRow" class="MATremoveRow" {{#if removeRowDisabled}} disabled {{/if}}
+					style="grid-column-start:2; grid-column-end:2; align-self:center">
 					<i class="fas fa-minus"></i> {{localize 'MAT.removeRow'}}
 				</button>
-				<button type="button" name="resetTable" class="MATresetTable" style="grid-column-start:3; grid-column-end:3; align-self:center">
+				<button type="button" name="resetTable" class="MATresetTable"
+					style="grid-column-start:3; grid-column-end:3; align-self:center">
 					<i class="fas fa-undo"></i> {{localize 'MAT.resetTable'}}
 				</button>
 			</div>

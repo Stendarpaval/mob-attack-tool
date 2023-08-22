@@ -1,21 +1,14 @@
 import { initSettings } from "./settings.js";
 import { initMobAttackTool, MobAttackDialog } from "./mobAttackTool.js";
 import { MobAttacks } from "./mobAttackTool.js";
-import { rollNPC, rollAll, matRollInitiative } from "./group-initiative/groupInitiative.js";
-import { libWrapper } from "./lib/shim.js";
 
 export const moduleName = "mob-attack-tool";
-
 
 Hooks.once("init", () => {
 	console.log("Mob Attack Tool | Adding Mob Attack Tool.");
 
 	initSettings();
 	initMobAttackTool();
-
-	// The lines below are commented out to restore combat tracker functionality in V9
-	// console.log("Mob Attack Tool | Wrapping rollInitiative...");
-	// libWrapper.register(moduleName, "Combat.prototype.rollInitiative", matRollInitiative, "OVERRIDE");
 
 	const dialogs = new Map();
 	const storedHooks = {};
@@ -27,7 +20,6 @@ Hooks.once("init", () => {
 		storedHooks
 	}
 })
-
 
 Hooks.on("ready", async () => {
 	window.MobAttacks = MobAttacks();
@@ -73,7 +65,7 @@ Hooks.on("controlToken", async () => {
 	if (mobDialog) {
 		if (mobDialog.rendered && !mobDialog.currentlySelectingTokens) {
 			await game.settings.set(moduleName, "hiddenChangedMob", false);
-			let mobList = game.settings.get(moduleName,"hiddenMobList");
+			let mobList = game.settings.get(moduleName, "hiddenMobList");
 			if (canvas.tokens.controlled.length !== 0 || Object.keys(mobList).length !== 0) {
 				mobDialog.render();
 			}
@@ -88,7 +80,7 @@ Hooks.on("targetToken", async () => {
 	if (mobDialog) {
 		if (mobDialog.rendered) {
 			// await game.settings.set(moduleName, "hiddenChangedMob", false);
-			let mobList = game.settings.get(moduleName,"hiddenMobList");
+			let mobList = game.settings.get(moduleName, "hiddenMobList");
 			if (canvas.tokens.controlled.length !== 0 || Object.keys(mobList).length !== 0) {
 				mobDialog.render();
 			}
@@ -104,7 +96,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 	if (thisCombat.data.combatants.length === 0) return;
 	if (!game.user.isGM && game.combat.combatant.players.filter(p => p.id === game.user.id).length === 0) return;
 
-	const mobList = game.settings.get("mob-attack-tool","hiddenMobList");
+	const mobList = game.settings.get("mob-attack-tool", "hiddenMobList");
 	const nextTurn = combat.turns[changed.turn];
 	const nextTokenId = nextTurn.data.tokenId;
 	let nextMobName = "";
@@ -115,7 +107,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 		}
 	}
 	if (nextMobName === "") return;
-	
+
 	const dialogId = game.settings.get(moduleName, "currentDialogId");
 	let mobDialog = game.mobAttackTool.dialogs.get(dialogId);
 
@@ -128,7 +120,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 	canvas.tokens.releaseAll();
 	for (let tokenId of mobList[nextMobName].selectedTokenIds) {
 		if (canvas.tokens.placeables.filter(t => t.id === tokenId).length > 0) {
-			canvas.tokens.get(tokenId).control({releaseOthers: false})	
+			canvas.tokens.get(tokenId).control({ releaseOthers: false })
 		}
 	}
 	if (mobDialog) {
@@ -141,37 +133,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
 //  Hide DSN 3d dice
 Hooks.on('diceSoNiceRollStart', (messageId, context) => {
 	if (game.settings.get(moduleName, "hiddenDSNactiveFlag")) return;
-    
-    //Hide this roll
-    context.blind=true;
-});
 
-// group initiative: override roll methods from combat tracker
-Hooks.on("renderCombatTracker", async ( app, html, options ) => {
-	let combat = options.combat;
-	if (!combat) return;
-
-	if (!combat.matRollInitiative) {
-		combat.matRollInitiative = matRollInitiative.bind(combat);
-	}
-
-	if (!combat.MAToriginalRollNPC) {
-		combat.MAToriginalRollNPC = combat.rollNPC;	
-	}
-	if (!combat.MAToriginalRollAll) {
-		combat.MAToriginalRollAll = combat.rollAll;	
-	}
-
-	if (game.settings.get(moduleName, "enableMobInitiative")) {	
-		combat.rollNPC = rollNPC.bind(combat);
-		combat.rollAll = rollAll.bind(combat);	
-	} else {
-		// reset the methods
-		if (combat.MAToriginalRollNPC) {
-			combat.rollNPC = combat.MAToriginalRollNPC;
-		}
-		if (combat.MAToriginalRollAll) {
-			combat.rollAll = combat.MAToriginalRollAll;
-		}
-	}
+	//Hide this roll
+	context.blind = true;
 });

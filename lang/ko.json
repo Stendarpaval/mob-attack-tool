@@ -57,7 +57,7 @@
 	"MAT.thisTarget": "이 대상",
 	"MAT.willBeAttacked": "명중 예상:",
 	"MAT.times": "회",
-	
+
 	"MAT.midiDamageLabel": "공격 - 대상 AC",
 	"MAT.critIncluded": "치명타 포함",
 	"MAT.targetAC": "대상 AC",
@@ -66,7 +66,6 @@
 	"MAT.selectRollType": "굴림 유형 선택",
 	"MAT.exportToMacro": "매크로로 내보내기",
 	"MAT.macroNameNote": "이 집단 공격의 매크로 이름을 선택한다.",
-	"MAT.endMobTurnText": "다음 집단 전투원의 턴을 건너뜁니다",
 
 	"MAT.acMod": "AC 수정자",
 	"MAT.acModNotes": "절반 혹은 3/4 엄폐와 같은 상황별 보너스나 방패 혹은 신앙의 방패와 같은 주문 효과에 대해 이 수치를 올린다..",
@@ -114,8 +113,6 @@
 	"SETTINGS.MAT.enableMidiOnUseMacroHint": "활성화 될 경우 Mob Attack Tool이 무기나 주문 아이템의 매크로 사용 필드에 이름이 지정된 매크로를 실행한다. 이 기능을 사용하려면 Midi-Qol이 필요하다.",
 	"SETTINGS.MAT.dontSendItemCardId": "아이템 카드 ID 공유 비활성화",
 	"SETTINGS.MAT.dontSendItemCardIdHint": "이 설정은 Midi-Qol의 매크로 사용 기능과 관련이 있으며 Midi-Qol은 아이템 카드 ID의 값을 사용하여 주사위 굴림을 하나의 채팅 메시지 카드에 병합하거나 이러한 카드에 추가 피해 굴림을 더한다. Mob Attack Tool은 Midi-Qol의 피해만으로 설정된 워크플로우를 사용하여 \"기타 피해\" 굴림으로 간주되는 채팅 메시지를 생성한다. 유감스럽게도 이는 피해 전용 워크플로우를 사용하는 모든 매크로가 Mob Attack Tool의 피해 굴림 카드를 덮어쓰게 된다. 이 설정을 활성화하면 아이템 카드 ID 값이 공유되지 않고 새 채팅 메시지가 생성된다.",
-	"SETTINGS.MAT.enableBetterRolls": "Better Rolls for 5e 활성화",
-	"SETTINGS.MAT.enableBetterRollsHint": "해당 모듈이 설치된 경우 Better Rolls for 5e를 사용하려면 이 설정을 활성화한다. Mob Attack Tool로부터의 사용을 금지하려면 이 설정을 비활성화 한다.",
 	"SETTINGS.MAT.enableAutoAnimations": "Automated Animations 활성화",
 	"SETTINGS.MAT.enableAutoAnimationsHint": "활성화시 각 집단 공격이 명중할 때마다 Automated Animation 모듈이 대상에 대한 집단 공격자들의 공격 애니메이션을 표시하도록 요청한다.",
 	"SETTINGS.MAT.mobRulesOrIndividual": "집단 규칙 또는 개별 굴림 사용",
@@ -135,8 +132,6 @@
 	"SETTINGS.MAT.noAutoDetect": "비자동 탐지",
 	"SETTINGS.MAT.autoDetectOnly": "자동 탐지만",
 	"SETTINGS.MAT.autoDetectAndSelect": "자동 탐지 + 자동 선택",
-	"SETTINGS.MAT.endMobTurn": "그룹화된 집단 턴을 종료하는 옵션 포함",
-	"SETTINGS.MAT.endMobTurnHint": "활성화시 집단 공격 대화상자에 옵션이 추가되어 전투 추적기에서 동일 그룹화된 집단 공격자들의 턴을 건너뛴다. Grouped Initiative 모듈과 호환됨.",
 	"SETTINGS.MAT.askRollType": "이점 / 불리점 선택 포함",
 	"SETTINGS.MAT.askRollTypeHint": "활성화시 집단 공격 대화상자에 드롭다운 목록이 추가되어 이점 / 불리점을 함께 굴리도록 선택할 수 있다.(클라이언트별 설정)",
 	"SETTINGS.MAT.rollTypeValue": "이점 / 불리점 값",
